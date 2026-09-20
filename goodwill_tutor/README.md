@@ -9,6 +9,17 @@ Attach PDF / image  ->  Gemini solves  ->  HTML in house style
 ->  review and edit  ->  Playwright PDF  ->  teach
 ```
 
+## Getting a question in
+
+Three ways, all equivalent:
+
+- **Ctrl+V** — paste a screenshot (Snipping Tool), an image copied from a PDF
+  reader or browser, or files copied in File Explorer
+- **Attach PDF / image** — the file dialog, several pages at once
+- Mix both in one message
+
+Pasting needs Pillow. Without it, Ctrl+V still pastes text and says so.
+
 ## Setup (once per machine)
 
 ```
@@ -42,8 +53,9 @@ python goodwill_tutor.py
 Gemini writes only the `.page-block` body. Every line of CSS comes from
 `house_style.py`, so the house style cannot drift between documents.
 
-The interface uses the Claude cream scheme. The document does not — it keeps
-the `#C8C8C8` house page colour, set in `house_style.py`.
+The interface is warm beige throughout, with no white surfaces. The document
+does not follow it — it keeps the `#C8C8C8` house page colour, set in
+`house_style.py`.
 
 ## Modes
 

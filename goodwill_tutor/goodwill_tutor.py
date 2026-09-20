@@ -9,7 +9,7 @@ Workflow:
     Attach PDF / image  ->  Gemini solves  ->  HTML in house style
     ->  review and edit  ->  Playwright PDF  ->  teach on Zoom
 
-Requires:  pip install requests playwright matplotlib
+Requires:  pip install requests playwright matplotlib pillow
            playwright install chromium
 Key:       set GEMINI_API_KEY in the environment.
 """
@@ -39,6 +39,14 @@ try:
 except ImportError:
     PIE_CHARTS = False
 
+# Tk can only read TEXT from the clipboard, never image data, so pasting a
+# screenshot needs Pillow.
+try:
+    from PIL import ImageGrab, Image
+    CLIPBOARD_IMAGES = True
+except ImportError:
+    CLIPBOARD_IMAGES = False
+
 
 # ═══════════════════════════════════════════════════════════════
 #  PATHS AND CONSTANTS
@@ -50,9 +58,10 @@ SETTINGS_FILE = os.path.join(APP_DIR, "settings.json")
 DESKTOP = os.path.join(os.path.expanduser("~"), "Desktop")
 SOLUTIONS_DIR = os.path.join(DESKTOP, "Goodwill_Solutions")
 PREVIEW_DIR = os.path.join(APP_DIR, "preview")
+PASTED_DIR = os.path.join(APP_DIR, "pasted")
 PREVIEW_WIDTH = 880       # A4 at 96dpi is 794px; a little wider reads better
 
-for _d in (APP_DIR, CONVERSATIONS_DIR, SOLUTIONS_DIR, PREVIEW_DIR):
+for _d in (APP_DIR, CONVERSATIONS_DIR, SOLUTIONS_DIR, PREVIEW_DIR, PASTED_DIR):
     os.makedirs(_d, exist_ok=True)
 
 # Interface palette — warm beige throughout. Nothing white or near-white:
@@ -476,6 +485,63 @@ def attach_files():
         if p not in attachments:
             attachments.append(p)
     refresh_attachments()
+
+
+def paste_from_clipboard(event=None):
+    """Attach whatever is on the clipboard: a screenshot, or files copied in Explorer.
+
+    Returns "break" when something was attached, so the keystroke does not also
+    dump binary junk into the typing box. Returns None for plain text, letting
+    Tk paste it normally.
+    """
+    if not CLIPBOARD_IMAGES:
+        set_status("Pasting pages needs Pillow — run:  pip install pillow", RED)
+        return None
+
+    try:
+        grabbed = ImageGrab.grabclipboard()
+    except Exception as exc:
+        set_status(f"Could not read the clipboard: {exc}", RED)
+        return None
+
+    # Files copied in Explorer arrive as a list of paths.
+    if isinstance(grabbed, list):
+        added, skipped = 0, []
+        for path in grabbed:
+            try:
+                api.mime_for(path)
+            except api.GeminiError:
+                skipped.append(os.path.basename(path))
+                continue
+            if path not in attachments:
+                attachments.append(path)
+                added += 1
+        refresh_attachments()
+        if added and skipped:
+            set_status(f"Attached {added}; skipped {', '.join(skipped[:3])}.", ACCENT)
+        elif added:
+            set_status(f"Attached {added} file(s) from the clipboard.", GREEN)
+        else:
+            set_status("Those file types cannot be sent — PDF or image only.", RED)
+        return "break"
+
+    # A bitmap: a screenshot, or an image copied out of a PDF reader.
+    if Image is not None and isinstance(grabbed, Image.Image):
+        try:
+            if grabbed.mode not in ("RGB", "L"):
+                grabbed = grabbed.convert("RGB")
+            name = datetime.now().strftime("pasted_%Y%m%d_%H%M%S_%f.png")
+            path = os.path.join(PASTED_DIR, name)
+            grabbed.save(path, "PNG")
+        except Exception as exc:
+            set_status(f"Could not save the pasted image: {exc}", RED)
+            return None
+        attachments.append(path)
+        refresh_attachments()
+        set_status(f"Pasted image attached ({grabbed.width}x{grabbed.height}).", GREEN)
+        return "break"
+
+    return None          # plain text or an empty clipboard: let Tk handle it
 
 
 def clear_attachments():
@@ -1321,6 +1387,9 @@ attach_row = tk.Frame(input_frame, bg=BG)
 attach_row.pack(fill=tk.X, pady=(0, 6))
 tk.Button(attach_row, text="Attach PDF / image", command=attach_files, font=("Arial", 9),
           bg=SIDEBAR, fg=TEXT, relief=tk.FLAT, padx=10, cursor="hand2").pack(side=tk.LEFT)
+tk.Button(attach_row, text="Paste  (Ctrl+V)", command=paste_from_clipboard,
+          font=("Arial", 9), bg=SIDEBAR, fg=TEXT, relief=tk.FLAT,
+          padx=10, cursor="hand2").pack(side=tk.LEFT, padx=5)
 tk.Button(attach_row, text="Clear", command=clear_attachments, font=("Arial", 9),
           bg=BG, fg=MUTED, relief=tk.FLAT).pack(side=tk.LEFT, padx=5)
 attach_label = tk.Label(attach_row, text="No pages attached", font=("Arial", 9),
@@ -1332,6 +1401,9 @@ entry = tk.Text(input_frame, height=4, wrap=tk.WORD, font=("Georgia", 11),
 entry.pack(fill=tk.X)
 entry.bind("<Return>", send_message)
 entry.bind("<Shift-Return>", lambda e: None)
+for _seq in ("<Control-v>", "<Control-V>", "<Shift-Insert>"):
+    entry.bind(_seq, paste_from_clipboard)
+    root.bind(_seq, paste_from_clipboard)
 
 # ── right: artifact ──────────────────────────────────────────────────
 right = tk.Frame(split, bg=ARTIFACT_BG)
@@ -1413,7 +1485,7 @@ editor.frame.config(bg=ARTIFACT_BG)
 # ── start ────────────────────────────────────────────────────────────
 chat.config(state=tk.NORMAL)
 chat.insert(tk.END, "\n  Goodwill Gemini Tutor\n", "ai_msg")
-chat.insert(tk.END, "  Attach a PDF or image of the question, then press Send.\n", "ai_msg")
+chat.insert(tk.END, "  Attach or paste (Ctrl+V) a PDF or image of the question, then press Send.\n", "ai_msg")
 chat.insert(tk.END, "  Solve mode builds an A4 document in house style.\n", "ai_msg")
 chat.insert(tk.END, "  The HTML appears on the right. Edit it, then Generate PDF.\n\n", "ai_msg")
 if not pdf_export.playwright_available():
