@@ -1061,7 +1061,12 @@ def on_mode_change(_evt=None):
 
 root = tk.Tk()
 root.title("Goodwill Gemini Tutor")
-root.geometry("1560x860")
+# Size to the screen rather than a fixed guess: leave room for the Windows
+# taskbar and the title bar, so the typing box and attach row are never
+# pushed out of reach on a smaller laptop display.
+_sw, _sh = root.winfo_screenwidth(), root.winfo_screenheight()
+root.geometry(f"{min(1500, _sw - 80)}x{min(800, _sh - 140)}+30+25")
+root.minsize(1000, 560)
 root.configure(bg=BG)
 
 # ── top bar ──────────────────────────────────────────────────────────
@@ -1150,8 +1155,14 @@ split.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 left = tk.Frame(split, bg=BG)
 split.add(left, minsize=380, width=620)
 
+# The input area is packed FIRST and anchored to the bottom, so it always
+# keeps its space. Packing the chat first lets it claim the whole cavity and
+# push the attach row off the bottom of the screen.
+input_frame = tk.Frame(left, bg=BG)
+input_frame.pack(side=tk.BOTTOM, fill=tk.X, padx=14, pady=(0, 12))
+
 chat_frame = tk.Frame(left, bg=BG)
-chat_frame.pack(fill=tk.BOTH, expand=True, padx=14, pady=(12, 4))
+chat_frame.pack(side=tk.TOP, fill=tk.BOTH, expand=True, padx=14, pady=(12, 4))
 chat = scrolledtext.ScrolledText(chat_frame, wrap=tk.WORD, font=("Georgia", 11),
                                  bg=BG, fg=TEXT, relief=tk.FLAT, borderwidth=0,
                                  padx=10, pady=10)
@@ -1166,9 +1177,6 @@ chat.tag_config("user_msg", background=USER_BUBBLE, font=("Georgia", 11),
 chat.tag_config("ai_msg", background=AI_BUBBLE, font=("Georgia", 11),
                 lmargin1=10, lmargin2=10, rmargin=10, spacing1=3, spacing3=3)
 chat.tag_config("spacer", spacing1=2, spacing3=2)
-
-input_frame = tk.Frame(left, bg=BG)
-input_frame.pack(side=tk.BOTTOM, fill=tk.X, padx=14, pady=(0, 16))
 
 btn_row = tk.Frame(input_frame, bg=BG)
 btn_row.pack(fill=tk.X, pady=(0, 5))
@@ -1185,14 +1193,8 @@ tk.Button(btn_row, text="Clear chat", command=lambda: clear_chat(), font=("Arial
 status_label = tk.Label(btn_row, text="Ready", font=("Arial", 9), bg=BG, fg="#666666")
 status_label.pack(side=tk.RIGHT)
 
-entry = tk.Text(input_frame, height=4, wrap=tk.WORD, font=("Georgia", 11),
-                bg="white", fg=TEXT, relief=tk.FLAT, padx=10, pady=8)
-entry.pack(fill=tk.X)
-entry.bind("<Return>", send_message)
-entry.bind("<Shift-Return>", lambda e: None)
-
 attach_row = tk.Frame(input_frame, bg=BG)
-attach_row.pack(fill=tk.X, pady=(6, 0))
+attach_row.pack(fill=tk.X, pady=(0, 6))
 tk.Button(attach_row, text="Attach PDF / image", command=attach_files, font=("Arial", 9),
           bg=SIDEBAR, fg=TEXT, relief=tk.FLAT, padx=10, cursor="hand2").pack(side=tk.LEFT)
 tk.Button(attach_row, text="Clear", command=clear_attachments, font=("Arial", 9),
@@ -1200,6 +1202,12 @@ tk.Button(attach_row, text="Clear", command=clear_attachments, font=("Arial", 9)
 attach_label = tk.Label(attach_row, text="No pages attached", font=("Arial", 9),
                         bg=BG, fg="#888888")
 attach_label.pack(side=tk.LEFT, padx=10)
+
+entry = tk.Text(input_frame, height=4, wrap=tk.WORD, font=("Georgia", 11),
+                bg="white", fg=TEXT, relief=tk.FLAT, padx=10, pady=8)
+entry.pack(fill=tk.X)
+entry.bind("<Return>", send_message)
+entry.bind("<Shift-Return>", lambda e: None)
 
 # ── right: artifact ──────────────────────────────────────────────────
 right = tk.Frame(split, bg=ARTIFACT_BG)
