@@ -80,23 +80,50 @@ def _headers():
 #  MODELS — fetched live, never hard-coded
 # ═══════════════════════════════════════════════════════════════
 
+# Models that cannot solve an accounting question in this app.
+# They stay in the dropdown but sort to the bottom and are never auto-selected.
+SPECIALIST_MARKERS = (
+    "deep-research", "antigravity", "robotics", "computer-use",
+    "nano-banana", "gemma", "imagen", "veo", "-tts", "-image",
+    "guard", "learnlm",
+)
+
+
+def is_general_model(model_id):
+    """True for an ordinary Gemini chat model — the kind that solves problems."""
+    mid = model_id.lower()
+    if not mid.startswith("gemini"):
+        return False
+    return not any(marker in mid for marker in SPECIALIST_MARKERS)
+
+
 def _rank(model_id):
-    """Sort key: newest generation first, Pro before Flash before Flash-Lite."""
-    version = 0.0
-    for token in model_id.replace("-", " ").split():
-        try:
-            version = max(version, float(token))
-        except ValueError:
-            continue
-    tier = 0
-    if "flash-lite" in model_id:
+    """Sort key: ordinary chat models first, newest first, Pro before Flash."""
+    mid = model_id.lower()
+    group = 0 if is_general_model(mid) else 1
+
+    # A '-latest' alias always points at the current model, so it outranks
+    # any numbered release.
+    if "latest" in mid:
+        version = 999.0
+    else:
+        version = 0.0
+        for token in mid.replace("-", " ").split():
+            try:
+                version = max(version, float(token))
+            except ValueError:
+                continue
+
+    if "flash-lite" in mid:
         tier = 3
-    elif "flash" in model_id:
+    elif "flash" in mid:
         tier = 2
-    elif "pro" in model_id:
+    elif "pro" in mid:
         tier = 1
-    preview = 1 if ("preview" in model_id or "exp" in model_id) else 0
-    return (-version, tier, preview, model_id)
+    else:
+        tier = 4
+    preview = 1 if ("preview" in mid or "exp" in mid) else 0
+    return (group, -version, tier, preview, mid)
 
 
 def list_models(timeout=30):
