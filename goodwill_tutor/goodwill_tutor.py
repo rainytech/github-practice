@@ -55,22 +55,24 @@ PREVIEW_WIDTH = 880       # A4 at 96dpi is 794px; a little wider reads better
 for _d in (APP_DIR, CONVERSATIONS_DIR, SOLUTIONS_DIR, PREVIEW_DIR):
     os.makedirs(_d, exist_ok=True)
 
-# Interface palette — the Claude.ai cream scheme.
+# Interface palette — warm beige throughout. Nothing white or near-white:
+# every surface sits in a narrow warm band, separated by tone rather than by
+# brightness, so the eye is not fighting glare all day.
 # The DOCUMENT keeps its own #C8C8C8 page colour; that is house style and is
 # set in house_style.py, not here.
-BG = "#F5F4EE"           # main background
-SIDEBAR = "#E5E4DD"      # side panels and toolbars
-FIELD = "#FFFFFF"        # typing box, editor, lists
-TEXT = "#1F1E1D"         # primary text
-MUTED = "#8A857D"        # secondary text
-BORDER = "#D8D6CC"
+BG = "#EDE9DE"           # main background
+SIDEBAR = "#E3DECF"      # side panels and toolbars
+FIELD = "#F2EEE3"        # typing box, editor, lists
+TEXT = "#2A2723"         # primary text, warm near-black
+MUTED = "#837C6E"        # secondary text
+BORDER = "#D5CFBE"
 ACCENT = "#D97757"       # Claude orange
-BLUE = "#0057B8"         # links and headings
-GREEN = "#2D7A2D"        # success
-RED = "#CC0000"          # failure
-USER_BUBBLE = "#E8E6DC"
-AI_BUBBLE = "#FFFFFF"
-ARTIFACT_BG = "#FAF9F5"
+BLUE = "#0F5FA6"         # links and headings
+GREEN = "#2D6A2D"        # success
+RED = "#B81E1E"          # failure
+USER_BUBBLE = "#E3DECF"
+AI_BUBBLE = "#F2EEE3"
+ARTIFACT_BG = "#EDE9DE"
 
 MAX_HISTORY_TURNS = 20
 ATTACH_TYPES = [
@@ -1031,8 +1033,10 @@ def open_settings():
 
     tk.Label(win, text="System prompt", font=("Arial", 10, "bold"),
              bg=BG, fg=TEXT).pack(anchor="w", padx=16, pady=(14, 2))
-    box = scrolledtext.ScrolledText(win, wrap=tk.WORD, font=("Consolas", 9), height=22)
+    box = scrolledtext.ScrolledText(win, wrap=tk.WORD, font=("Consolas", 9), height=22,
+                                    bg=FIELD, fg=TEXT, relief=tk.FLAT)
     box.pack(fill=tk.BOTH, expand=True, padx=16)
+    box.frame.config(bg=BG)
 
     def show(key):
         box.delete("1.0", tk.END)
@@ -1277,6 +1281,7 @@ chat = scrolledtext.ScrolledText(chat_frame, wrap=tk.WORD, font=("Georgia", 11),
                                  bg=BG, fg=TEXT, relief=tk.FLAT, borderwidth=0,
                                  padx=10, pady=10)
 chat.pack(fill=tk.BOTH, expand=True)
+chat.frame.config(bg=BG)          # ScrolledText's wrapper keeps Tk's grey otherwise
 chat.config(state=tk.DISABLED)
 chat.tag_config("user_label", background=ACCENT, foreground="white",
                 font=("Arial", 9, "bold"), spacing1=5, spacing3=5)
@@ -1403,6 +1408,7 @@ tk.Label(editor_bar, text="Edit freely, then Apply. The PDF uses what is here.",
 editor = scrolledtext.ScrolledText(right, wrap=tk.NONE, font=("Consolas", 9),
                                    bg=FIELD, fg=TEXT, relief=tk.FLAT, undo=True)
 editor.pack(fill=tk.BOTH, expand=True, padx=14, pady=(0, 14))
+editor.frame.config(bg=ARTIFACT_BG)
 
 # ── start ────────────────────────────────────────────────────────────
 chat.config(state=tk.NORMAL)
