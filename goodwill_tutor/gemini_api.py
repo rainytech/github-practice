@@ -84,8 +84,8 @@ def _headers():
 # They stay in the dropdown but sort to the bottom and are never auto-selected.
 SPECIALIST_MARKERS = (
     "deep-research", "antigravity", "robotics", "computer-use",
-    "nano-banana", "gemma", "imagen", "veo", "-tts", "-image",
-    "guard", "learnlm",
+    "nano-banana", "gemma", "imagen", "veo", "lyria",
+    "-tts", "-image", "transcribe", "guard", "learnlm",
 )
 
 
@@ -102,18 +102,9 @@ def _rank(model_id):
     mid = model_id.lower()
     group = 0 if is_general_model(mid) else 1
 
-    # A '-latest' alias always points at the current model, so it outranks
-    # any numbered release.
-    if "latest" in mid:
-        version = 999.0
-    else:
-        version = 0.0
-        for token in mid.replace("-", " ").split():
-            try:
-                version = max(version, float(token))
-            except ValueError:
-                continue
-
+    # Tier first, then newest within the tier: every Pro is listed before any
+    # Flash. Sorting by version first would push Flash above Pro, because the
+    # Flash line carries higher numbers than the Pro line.
     if "flash-lite" in mid:
         tier = 3
     elif "flash" in mid:
@@ -122,8 +113,22 @@ def _rank(model_id):
         tier = 1
     else:
         tier = 4
+
+    # A '-latest' alias can change model under you without warning, which is
+    # wrong for arithmetic that must be reproducible. It sorts last in its
+    # tier and is never auto-selected, but stays available.
+    if "latest" in mid:
+        version = -1.0
+    else:
+        version = 0.0
+        for token in mid.replace("-", " ").split():
+            try:
+                version = max(version, float(token))
+            except ValueError:
+                continue
+
     preview = 1 if ("preview" in mid or "exp" in mid) else 0
-    return (group, -version, tier, preview, mid)
+    return (group, tier, -version, preview, mid)
 
 
 def list_models(timeout=30):

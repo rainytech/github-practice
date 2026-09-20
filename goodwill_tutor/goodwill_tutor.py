@@ -81,7 +81,12 @@ ATTACH_TYPES = [
 #  SETTINGS
 # ═══════════════════════════════════════════════════════════════
 
+# Bumped when the preset structure changes. A file written by an older
+# version is migrated on load rather than being trusted as-is.
+SETTINGS_SCHEMA = 2
+
 DEFAULT_SETTINGS = {
+    "schema": SETTINGS_SCHEMA,
     "active": prompts.DEFAULT_MODE,
     "presets": {k: dict(v) for k, v in prompts.MODES.items()},
     "model": "",
@@ -98,11 +103,32 @@ def load_settings():
         if os.path.exists(SETTINGS_FILE):
             with open(SETTINGS_FILE, "r", encoding="utf-8") as fh:
                 data = json.load(fh)
-            merged = dict(DEFAULT_SETTINGS)
+            merged = json.loads(json.dumps(DEFAULT_SETTINGS))
             merged.update(data)
-            # Make sure the three built-in modes always exist.
+            merged["presets"] = dict(merged.get("presets") or {})
+
+            old_schema = int(data.get("schema", 1))
+
+            # The built-in modes are always present and always current.
+            # An older file may hold a preset of the same name carrying last
+            # year's prompt, which would silently produce markdown instead of
+            # house-style HTML — so the built-ins overwrite, not merge.
             for key, mode in prompts.MODES.items():
-                merged["presets"].setdefault(key, dict(mode))
+                merged["presets"][key] = dict(mode)
+
+            if old_schema < SETTINGS_SCHEMA:
+                # Keep the teacher's own presets, but rename any legacy one out
+                # of the way and start them on the new Solve mode.
+                legacy = merged["presets"].pop("default", None)
+                if legacy and legacy.get("system_prompt"):
+                    legacy["name"] = f"{legacy.get('name', 'Old preset')} (v1)"
+                    merged["presets"]["default_v1"] = legacy
+                merged["active"] = prompts.DEFAULT_MODE
+                merged["schema"] = SETTINGS_SCHEMA
+                merged["model"] = ""          # old model IDs are long gone
+                merged["max_tokens"] = api.DEFAULT_MAX_TOKENS
+                merged["temperature"] = api.DEFAULT_TEMPERATURE
+
             if merged["active"] not in merged["presets"]:
                 merged["active"] = prompts.DEFAULT_MODE
             return merged
