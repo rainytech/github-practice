@@ -1,0 +1,4 @@
+requests
+tkinterweb
+playwright
+matplotlib

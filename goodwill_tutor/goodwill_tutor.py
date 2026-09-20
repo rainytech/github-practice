@@ -1,0 +1,1271 @@
+"""
+GOODWILL TUITION CENTRE — Gemini Tutor
+======================================
+Run this file.
+
+    python goodwill_tutor.py
+
+Workflow:
+    Attach PDF / image  ->  Gemini solves  ->  HTML in house style
+    ->  review and edit  ->  Playwright PDF  ->  teach on Zoom
+
+Requires:  pip install requests tkinterweb playwright matplotlib
+           playwright install chromium
+Key:       set GEMINI_API_KEY in the environment.
+"""
+
+import base64
+import io
+import json
+import os
+import queue
+import re
+import threading
+import tkinter as tk
+from datetime import datetime
+from tkinter import filedialog, messagebox, scrolledtext, ttk
+
+import gemini_api as api
+import house_style as hs
+import pdf_export
+import prompts
+
+# ── optional dependencies ────────────────────────────────────────────
+try:
+    from tkinterweb import HtmlFrame
+    HTML_PREVIEW = True
+except ImportError:
+    HTML_PREVIEW = False
+
+try:
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    PIE_CHARTS = True
+except ImportError:
+    PIE_CHARTS = False
+
+
+# ═══════════════════════════════════════════════════════════════
+#  PATHS AND CONSTANTS
+# ═══════════════════════════════════════════════════════════════
+
+APP_DIR = os.path.join(os.path.expanduser("~"), ".goodwill_tutor")
+CONVERSATIONS_DIR = os.path.join(APP_DIR, "conversations")
+SETTINGS_FILE = os.path.join(APP_DIR, "settings.json")
+DESKTOP = os.path.join(os.path.expanduser("~"), "Desktop")
+SOLUTIONS_DIR = os.path.join(DESKTOP, "Goodwill_Solutions")
+
+for _d in (APP_DIR, CONVERSATIONS_DIR, SOLUTIONS_DIR):
+    os.makedirs(_d, exist_ok=True)
+
+# Interface palette (unchanged from the previous version).
+BG = "#F5F4EE"
+SIDEBAR = "#E5E4DD"
+TEXT = "#1F1E1D"
+ACCENT = "#D97757"
+USER_BUBBLE = "#E8E6DC"
+AI_BUBBLE = "#FFFFFF"
+ARTIFACT_BG = "#FAF9F5"
+
+MAX_HISTORY_TURNS = 20
+ATTACH_TYPES = [
+    ("Question pages", "*.pdf *.jpg *.jpeg *.png *.webp"),
+    ("PDF", "*.pdf"),
+    ("Images", "*.jpg *.jpeg *.png *.webp"),
+    ("All files", "*.*"),
+]
+
+
+# ═══════════════════════════════════════════════════════════════
+#  SETTINGS
+# ═══════════════════════════════════════════════════════════════
+
+DEFAULT_SETTINGS = {
+    "active": prompts.DEFAULT_MODE,
+    "presets": {k: dict(v) for k, v in prompts.MODES.items()},
+    "model": "",
+    "max_tokens": api.DEFAULT_MAX_TOKENS,
+    "temperature": api.DEFAULT_TEMPERATURE,
+    "thinking_budget": None,
+    "verify": True,
+    "charts": False,
+}
+
+
+def load_settings():
+    try:
+        if os.path.exists(SETTINGS_FILE):
+            with open(SETTINGS_FILE, "r", encoding="utf-8") as fh:
+                data = json.load(fh)
+            merged = dict(DEFAULT_SETTINGS)
+            merged.update(data)
+            # Make sure the three built-in modes always exist.
+            for key, mode in prompts.MODES.items():
+                merged["presets"].setdefault(key, dict(mode))
+            if merged["active"] not in merged["presets"]:
+                merged["active"] = prompts.DEFAULT_MODE
+            return merged
+    except Exception as exc:
+        print(f"[settings load failed] {exc}")
+    return json.loads(json.dumps(DEFAULT_SETTINGS))
+
+
+def save_settings():
+    try:
+        with open(SETTINGS_FILE, "w", encoding="utf-8") as fh:
+            json.dump(SETTINGS, fh, indent=2, ensure_ascii=False)
+    except Exception as exc:
+        print(f"[settings save failed] {exc}")
+
+
+SETTINGS = load_settings()
+
+
+def active_preset():
+    return SETTINGS["presets"][SETTINGS["active"]]
+
+
+def active_mode_key():
+    return SETTINGS["active"]
+
+
+# ═══════════════════════════════════════════════════════════════
+#  RUNTIME STATE
+# ═══════════════════════════════════════════════════════════════
+
+attachments = []          # file paths queued for the next message
+conversation_history = []  # Gemini contents array
+doc_blocks = []           # .page-block fragments in the open chapter document
+last_full_html = ""
+last_body = ""
+last_response_text = ""
+verify_report = ""
+current_html_path = None
+current_conversation_id = None
+model_ids = []            # [(id, display)] fetched from the API
+
+stop_event = threading.Event()
+ui_queue = queue.Queue()
+busy = False
+
+
+def post(fn):
+    """Schedule a callable to run on the Tk main thread."""
+    ui_queue.put(fn)
+
+
+def pump():
+    """Drain work posted by background threads."""
+    while True:
+        try:
+            fn = ui_queue.get_nowait()
+        except queue.Empty:
+            break
+        try:
+            fn()
+        except Exception as exc:
+            print(f"[ui task failed] {exc}")
+    root.after(40, pump)
+
+
+# ═══════════════════════════════════════════════════════════════
+#  CHARTS  (optional — off unless switched on)
+# ═══════════════════════════════════════════════════════════════
+
+CHART_TITLES = {
+    "OLD": "Old Profit Sharing Ratio",
+    "NEW": "New Profit Sharing Ratio",
+    "GAIN": "Gaining Ratio",
+    "SACRIFICE": "Sacrificing Ratio",
+    "CAPITAL": "Capital Contribution",
+}
+CHART_COLORS = ["#0057B8", "#6A0DAD", "#CC0000", "#2d7a2d", "#C2185B", "#e07a3c"]
+
+CHART_INSTRUCTION = """
+
+=== CHARTS (this document only) ===
+Where you state a profit-sharing, gaining, sacrificing or capital ratio, add a marker
+on its own line immediately after the sentence:
+  [CHART:OLD] A:5, B:3, C:2 [/CHART]
+Types: OLD, NEW, GAIN, SACRIFICE, CAPITAL. The marker is replaced by a pie chart."""
+
+
+def pie_chart_b64(chart_type, ratios):
+    if not PIE_CHARTS:
+        return None
+    try:
+        labels, values = [], []
+        for part in ratios.split(","):
+            if ":" not in part:
+                continue
+            name, val = part.split(":", 1)
+            labels.append(name.strip())
+            values.append(float(val.strip().replace(",", "").replace("Rs.", "").replace("₹", "")))
+        if not values or sum(values) == 0:
+            return None
+        fig, ax = plt.subplots(figsize=(5, 5), dpi=100)
+        _, _, autotexts = ax.pie(
+            values, labels=labels, autopct="%1.1f%%",
+            colors=CHART_COLORS[:len(values)], startangle=90,
+            textprops={"fontsize": 12, "weight": "bold"},
+            wedgeprops={"edgecolor": "white", "linewidth": 2},
+        )
+        for t in autotexts:
+            t.set_color("white")
+            t.set_weight("bold")
+        ax.set_title(CHART_TITLES.get(chart_type, "Ratio"), fontsize=14,
+                     fontweight="bold", color="#0057B8", pad=15)
+        buf = io.BytesIO()
+        plt.savefig(buf, format="png", bbox_inches="tight", facecolor="white")
+        plt.close(fig)
+        buf.seek(0)
+        return "data:image/png;base64," + base64.b64encode(buf.read()).decode("utf-8")
+    except Exception as exc:
+        print(f"[chart failed] {exc}")
+        return None
+
+
+CHART_RE = re.compile(r"\[CHART:(\w+)\]\s*(.+?)\s*\[/CHART\]", re.DOTALL)
+
+
+def render_charts(text):
+    """Replace chart markers with embedded images, or strip them if charts are off."""
+    if not SETTINGS.get("charts"):
+        return CHART_RE.sub("", text)
+
+    def repl(m):
+        img = pie_chart_b64(m.group(1).upper(), m.group(2))
+        if img:
+            return (f'<div style="text-align:center;margin:12px 0;">'
+                    f'<img src="{img}" style="max-width:380px;height:auto;"></div>')
+        return ""
+    return CHART_RE.sub(repl, text)
+
+
+# ═══════════════════════════════════════════════════════════════
+#  TEXT HELPERS
+# ═══════════════════════════════════════════════════════════════
+
+LATEX_MAP = {
+    r"\\times": "&times;", r"\\div": "&divide;", r"\\pm": "&plusmn;",
+    r"\\leq": "<=", r"\\geq": ">=", r"\\neq": "!=",
+    r"\\approx": "~", r"\\therefore": "&there4;", r"\\because": "&because;",
+    r"\\rightarrow": "&rarr;", r"\\leftarrow": "&larr;",
+}
+
+
+def latex_to_unicode(text):
+    """Safety net: convert stray LaTeX the model may emit despite instructions."""
+    text = re.sub(r"\\frac\s*\{([^{}]+)\}\s*\{([^{}]+)\}",
+                  r'<span class="frac"><span class="num">\1</span>'
+                  r'<span class="den">\2</span></span>', text)
+    for pattern, repl in LATEX_MAP.items():
+        text = re.sub(pattern, repl, text)
+    text = re.sub(r"\$\$([^$]+)\$\$", r"\1", text)
+    text = re.sub(r"\$([^$]+)\$", r"\1", text)
+    text = re.sub(r"\\text\{([^{}]+)\}", r"\1", text)
+    text = re.sub(r"\\mathrm\{([^{}]+)\}", r"\1", text)
+    return text
+
+
+def html_to_chat_text(html):
+    """Flatten an HTML fragment into readable lines for the chat pane."""
+    text = re.sub(r"<(style|script).*?</\1>", "", html, flags=re.DOTALL | re.IGNORECASE)
+    text = re.sub(r'<span class="frac"><span class="num">(.*?)</span>'
+                  r'<span class="den">(.*?)</span></span>', r"(\1 over \2)", text)
+    text = re.sub(r"</(div|tr|table|p|h[1-6])>", "\n", text, flags=re.IGNORECASE)
+    text = re.sub(r"</t[dh]>", "  ", text, flags=re.IGNORECASE)
+    text = re.sub(r"</span>", " ", text, flags=re.IGNORECASE)
+    text = re.sub(r"<[^>]+>", "", text)
+    text = (text.replace("&amp;", "&").replace("&nbsp;", " ")
+                .replace("&there4;", "therefore").replace("&#9658;", ">")
+                .replace("&lt;", "<").replace("&gt;", ">"))
+    text = re.sub(r"[ \t]+", " ", text)
+    text = re.sub(r"\n\s*\n\s*\n+", "\n\n", text)
+    return "\n".join(line.strip() for line in text.splitlines()).strip()
+
+
+def for_chat(text):
+    """Pick the right flattening for the current mode."""
+    if active_mode_key() == "general":
+        return text.strip()
+    return html_to_chat_text(text)
+
+
+def indian_format(value):
+    """12,34,567 — used by the validator report and any local formatting."""
+    s = str(int(value))
+    if len(s) <= 3:
+        return s
+    head, tail = s[:-3], s[-3:]
+    head = re.sub(r"(\d)(?=(\d\d)+$)", r"\1,", head)
+    return f"{head},{tail}"
+
+
+# ═══════════════════════════════════════════════════════════════
+#  CONVERSATIONS
+# ═══════════════════════════════════════════════════════════════
+
+def list_conversations():
+    items = []
+    for name in os.listdir(CONVERSATIONS_DIR):
+        if not name.endswith(".json"):
+            continue
+        try:
+            with open(os.path.join(CONVERSATIONS_DIR, name), "r", encoding="utf-8") as fh:
+                data = json.load(fh)
+            items.append((data.get("id", name[:-5]),
+                          data.get("title", "Untitled"),
+                          data.get("created", "")))
+        except Exception:
+            continue
+    items.sort(key=lambda t: t[2], reverse=True)
+    return items
+
+
+def save_conversation():
+    global current_conversation_id
+    if not conversation_history:
+        return
+    if not current_conversation_id:
+        current_conversation_id = datetime.now().strftime("%Y%m%d_%H%M%S%f")
+    title = "New chat"
+    for turn in conversation_history:
+        if turn.get("role") == "user":
+            for part in turn.get("parts", []):
+                if part.get("text", "").strip():
+                    title = part["text"].strip()[:60]
+                    break
+            break
+    payload = {
+        "id": current_conversation_id,
+        "title": title,
+        "created": datetime.now().isoformat(),
+        "history": strip_binary(conversation_history),
+        "blocks": doc_blocks,
+        "last_html": last_full_html,
+    }
+    try:
+        path = os.path.join(CONVERSATIONS_DIR, f"{current_conversation_id}.json")
+        with open(path, "w", encoding="utf-8") as fh:
+            json.dump(payload, fh, ensure_ascii=False)
+    except Exception as exc:
+        print(f"[conversation save failed] {exc}")
+
+
+def strip_binary(history):
+    """Drop base64 payloads before saving — they make the file enormous."""
+    out = []
+    for turn in history:
+        parts = []
+        for part in turn.get("parts", []):
+            if "inline_data" in part:
+                parts.append({"text": "[attached page]"})
+            else:
+                parts.append(part)
+        out.append({"role": turn.get("role", "user"), "parts": parts})
+    return out
+
+
+def new_conversation():
+    global current_conversation_id, conversation_history, doc_blocks
+    global last_full_html, last_body, current_html_path, verify_report
+    current_conversation_id = None
+    conversation_history = []
+    doc_blocks = []
+    last_full_html = ""
+    last_body = ""
+    current_html_path = None
+    verify_report = ""
+    clear_chat()
+    artifact_title.config(text="Artifact — empty")
+    set_verify_text("")
+    refresh_artifact()
+    refresh_history_list()
+
+
+def load_conversation(conv_id):
+    global current_conversation_id, conversation_history, doc_blocks
+    global last_full_html, current_html_path
+    try:
+        with open(os.path.join(CONVERSATIONS_DIR, f"{conv_id}.json"), "r", encoding="utf-8") as fh:
+            data = json.load(fh)
+    except Exception as exc:
+        set_status(f"Could not load chat: {exc}", "#CC0000")
+        return
+    current_conversation_id = conv_id
+    conversation_history = data.get("history", [])
+    doc_blocks = data.get("blocks", [])
+    last_full_html = data.get("last_html", "")
+    current_html_path = None
+
+    chat.config(state=tk.NORMAL)
+    chat.delete("1.0", tk.END)
+    for turn in conversation_history:
+        body = "\n".join(p["text"] for p in turn.get("parts", []) if "text" in p)
+        if turn.get("role") == "user":
+            chat.insert(tk.END, "\n", "spacer")
+            chat.insert(tk.END, "  You  ", "user_label")
+            chat.insert(tk.END, "\n", "spacer")
+            chat.insert(tk.END, f"  {body}\n\n", "user_msg")
+        else:
+            chat.insert(tk.END, "  Gemini  ", "ai_label")
+            chat.insert(tk.END, "\n", "spacer")
+            chat.insert(tk.END, f"  {html_to_chat_text(body)}\n\n", "ai_msg")
+    chat.config(state=tk.DISABLED)
+    chat.see(tk.END)
+    artifact_title.config(text=data.get("title", "Artifact"))
+    refresh_artifact()
+    set_status(f"Loaded: {data.get('title', conv_id)}", "#2d7a2d")
+
+
+def delete_conversation(conv_id):
+    try:
+        os.remove(os.path.join(CONVERSATIONS_DIR, f"{conv_id}.json"))
+    except Exception:
+        pass
+    if current_conversation_id == conv_id:
+        new_conversation()
+    else:
+        refresh_history_list()
+
+
+# ═══════════════════════════════════════════════════════════════
+#  ATTACHMENTS
+# ═══════════════════════════════════════════════════════════════
+
+def attach_files():
+    paths = filedialog.askopenfilenames(title="Attach question pages", filetypes=ATTACH_TYPES)
+    if not paths:
+        return
+    for p in paths:
+        if p not in attachments:
+            attachments.append(p)
+    refresh_attachments()
+
+
+def clear_attachments():
+    attachments.clear()
+    refresh_attachments()
+
+
+def refresh_attachments():
+    if not attachments:
+        attach_label.config(text="No pages attached", fg="#888888")
+        return
+    names = ", ".join(os.path.basename(p) for p in attachments[:3])
+    extra = f" +{len(attachments) - 3} more" if len(attachments) > 3 else ""
+    attach_label.config(text=f"{len(attachments)} attached: {names}{extra}", fg=ACCENT)
+
+
+# ═══════════════════════════════════════════════════════════════
+#  ARTIFACT PANEL
+# ═══════════════════════════════════════════════════════════════
+
+def refresh_artifact():
+    """Push last_full_html into the preview and the HTML editor."""
+    html = last_full_html or ""
+    if HTML_PREVIEW:
+        preview.load_html(html or "<html><body style='background:#FAF9F5;font-family:Georgia;"
+                                  "padding:30px;color:#888'><h3>Artifact</h3>"
+                                  "<p>Attach a page and send a question.</p></body></html>")
+    else:
+        preview.config(state=tk.NORMAL)
+        preview.delete("1.0", tk.END)
+        preview.insert(tk.END, html or "Install tkinterweb for a live preview:\n\n  pip install tkinterweb")
+        preview.config(state=tk.DISABLED)
+    editor.delete("1.0", tk.END)
+    editor.insert(tk.END, html)
+
+
+def apply_edited_html():
+    """Take what is in the HTML tab, validate it, re-render the preview."""
+    global last_full_html
+    edited = editor.get("1.0", tk.END).rstrip()
+    if not edited.strip():
+        set_status("HTML tab is empty — nothing to apply.", "#CC0000")
+        return
+    last_full_html = edited
+    if HTML_PREVIEW:
+        preview.load_html(last_full_html)
+    run_validator()
+    notebook.select(0)
+    set_status("Edited HTML applied to the preview.", "#2d7a2d")
+
+
+def run_validator():
+    errors, warnings = hs.validate_html(last_full_html or "")
+    report = hs.format_validation(errors, warnings)
+    combined = report if not verify_report else f"{verify_report}\n\n{'-' * 52}\n\n{report}"
+    set_verify_text(combined)
+    if errors:
+        verify_tab_flag(f"Verify ({len(errors)})")
+    elif warnings:
+        verify_tab_flag("Verify (!)")
+    else:
+        verify_tab_flag("Verify")
+    return errors, warnings
+
+
+def verify_tab_flag(label):
+    notebook.tab(2, text=label)
+
+
+def set_verify_text(text):
+    verify_view.config(state=tk.NORMAL)
+    verify_view.delete("1.0", tk.END)
+    verify_view.insert(tk.END, text or "No verification run yet.")
+    verify_view.config(state=tk.DISABLED)
+
+
+def save_html(silent=False):
+    global current_html_path
+    if not last_full_html.strip():
+        if not silent:
+            set_status("Nothing to save yet.", "#CC0000")
+        return None
+    stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    path = os.path.join(SOLUTIONS_DIR, f"goodwill_{stamp}.html")
+    with open(path, "w", encoding="utf-8") as fh:
+        fh.write(last_full_html)
+    current_html_path = path
+    artifact_title.config(text=os.path.basename(path))
+    if not silent:
+        set_status(f"Saved: {os.path.basename(path)}", "#2d7a2d")
+    return path
+
+
+def generate_pdf():
+    """Save the current HTML, then render it through Playwright Chromium."""
+    if not last_full_html.strip():
+        set_status("Nothing to convert yet.", "#CC0000")
+        return
+    errors, _ = run_validator()
+    if errors:
+        if not messagebox.askyesno(
+            "House style errors",
+            f"The validator found {len(errors)} rule violation(s):\n\n"
+            + "\n".join(errors[:6])
+            + "\n\nGenerate the PDF anyway?",
+        ):
+            notebook.select(2)
+            return
+
+    path = save_html(silent=True)
+    set_status("Rendering PDF with Chromium...", ACCENT)
+    pdf_btn.config(state=tk.DISABLED)
+
+    def work():
+        try:
+            out = pdf_export.html_to_pdf(path)
+            post(lambda: pdf_done(out))
+        except pdf_export.PdfExportError as exc:
+            post(lambda e=exc: pdf_failed(str(e)))
+        except Exception as exc:
+            post(lambda e=exc: pdf_failed(str(e)))
+
+    threading.Thread(target=work, daemon=True).start()
+
+
+def pdf_done(path):
+    pdf_btn.config(state=tk.NORMAL)
+    set_status(f"PDF ready: {os.path.basename(path)}", "#2d7a2d")
+    try:
+        pdf_export.open_file(path)
+    except Exception:
+        pass
+
+
+def pdf_failed(message):
+    pdf_btn.config(state=tk.NORMAL)
+    set_status("PDF failed", "#CC0000")
+    messagebox.showerror("PDF export failed", message)
+
+
+def open_in_browser():
+    path = current_html_path or save_html(silent=True)
+    if path:
+        pdf_export.open_file(path)
+    else:
+        set_status("Nothing to open yet.", "#CC0000")
+
+
+def open_folder():
+    pdf_export.open_file(SOLUTIONS_DIR)
+
+
+def copy_answer():
+    if last_response_text:
+        root.clipboard_clear()
+        root.clipboard_append(last_response_text)
+        set_status("Copied to clipboard.", "#2d7a2d")
+    else:
+        set_status("Nothing to copy yet.", "#888888")
+
+
+# ═══════════════════════════════════════════════════════════════
+#  SENDING
+# ═══════════════════════════════════════════════════════════════
+
+def set_status(text, colour=TEXT):
+    status_label.config(text=text, fg=colour)
+
+
+def selected_model():
+    label = model_var.get()
+    for mid, display in model_ids:
+        if f"{display}  [{mid}]" == label or mid == label:
+            return mid
+    return SETTINGS.get("model") or (model_ids[0][0] if model_ids else "")
+
+
+def send_message(event=None):
+    global busy
+    if busy:
+        return "break"
+
+    text = entry.get("1.0", tk.END).strip()
+    if not text and not attachments:
+        return "break"
+    if not text:
+        text = active_preset().get("default_instruction") or "Solve the attached question."
+
+    model = selected_model()
+    if not model:
+        set_status("No model selected — press Refresh models.", "#CC0000")
+        return "break"
+
+    files = list(attachments)
+
+    chat.config(state=tk.NORMAL)
+    chat.insert(tk.END, "\n", "spacer")
+    chat.insert(tk.END, "  You  ", "user_label")
+    chat.insert(tk.END, "\n", "spacer")
+    for p in files:
+        chat.insert(tk.END, f"  [{os.path.basename(p)}]\n", "user_msg")
+    chat.insert(tk.END, f"  {text}\n\n", "user_msg")
+    chat.insert(tk.END, f"  Gemini — {active_preset()['name']}  ", "ai_label")
+    chat.insert(tk.END, "\n", "spacer")
+    chat.insert(tk.END, "  ", "ai_msg")
+    chat.mark_set("stream_start", tk.END)
+    chat.mark_gravity("stream_start", tk.LEFT)
+    chat.config(state=tk.DISABLED)
+    chat.see(tk.END)
+
+    entry.delete("1.0", tk.END)
+    clear_attachments()
+    busy = True
+    stop_event.clear()
+    send_btn.config(state=tk.DISABLED)
+    stop_btn.config(state=tk.NORMAL, bg=ACCENT)
+    set_status("Sending...", ACCENT)
+
+    started = datetime.now()
+    acc = [""]
+    last_paint = [0.0]
+
+    def on_chunk(piece):
+        acc[0] += piece
+        now = datetime.now().timestamp()
+        if now - last_paint[0] < 0.12:
+            return
+        last_paint[0] = now
+        snapshot = acc[0]
+        post(lambda s=snapshot: paint_stream(s))
+
+    def work():
+        try:
+            system_prompt = active_preset()["system_prompt"]
+            if SETTINGS.get("charts") and active_mode_key() != "general":
+                system_prompt += CHART_INSTRUCTION
+
+            post(lambda: set_status("Uploading pages..." if files else "Thinking...", ACCENT))
+            parts = api.build_parts(text, files)
+            conversation_history.append({"role": "user", "parts": parts})
+            if len(conversation_history) > MAX_HISTORY_TURNS * 2:
+                del conversation_history[:len(conversation_history) - MAX_HISTORY_TURNS * 2]
+
+            post(lambda: set_status("Streaming...", ACCENT))
+            answer, in_tok, out_tok = api.stream_generate(
+                conversation_history,
+                model,
+                system_prompt=system_prompt,
+                on_chunk=on_chunk,
+                stop_event=stop_event,
+                max_tokens=int(SETTINGS.get("max_tokens", api.DEFAULT_MAX_TOKENS)),
+                temperature=float(SETTINGS.get("temperature", api.DEFAULT_TEMPERATURE)),
+                thinking_budget=SETTINGS.get("thinking_budget"),
+            )
+            conversation_history.append({"role": "model", "parts": [{"text": answer}]})
+
+            verdict = ""
+            if SETTINGS.get("verify") and active_mode_key() == "solve" and not stop_event.is_set():
+                post(lambda: set_status("Verifying...", ACCENT))
+                try:
+                    verdict = run_verification(text, files, answer, model)
+                except api.GeminiError as exc:
+                    verdict = f"Verification could not run: {exc}"
+
+            elapsed = (datetime.now() - started).total_seconds()
+            post(lambda: finish(answer, in_tok, out_tok, elapsed, model, verdict))
+
+        except api.GeminiError as exc:
+            if conversation_history and conversation_history[-1].get("role") == "user":
+                conversation_history.pop()
+            post(lambda e=exc: fail(str(e)))
+        except Exception as exc:
+            if conversation_history and conversation_history[-1].get("role") == "user":
+                conversation_history.pop()
+            post(lambda e=exc: fail(f"Unexpected error: {e}"))
+
+    threading.Thread(target=work, daemon=True).start()
+    return "break"
+
+
+def paint_stream(snapshot):
+    words = len(snapshot.split())
+    set_status(f"Streaming... ({words} words)", ACCENT)
+    chat.config(state=tk.NORMAL)
+    chat.delete("stream_start", tk.END)
+    chat.insert(tk.END, for_chat(snapshot), "ai_msg")
+    chat.config(state=tk.DISABLED)
+    chat.see(tk.END)
+
+
+def run_verification(question_text, files, answer_html, model):
+    """Second independent pass. Returns the verdict text."""
+    check_parts = api.build_parts(
+        "ORIGINAL INSTRUCTION FROM THE TEACHER:\n"
+        f"{question_text}\n\n"
+        "SOLUTION TO BE CHECKED:\n"
+        f"{answer_html}",
+        files,
+    )
+    verdict, _, _ = api.generate(
+        [{"role": "user", "parts": check_parts}],
+        model,
+        system_prompt=prompts.VERIFY_PROMPT,
+        max_tokens=8192,
+        temperature=0.0,
+    )
+    return verdict.strip()
+
+
+def finish(answer, in_tok, out_tok, elapsed, model, verdict):
+    global busy, last_response_text, last_body, last_full_html, verify_report
+    busy = False
+    send_btn.config(state=tk.NORMAL)
+    stop_btn.config(state=tk.DISABLED, bg="#999999")
+
+    last_response_text = answer
+    chat.config(state=tk.NORMAL)
+    chat.delete("stream_start", tk.END)
+    chat.insert(tk.END, f"{for_chat(answer)}\n\n", "ai_msg")
+    chat.config(state=tk.DISABLED)
+    chat.see(tk.END)
+
+    cost = api.format_cost(model, in_tok, out_tok)
+    meter_label.config(text=f"{elapsed:.1f}s  |  {in_tok}+{out_tok} tokens  |  {cost}")
+
+    verify_report = ""
+    if verdict:
+        verify_report = verdict
+        if verdict.upper().startswith("MISMATCH"):
+            set_status("Verification found a mismatch — see the Verify tab.", "#CC0000")
+        elif verdict.upper().startswith("VERIFIED"):
+            set_status("Verified.", "#2d7a2d")
+
+    if active_mode_key() == "general":
+        set_verify_text(verify_report)
+        save_conversation()
+        refresh_history_list()
+        if not verdict:
+            set_status("Done.", "#2d7a2d")
+        return
+
+    body = api.strip_code_fence(answer)
+    body = latex_to_unicode(body)
+    body = render_charts(body)
+    if 'class="page-block"' not in body:
+        body = f'<div class="page-block">\n{body}\n</div>'
+    last_body = body
+
+    doc_blocks.append(body)
+    if last_full_html.strip():
+        # Append into the live document so manual edits in the HTML tab survive.
+        last_full_html = hs.append_block(last_full_html, body)
+    else:
+        last_full_html = hs.wrap_document(doc_blocks)
+
+    refresh_artifact()
+    run_validator()
+    save_html(silent=True)
+    save_conversation()
+    refresh_history_list()
+    if not verdict:
+        set_status(f"Done — {len(doc_blocks)} block(s) in this document.", "#2d7a2d")
+
+
+def fail(message):
+    global busy
+    busy = False
+    send_btn.config(state=tk.NORMAL)
+    stop_btn.config(state=tk.DISABLED, bg="#999999")
+    chat.config(state=tk.NORMAL)
+    chat.delete("stream_start", tk.END)
+    chat.insert(tk.END, f"[{message}]\n\n", "ai_msg")
+    chat.config(state=tk.DISABLED)
+    chat.see(tk.END)
+    set_status("Failed — see the chat for details.", "#CC0000")
+
+
+def stop_generation():
+    stop_event.set()
+    set_status("Stopping...", "#CC0000")
+
+
+def clear_chat():
+    global conversation_history
+    conversation_history = []
+    chat.config(state=tk.NORMAL)
+    chat.delete("1.0", tk.END)
+    chat.insert(tk.END, "\n  Chat cleared.\n\n", "ai_msg")
+    chat.config(state=tk.DISABLED)
+    meter_label.config(text="")
+
+
+def start_new_document():
+    """Keep the chat, start a fresh chapter document."""
+    global doc_blocks, last_full_html, current_html_path
+    doc_blocks = []
+    last_full_html = ""
+    current_html_path = None
+    artifact_title.config(text="Artifact — empty")
+    refresh_artifact()
+    set_status("New document started. The next answer begins a fresh chapter.", "#2d7a2d")
+
+
+def remove_last_block():
+    """Drop the last question from the open document, keeping any manual edits above it."""
+    global last_full_html
+    if not doc_blocks:
+        set_status("No blocks to remove.", "#CC0000")
+        return
+    doc_blocks.pop()
+    cut = last_full_html.rfind('<div class="page-block"')
+    if cut == -1:
+        last_full_html = hs.wrap_document(doc_blocks) if doc_blocks else ""
+    else:
+        last_full_html = last_full_html[:cut].rstrip() + "\n</body>\n</html>\n"
+    refresh_artifact()
+    set_status(f"Removed the last block — {len(doc_blocks)} remaining.", "#2d7a2d")
+
+
+# ═══════════════════════════════════════════════════════════════
+#  MODELS
+# ═══════════════════════════════════════════════════════════════
+
+def refresh_models(initial=False):
+    set_status("Fetching model list...", ACCENT)
+
+    def work():
+        try:
+            found = api.list_models()
+            post(lambda: models_loaded(found, initial))
+        except api.GeminiError as exc:
+            post(lambda e=exc: models_failed(str(e), initial))
+
+    threading.Thread(target=work, daemon=True).start()
+
+
+def models_loaded(found, initial):
+    global model_ids
+    model_ids = found
+    labels = [f"{display}  [{mid}]" for mid, display in found]
+    model_dropdown["values"] = labels
+    if not labels:
+        set_status("The API returned no usable models.", "#CC0000")
+        return
+    saved = SETTINGS.get("model")
+    chosen = 0
+    for i, (mid, _) in enumerate(found):
+        if mid == saved:
+            chosen = i
+            break
+    else:
+        # No saved choice: prefer a Pro model for difficult problems.
+        for i, (mid, _) in enumerate(found):
+            if "pro" in mid:
+                chosen = i
+                break
+    model_var.set(labels[chosen])
+    SETTINGS["model"] = found[chosen][0]
+    save_settings()
+    set_status(f"{len(found)} models available. Using {found[chosen][0]}.", "#2d7a2d")
+
+
+def models_failed(message, initial):
+    set_status("Could not fetch models.", "#CC0000")
+    if initial:
+        messagebox.showerror("Gemini", message)
+
+
+def on_model_change(_evt=None):
+    SETTINGS["model"] = selected_model()
+    save_settings()
+
+
+# ═══════════════════════════════════════════════════════════════
+#  SETTINGS WINDOW
+# ═══════════════════════════════════════════════════════════════
+
+def open_settings():
+    win = tk.Toplevel(root)
+    win.title("Settings")
+    win.geometry("900x720")
+    win.configure(bg=BG)
+    win.transient(root)
+
+    tk.Label(win, text="Mode / preset", font=("Arial", 10, "bold"),
+             bg=BG, fg=TEXT).pack(anchor="w", padx=16, pady=(14, 2))
+
+    row = tk.Frame(win, bg=BG)
+    row.pack(fill=tk.X, padx=16)
+    keys = list(SETTINGS["presets"].keys())
+    names = [SETTINGS["presets"][k]["name"] for k in keys]
+    sel = tk.StringVar(value=SETTINGS["presets"][SETTINGS["active"]]["name"])
+    dd = ttk.Combobox(row, textvariable=sel, values=names, state="readonly", width=44)
+    dd.pack(side=tk.LEFT)
+
+    tk.Label(win, text="System prompt", font=("Arial", 10, "bold"),
+             bg=BG, fg=TEXT).pack(anchor="w", padx=16, pady=(14, 2))
+    box = scrolledtext.ScrolledText(win, wrap=tk.WORD, font=("Consolas", 9), height=22)
+    box.pack(fill=tk.BOTH, expand=True, padx=16)
+
+    def show(key):
+        box.delete("1.0", tk.END)
+        box.insert(tk.END, SETTINGS["presets"][key]["system_prompt"])
+
+    current = {"key": SETTINGS["active"]}
+    show(current["key"])
+
+    def on_select(_e=None):
+        current["key"] = keys[names.index(sel.get())]
+        show(current["key"])
+    dd.bind("<<ComboboxSelected>>", on_select)
+
+    gen = tk.LabelFrame(win, text=" Generation ", bg=BG, fg=TEXT, font=("Arial", 9, "bold"))
+    gen.pack(fill=tk.X, padx=16, pady=12)
+
+    tk.Label(gen, text="Max output tokens", bg=BG, fg=TEXT).grid(row=0, column=0, sticky="w", padx=8, pady=4)
+    tok = tk.Entry(gen, width=10)
+    tok.insert(0, str(SETTINGS.get("max_tokens", api.DEFAULT_MAX_TOKENS)))
+    tok.grid(row=0, column=1, sticky="w", pady=4)
+
+    tk.Label(gen, text="Temperature", bg=BG, fg=TEXT).grid(row=0, column=2, sticky="w", padx=8)
+    temp = tk.Entry(gen, width=8)
+    temp.insert(0, str(SETTINGS.get("temperature", api.DEFAULT_TEMPERATURE)))
+    temp.grid(row=0, column=3, sticky="w")
+
+    tk.Label(gen, text="Thinking budget (blank = model default)",
+             bg=BG, fg=TEXT).grid(row=1, column=0, columnspan=2, sticky="w", padx=8, pady=4)
+    think = tk.Entry(gen, width=10)
+    think.insert(0, "" if SETTINGS.get("thinking_budget") is None else str(SETTINGS["thinking_budget"]))
+    think.grid(row=1, column=1, sticky="w", pady=4)
+
+    verify_var = tk.BooleanVar(value=SETTINGS.get("verify", True))
+    tk.Checkbutton(gen, text="Run the verification pass after solving", variable=verify_var,
+                   bg=BG, fg=TEXT, selectcolor=BG, activebackground=BG
+                   ).grid(row=2, column=0, columnspan=3, sticky="w", padx=8, pady=4)
+
+    charts_var = tk.BooleanVar(value=SETTINGS.get("charts", False))
+    tk.Checkbutton(gen, text="Add pie charts for profit-sharing ratios", variable=charts_var,
+                   bg=BG, fg=TEXT, selectcolor=BG, activebackground=BG
+                   ).grid(row=3, column=0, columnspan=3, sticky="w", padx=8, pady=(0, 6))
+
+    def do_save():
+        SETTINGS["presets"][current["key"]]["system_prompt"] = box.get("1.0", tk.END).rstrip()
+        try:
+            SETTINGS["max_tokens"] = max(1024, int(tok.get().strip()))
+        except ValueError:
+            pass
+        try:
+            SETTINGS["temperature"] = max(0.0, min(2.0, float(temp.get().strip())))
+        except ValueError:
+            pass
+        raw = think.get().strip()
+        SETTINGS["thinking_budget"] = int(raw) if raw.isdigit() else None
+        SETTINGS["verify"] = verify_var.get()
+        SETTINGS["charts"] = charts_var.get()
+        save_settings()
+        set_status("Settings saved.", "#2d7a2d")
+        win.destroy()
+
+    def do_reset():
+        key = current["key"]
+        if key in prompts.MODES:
+            SETTINGS["presets"][key]["system_prompt"] = prompts.MODES[key]["system_prompt"]
+            show(key)
+            set_status(f"'{SETTINGS['presets'][key]['name']}' prompt reset to the built-in version.", "#2d7a2d")
+
+    bar = tk.Frame(win, bg=BG)
+    bar.pack(fill=tk.X, padx=16, pady=(0, 14))
+    tk.Button(bar, text="Save", command=do_save, bg=ACCENT, fg="white",
+              relief=tk.FLAT, padx=18, pady=5).pack(side=tk.LEFT)
+    tk.Button(bar, text="Reset this prompt", command=do_reset, bg=SIDEBAR, fg=TEXT,
+              relief=tk.FLAT, padx=14, pady=5).pack(side=tk.LEFT, padx=8)
+    tk.Button(bar, text="Cancel", command=win.destroy, bg="#CCCCCC", fg=TEXT,
+              relief=tk.FLAT, padx=14, pady=5).pack(side=tk.RIGHT)
+
+
+def on_mode_change(_evt=None):
+    label = mode_var.get()
+    for key, preset in SETTINGS["presets"].items():
+        if preset["name"] == label:
+            SETTINGS["active"] = key
+            save_settings()
+            set_status(f"Mode: {label}", TEXT)
+            return
+
+
+# ═══════════════════════════════════════════════════════════════
+#  WINDOW
+# ═══════════════════════════════════════════════════════════════
+
+root = tk.Tk()
+root.title("Goodwill Gemini Tutor")
+root.geometry("1560x860")
+root.configure(bg=BG)
+
+# ── top bar ──────────────────────────────────────────────────────────
+top = tk.Frame(root, bg=SIDEBAR, height=52)
+top.pack(fill=tk.X)
+top.pack_propagate(False)
+
+tk.Label(top, text="GOODWILL TUITION CENTRE", font=("Georgia", 12, "bold"),
+         bg=SIDEBAR, fg="#0057B8").pack(side=tk.LEFT, padx=16)
+
+mode_var = tk.StringVar(value=active_preset()["name"])
+mode_dropdown = ttk.Combobox(
+    top, textvariable=mode_var,
+    values=[p["name"] for p in SETTINGS["presets"].values()],
+    state="readonly", width=30,
+)
+mode_dropdown.pack(side=tk.LEFT, padx=6)
+mode_dropdown.bind("<<ComboboxSelected>>", on_mode_change)
+
+model_var = tk.StringVar()
+model_dropdown = ttk.Combobox(top, textvariable=model_var, values=[], state="readonly", width=44)
+model_dropdown.pack(side=tk.LEFT, padx=6)
+model_dropdown.bind("<<ComboboxSelected>>", on_model_change)
+
+tk.Button(top, text="Refresh models", command=lambda: refresh_models(),
+          bg=SIDEBAR, fg=TEXT, relief=tk.FLAT, padx=8).pack(side=tk.LEFT, padx=4)
+tk.Button(top, text="Settings", command=open_settings,
+          bg=SIDEBAR, fg=TEXT, relief=tk.FLAT, padx=10).pack(side=tk.RIGHT, padx=16)
+
+meter_label = tk.Label(top, text="", font=("Arial", 9), bg=SIDEBAR, fg="#666666")
+meter_label.pack(side=tk.RIGHT, padx=10)
+
+# ── body ─────────────────────────────────────────────────────────────
+body = tk.Frame(root, bg=BG)
+body.pack(fill=tk.BOTH, expand=True)
+
+# history sidebar
+history_panel = tk.Frame(body, bg=SIDEBAR, width=210)
+history_panel.pack(side=tk.LEFT, fill=tk.Y)
+history_panel.pack_propagate(False)
+
+tk.Button(history_panel, text="+ New chat", command=lambda: new_conversation(),
+          bg=ACCENT, fg="white", relief=tk.FLAT, pady=6).pack(fill=tk.X, padx=10, pady=(12, 8))
+tk.Label(history_panel, text="History", font=("Arial", 9, "bold"),
+         bg=SIDEBAR, fg="#666666").pack(anchor="w", padx=12)
+
+hist_wrap = tk.Frame(history_panel, bg=SIDEBAR)
+hist_wrap.pack(fill=tk.BOTH, expand=True, padx=8, pady=6)
+hist_scroll = tk.Scrollbar(hist_wrap)
+hist_scroll.pack(side=tk.RIGHT, fill=tk.Y)
+history_listbox = tk.Listbox(hist_wrap, font=("Arial", 9), bg=SIDEBAR, fg=TEXT,
+                             relief=tk.FLAT, yscrollcommand=hist_scroll.set,
+                             highlightthickness=0, bd=0, activestyle="none")
+history_listbox.pack(fill=tk.BOTH, expand=True)
+hist_scroll.config(command=history_listbox.yview)
+
+history_ids = []
+
+
+def refresh_history_list():
+    history_listbox.delete(0, tk.END)
+    history_ids.clear()
+    for cid, title, _ in list_conversations():
+        history_ids.append(cid)
+        history_listbox.insert(tk.END, f" {title[:30]}")
+
+
+def on_history_select(_evt=None):
+    if history_listbox.curselection():
+        load_conversation(history_ids[history_listbox.curselection()[0]])
+
+
+history_listbox.bind("<<ListboxSelect>>", on_history_select)
+
+tk.Button(history_panel, text="Delete chat",
+          command=lambda: delete_conversation(history_ids[history_listbox.curselection()[0]])
+          if history_listbox.curselection() else None,
+          bg=SIDEBAR, fg="#999999", relief=tk.FLAT).pack(fill=tk.X, padx=10, pady=(0, 12))
+
+# split
+split = tk.PanedWindow(body, orient=tk.HORIZONTAL, bg=SIDEBAR, sashwidth=6,
+                       sashrelief=tk.FLAT, bd=0)
+split.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+# ── left: chat ───────────────────────────────────────────────────────
+left = tk.Frame(split, bg=BG)
+split.add(left, minsize=380, width=620)
+
+chat_frame = tk.Frame(left, bg=BG)
+chat_frame.pack(fill=tk.BOTH, expand=True, padx=14, pady=(12, 4))
+chat = scrolledtext.ScrolledText(chat_frame, wrap=tk.WORD, font=("Georgia", 11),
+                                 bg=BG, fg=TEXT, relief=tk.FLAT, borderwidth=0,
+                                 padx=10, pady=10)
+chat.pack(fill=tk.BOTH, expand=True)
+chat.config(state=tk.DISABLED)
+chat.tag_config("user_label", background=ACCENT, foreground="white",
+                font=("Arial", 9, "bold"), spacing1=5, spacing3=5)
+chat.tag_config("ai_label", background=TEXT, foreground=BG,
+                font=("Arial", 9, "bold"), spacing1=5, spacing3=5)
+chat.tag_config("user_msg", background=USER_BUBBLE, font=("Georgia", 11),
+                lmargin1=10, lmargin2=10, rmargin=10, spacing1=3, spacing3=3)
+chat.tag_config("ai_msg", background=AI_BUBBLE, font=("Georgia", 11),
+                lmargin1=10, lmargin2=10, rmargin=10, spacing1=3, spacing3=3)
+chat.tag_config("spacer", spacing1=2, spacing3=2)
+
+input_frame = tk.Frame(left, bg=BG)
+input_frame.pack(side=tk.BOTTOM, fill=tk.X, padx=14, pady=(0, 16))
+
+btn_row = tk.Frame(input_frame, bg=BG)
+btn_row.pack(fill=tk.X, pady=(0, 5))
+send_btn = tk.Button(btn_row, text="Send", command=send_message, font=("Arial", 11, "bold"),
+                     bg=ACCENT, fg="white", relief=tk.FLAT, padx=22, pady=6, cursor="hand2")
+send_btn.pack(side=tk.LEFT)
+stop_btn = tk.Button(btn_row, text="Stop", command=lambda: stop_generation(),
+                     font=("Arial", 10), bg="#999999", fg="white", relief=tk.FLAT,
+                     padx=14, pady=6, state=tk.DISABLED)
+stop_btn.pack(side=tk.LEFT, padx=6)
+tk.Button(btn_row, text="Clear chat", command=lambda: clear_chat(), font=("Arial", 9),
+          bg=BG, fg="#888888", relief=tk.FLAT).pack(side=tk.LEFT, padx=6)
+
+status_label = tk.Label(btn_row, text="Ready", font=("Arial", 9), bg=BG, fg="#666666")
+status_label.pack(side=tk.RIGHT)
+
+entry = tk.Text(input_frame, height=4, wrap=tk.WORD, font=("Georgia", 11),
+                bg="white", fg=TEXT, relief=tk.FLAT, padx=10, pady=8)
+entry.pack(fill=tk.X)
+entry.bind("<Return>", send_message)
+entry.bind("<Shift-Return>", lambda e: None)
+
+attach_row = tk.Frame(input_frame, bg=BG)
+attach_row.pack(fill=tk.X, pady=(6, 0))
+tk.Button(attach_row, text="Attach PDF / image", command=attach_files, font=("Arial", 9),
+          bg=SIDEBAR, fg=TEXT, relief=tk.FLAT, padx=10, cursor="hand2").pack(side=tk.LEFT)
+tk.Button(attach_row, text="Clear", command=clear_attachments, font=("Arial", 9),
+          bg=BG, fg="#888888", relief=tk.FLAT).pack(side=tk.LEFT, padx=5)
+attach_label = tk.Label(attach_row, text="No pages attached", font=("Arial", 9),
+                        bg=BG, fg="#888888")
+attach_label.pack(side=tk.LEFT, padx=10)
+
+# ── right: artifact ──────────────────────────────────────────────────
+right = tk.Frame(split, bg=ARTIFACT_BG)
+split.add(right, minsize=420, width=800)
+
+art_header = tk.Frame(right, bg=ARTIFACT_BG, height=46)
+art_header.pack(fill=tk.X)
+art_header.pack_propagate(False)
+
+artifact_title = tk.Label(art_header, text="Artifact — empty", font=("Arial", 11, "bold"),
+                          bg=ARTIFACT_BG, fg=TEXT)
+artifact_title.pack(side=tk.LEFT, padx=14, pady=12)
+
+pdf_btn = tk.Button(art_header, text="Generate PDF", command=generate_pdf,
+                    font=("Arial", 9, "bold"), bg="#0057B8", fg="white",
+                    relief=tk.FLAT, padx=12, pady=4, cursor="hand2")
+pdf_btn.pack(side=tk.RIGHT, padx=(5, 14), pady=9)
+
+for label, cmd in (
+    ("Save HTML", lambda: save_html()),
+    ("Open in browser", open_in_browser),
+    ("Folder", open_folder),
+    ("Copy", copy_answer),
+    ("Remove last block", remove_last_block),
+    ("New document", start_new_document),
+):
+    tk.Button(art_header, text=label, command=cmd, font=("Arial", 9),
+              bg=SIDEBAR, fg=TEXT, relief=tk.FLAT, padx=8, pady=4,
+              cursor="hand2").pack(side=tk.RIGHT, padx=3, pady=9)
+
+notebook = ttk.Notebook(right)
+notebook.pack(fill=tk.BOTH, expand=True, padx=14, pady=(0, 14))
+
+# tab 0 — preview
+tab_preview = tk.Frame(notebook, bg="white")
+notebook.add(tab_preview, text="Preview")
+if HTML_PREVIEW:
+    preview = HtmlFrame(tab_preview, messages_enabled=False)
+else:
+    preview = scrolledtext.ScrolledText(tab_preview, wrap=tk.WORD, font=("Consolas", 9),
+                                        bg="white", fg=TEXT, relief=tk.FLAT)
+preview.pack(fill=tk.BOTH, expand=True)
+
+# tab 1 — editable HTML
+tab_html = tk.Frame(notebook, bg="white")
+notebook.add(tab_html, text="HTML")
+editor_bar = tk.Frame(tab_html, bg=ARTIFACT_BG)
+editor_bar.pack(fill=tk.X)
+tk.Button(editor_bar, text="Apply and re-render", command=apply_edited_html,
+          font=("Arial", 9, "bold"), bg=ACCENT, fg="white", relief=tk.FLAT,
+          padx=12, pady=4, cursor="hand2").pack(side=tk.LEFT, padx=6, pady=6)
+tk.Button(editor_bar, text="Check house style", command=lambda: (run_validator(), notebook.select(2)),
+          font=("Arial", 9), bg=SIDEBAR, fg=TEXT, relief=tk.FLAT,
+          padx=10, pady=4).pack(side=tk.LEFT, padx=4)
+tk.Label(editor_bar, text="Edit freely, then Apply. The PDF uses what is here.",
+         font=("Arial", 9), bg=ARTIFACT_BG, fg="#888888").pack(side=tk.LEFT, padx=10)
+editor = scrolledtext.ScrolledText(tab_html, wrap=tk.NONE, font=("Consolas", 9),
+                                   bg="white", fg=TEXT, relief=tk.FLAT, undo=True)
+editor.pack(fill=tk.BOTH, expand=True)
+
+# tab 2 — verify
+tab_verify = tk.Frame(notebook, bg="white")
+notebook.add(tab_verify, text="Verify")
+verify_view = scrolledtext.ScrolledText(tab_verify, wrap=tk.WORD, font=("Consolas", 10),
+                                        bg="white", fg=TEXT, relief=tk.FLAT,
+                                        padx=12, pady=12)
+verify_view.pack(fill=tk.BOTH, expand=True)
+verify_view.config(state=tk.DISABLED)
+
+# ── start ────────────────────────────────────────────────────────────
+chat.config(state=tk.NORMAL)
+chat.insert(tk.END, "\n  Goodwill Gemini Tutor\n", "ai_msg")
+chat.insert(tk.END, "  Attach a PDF or image of the question, then press Send.\n", "ai_msg")
+chat.insert(tk.END, "  Solve mode builds an A4 document in house style.\n", "ai_msg")
+chat.insert(tk.END, "  Review it in the HTML tab, then Generate PDF.\n\n", "ai_msg")
+if not HTML_PREVIEW:
+    chat.insert(tk.END, "  For the live preview:  pip install tkinterweb\n\n", "ai_msg")
+if not pdf_export.playwright_available():
+    chat.insert(tk.END, "  For PDF export:  pip install playwright  then  playwright install chromium\n\n", "ai_msg")
+chat.config(state=tk.DISABLED)
+
+set_verify_text("")
+refresh_artifact()
+refresh_history_list()
+root.after(40, pump)
+
+try:
+    api.get_api_key()
+    refresh_models(initial=True)
+except api.GeminiError as exc:
+    set_status("GEMINI_API_KEY is not set.", "#CC0000")
+    _key_error = str(exc)
+    root.after(300, lambda m=_key_error: messagebox.showerror("API key missing", m))
+
+root.mainloop()

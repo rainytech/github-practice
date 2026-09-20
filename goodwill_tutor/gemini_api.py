@@ -1,0 +1,386 @@
+"""
+GOODWILL TUITION CENTRE — Gemini API Layer
+==========================================
+All network traffic lives here. No Tkinter, no HTML.
+
+Key differences from the old version:
+  - the key travels in the x-goog-api-key HEADER, never in the URL
+  - the model list is fetched live, so model IDs can never go stale
+  - PDF input supported, inline for small files and via the Files API for large ones
+  - maxOutputTokens raised, temperature dropped to 0 for arithmetic stability
+  - a stop Event replaces the global flag, so it is safe on a worker thread
+"""
+
+import json
+import mimetypes
+import os
+
+import requests
+
+BASE = "https://generativelanguage.googleapis.com/v1beta"
+UPLOAD_BASE = "https://generativelanguage.googleapis.com/upload/v1beta"
+
+# Files at or above this size go through the Files API instead of inline base64.
+INLINE_LIMIT_BYTES = 15 * 1024 * 1024
+
+# Generation defaults. Temperature 0 — accounting arithmetic must not vary.
+DEFAULT_TEMPERATURE = 0.0
+DEFAULT_MAX_TOKENS = 32768
+
+SUPPORTED_EXTS = {
+    ".pdf": "application/pdf",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".png": "image/png",
+    ".webp": "image/webp",
+    ".heic": "image/heic",
+    ".heif": "image/heif",
+    ".txt": "text/plain",
+}
+
+# Approximate USD per 1M tokens (input, output).
+# Matched by substring against the model id, longest match wins.
+# Unknown models report a blank cost rather than a wrong one.
+PRICING = {
+    "flash-lite": (0.10, 0.40),
+    "flash": (0.30, 2.50),
+    "pro": (2.00, 12.00),
+}
+
+USD_TO_INR = 88.0
+
+
+class GeminiError(RuntimeError):
+    """An API or configuration failure, with a message fit for the status bar."""
+
+
+# ═══════════════════════════════════════════════════════════════
+#  KEY
+# ═══════════════════════════════════════════════════════════════
+
+def get_api_key():
+    key = os.environ.get("GEMINI_API_KEY", "").strip()
+    if not key:
+        raise GeminiError(
+            "GEMINI_API_KEY is not set.\n\n"
+            "Windows:  setx GEMINI_API_KEY \"your-key-here\"  then reopen the terminal.\n"
+            "Linux/Mac:  export GEMINI_API_KEY=\"your-key-here\""
+        )
+    return key
+
+
+def _headers():
+    return {
+        "Content-Type": "application/json",
+        "x-goog-api-key": get_api_key(),
+    }
+
+
+# ═══════════════════════════════════════════════════════════════
+#  MODELS — fetched live, never hard-coded
+# ═══════════════════════════════════════════════════════════════
+
+def _rank(model_id):
+    """Sort key: newest generation first, Pro before Flash before Flash-Lite."""
+    version = 0.0
+    for token in model_id.replace("-", " ").split():
+        try:
+            version = max(version, float(token))
+        except ValueError:
+            continue
+    tier = 0
+    if "flash-lite" in model_id:
+        tier = 3
+    elif "flash" in model_id:
+        tier = 2
+    elif "pro" in model_id:
+        tier = 1
+    preview = 1 if ("preview" in model_id or "exp" in model_id) else 0
+    return (-version, tier, preview, model_id)
+
+
+def list_models(timeout=30):
+    """Return [(model_id, display_name)] for models that can generate content.
+
+    Live from the API, so the dropdown is always current.
+    """
+    try:
+        res = requests.get(f"{BASE}/models", headers=_headers(), timeout=timeout)
+    except requests.RequestException as exc:
+        raise GeminiError(f"Could not reach the Gemini API: {exc}")
+
+    if res.status_code != 200:
+        raise GeminiError(f"Model list failed [{res.status_code}]: {res.text[:300]}")
+
+    out = []
+    for m in res.json().get("models", []):
+        if "generateContent" not in m.get("supportedGenerationMethods", []):
+            continue
+        mid = m.get("name", "").replace("models/", "")
+        if not mid or "embedding" in mid or "aqa" in mid:
+            continue
+        out.append((mid, m.get("displayName", mid)))
+
+    out.sort(key=lambda t: _rank(t[0]))
+    return out
+
+
+def price_for(model_id):
+    """(input_usd_per_1M, output_usd_per_1M) or None when the model is unknown."""
+    best = None
+    for frag, prices in PRICING.items():
+        if frag in model_id and (best is None or len(frag) > len(best[0])):
+            best = (frag, prices)
+    return best[1] if best else None
+
+
+def format_cost(model_id, in_tok, out_tok):
+    """Human-readable cost string, or a blank marker when pricing is unknown."""
+    prices = price_for(model_id)
+    if prices is None:
+        return "cost n/a"
+    usd = (in_tok / 1_000_000) * prices[0] + (out_tok / 1_000_000) * prices[1]
+    inr = usd * USD_TO_INR
+    if inr <= 0:
+        return "free"
+    if inr < 1:
+        return f"{inr * 100:.0f} paise"
+    return f"Rs. {inr:.2f}"
+
+
+# ═══════════════════════════════════════════════════════════════
+#  ATTACHMENTS — PDF and images
+# ═══════════════════════════════════════════════════════════════
+
+def mime_for(path):
+    """The media type Gemini should be told, or an error naming what is accepted."""
+    ext = os.path.splitext(path)[1].lower()
+    if ext in SUPPORTED_EXTS:
+        return SUPPORTED_EXTS[ext]
+    guess = mimetypes.guess_type(path)[0] or ""
+    if guess.startswith("image/") or guess in ("application/pdf", "text/plain"):
+        return guess
+    raise GeminiError(
+        f"'{os.path.basename(path)}' cannot be sent to Gemini.\n"
+        "Attach a PDF, an image (JPG, PNG, WEBP, HEIC) or a text file."
+    )
+
+
+def _upload_file(path, timeout=300):
+    """Resumable upload to the Files API. Returns the file URI."""
+    mime = mime_for(path)
+    size = os.path.getsize(path)
+    key = get_api_key()
+
+    start = requests.post(
+        f"{UPLOAD_BASE}/files",
+        headers={
+            "x-goog-api-key": key,
+            "X-Goog-Upload-Protocol": "resumable",
+            "X-Goog-Upload-Command": "start",
+            "X-Goog-Upload-Header-Content-Length": str(size),
+            "X-Goog-Upload-Header-Content-Type": mime,
+            "Content-Type": "application/json",
+        },
+        data=json.dumps({"file": {"display_name": os.path.basename(path)}}),
+        timeout=timeout,
+    )
+    if start.status_code != 200:
+        raise GeminiError(f"Upload start failed [{start.status_code}]: {start.text[:300]}")
+
+    upload_url = start.headers.get("X-Goog-Upload-URL")
+    if not upload_url:
+        raise GeminiError("Upload start returned no upload URL.")
+
+    with open(path, "rb") as fh:
+        done = requests.post(
+            upload_url,
+            headers={
+                "Content-Length": str(size),
+                "X-Goog-Upload-Offset": "0",
+                "X-Goog-Upload-Command": "upload, finalize",
+            },
+            data=fh,
+            timeout=timeout,
+        )
+    if done.status_code != 200:
+        raise GeminiError(f"Upload failed [{done.status_code}]: {done.text[:300]}")
+
+    uri = done.json().get("file", {}).get("uri")
+    if not uri:
+        raise GeminiError("Upload finished but returned no file URI.")
+    return uri, mime
+
+
+def build_parts(text, file_paths=None):
+    """Build the 'parts' array for one user turn: the text plus any attachments."""
+    parts = [{"text": text}] if text else []
+    for path in (file_paths or []):
+        if not os.path.exists(path):
+            raise GeminiError(f"Attached file is missing: {path}")
+        if os.path.getsize(path) >= INLINE_LIMIT_BYTES:
+            uri, mime = _upload_file(path)
+            parts.append({"file_data": {"mime_type": mime, "file_uri": uri}})
+        else:
+            import base64
+            with open(path, "rb") as fh:
+                data = base64.standard_b64encode(fh.read()).decode("utf-8")
+            parts.append({"inline_data": {"mime_type": mime_for(path), "data": data}})
+    return parts
+
+
+# ═══════════════════════════════════════════════════════════════
+#  GENERATION
+# ═══════════════════════════════════════════════════════════════
+
+def _body(contents, system_prompt, max_tokens, temperature, thinking_budget):
+    cfg = {
+        "temperature": temperature,
+        "maxOutputTokens": max_tokens,
+    }
+    if thinking_budget is not None:
+        cfg["thinkingConfig"] = {"thinkingBudget": int(thinking_budget)}
+    payload = {"contents": contents, "generationConfig": cfg}
+    if system_prompt:
+        payload["systemInstruction"] = {"parts": [{"text": system_prompt}]}
+    return payload
+
+
+def _is_thinking_complaint(text):
+    return "thinking" in text.lower() and ("unknown" in text.lower() or "invalid" in text.lower())
+
+
+def stream_generate(
+    contents,
+    model_id,
+    system_prompt="",
+    on_chunk=None,
+    stop_event=None,
+    max_tokens=DEFAULT_MAX_TOKENS,
+    temperature=DEFAULT_TEMPERATURE,
+    thinking_budget=None,
+    timeout=600,
+):
+    """Stream a response. Calls on_chunk(text) as pieces arrive.
+
+    Returns (full_text, input_tokens, output_tokens).
+    Raises GeminiError on failure so the caller can show one clear message.
+    """
+    url = f"{BASE}/models/{model_id}:streamGenerateContent?alt=sse"
+    payload = _body(contents, system_prompt, max_tokens, temperature, thinking_budget)
+
+    full, in_tok, out_tok = "", 0, 0
+    finish_reason = None
+
+    try:
+        with requests.post(
+            url, headers=_headers(), data=json.dumps(payload), stream=True, timeout=timeout
+        ) as res:
+            if res.status_code != 200:
+                detail = res.text[:500]
+                # The thinking field is not accepted by every model — retry without it.
+                if thinking_budget is not None and _is_thinking_complaint(detail):
+                    return stream_generate(
+                        contents, model_id, system_prompt, on_chunk, stop_event,
+                        max_tokens, temperature, None, timeout,
+                    )
+                raise GeminiError(f"Gemini returned {res.status_code}: {detail}")
+
+            for line in res.iter_lines():
+                if stop_event is not None and stop_event.is_set():
+                    break
+                if not line:
+                    continue
+                text = line.decode("utf-8", errors="replace")
+                if text.startswith("data: "):
+                    text = text[6:]
+                if text.strip() in ("", "[DONE]"):
+                    continue
+                try:
+                    chunk = json.loads(text)
+                except json.JSONDecodeError:
+                    continue
+
+                for cand in chunk.get("candidates", []):
+                    finish_reason = cand.get("finishReason") or finish_reason
+                    for part in cand.get("content", {}).get("parts", []):
+                        piece = part.get("text")
+                        if piece:
+                            full += piece
+                            if on_chunk:
+                                on_chunk(piece)
+                usage = chunk.get("usageMetadata")
+                if usage:
+                    in_tok = usage.get("promptTokenCount", in_tok)
+                    out_tok = usage.get("candidatesTokenCount", out_tok)
+
+    except GeminiError:
+        raise
+    except requests.RequestException as exc:
+        raise GeminiError(f"Network error: {exc}")
+
+    if finish_reason == "MAX_TOKENS":
+        raise GeminiError(
+            "The answer hit the output limit and is incomplete. "
+            "Raise Max output tokens in Settings, or split the question."
+        )
+    if finish_reason in ("SAFETY", "RECITATION", "BLOCKLIST", "PROHIBITED_CONTENT"):
+        raise GeminiError(f"Gemini stopped the response early (reason: {finish_reason}).")
+    if not full.strip() and not (stop_event and stop_event.is_set()):
+        raise GeminiError("Gemini returned an empty response.")
+
+    return full, in_tok, out_tok
+
+
+def generate(
+    contents,
+    model_id,
+    system_prompt="",
+    max_tokens=DEFAULT_MAX_TOKENS,
+    temperature=DEFAULT_TEMPERATURE,
+    thinking_budget=None,
+    timeout=600,
+):
+    """Single non-streaming call. Used for the verification pass."""
+    url = f"{BASE}/models/{model_id}:generateContent"
+    payload = _body(contents, system_prompt, max_tokens, temperature, thinking_budget)
+
+    try:
+        res = requests.post(url, headers=_headers(), data=json.dumps(payload), timeout=timeout)
+    except requests.RequestException as exc:
+        raise GeminiError(f"Network error: {exc}")
+
+    if res.status_code != 200:
+        detail = res.text[:500]
+        if thinking_budget is not None and _is_thinking_complaint(detail):
+            return generate(contents, model_id, system_prompt, max_tokens, temperature, None, timeout)
+        raise GeminiError(f"Gemini returned {res.status_code}: {detail}")
+
+    data = res.json()
+    usage = data.get("usageMetadata", {})
+    for cand in data.get("candidates", []):
+        parts = cand.get("content", {}).get("parts", [])
+        text = "".join(p.get("text", "") for p in parts)
+        if text:
+            return (
+                text,
+                usage.get("promptTokenCount", 0),
+                usage.get("candidatesTokenCount", 0),
+            )
+    raise GeminiError("Gemini returned no usable content.")
+
+
+# ═══════════════════════════════════════════════════════════════
+#  OUTPUT CLEANUP
+# ═══════════════════════════════════════════════════════════════
+
+def strip_code_fence(text):
+    """Remove a ```html ... ``` wrapper if the model added one despite instructions."""
+    t = text.strip()
+    if t.startswith("```"):
+        first = t.find("\n")
+        if first != -1:
+            t = t[first + 1:]
+        if t.rstrip().endswith("```"):
+            t = t.rstrip()[:-3]
+    return t.strip()
