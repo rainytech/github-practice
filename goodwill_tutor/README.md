@@ -55,12 +55,18 @@ Switch with the dropdown in the top bar.
 
 ## The right side
 
-The right side is the document as editable HTML, and nothing else.
+The right side is the document as editable HTML, and nothing else. Two menus
+sit in its header.
 
-- **Generate PDF** — Chromium renders what is in the editor
-- **Open in browser** — see the finished page
-- **More** — apply edits, check house style, new document, remove the last
-  question, save, open the folder, copy
+**▾** — what to do with the finished document:
+
+- **Preview** — opens a window showing the page rendered by Chromium, the same
+  engine that makes the PDF, so it cannot disagree with what prints
+- **Save as HTML**
+- **Save as PDF**
+
+**More** — building the document: apply edits, check house style, new document,
+remove the last question, open the folder, copy.
 
 Gemini's verification pass and the house-style validator report into the chat
 on the left, so there is only one place to read.

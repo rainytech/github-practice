@@ -49,8 +49,10 @@ CONVERSATIONS_DIR = os.path.join(APP_DIR, "conversations")
 SETTINGS_FILE = os.path.join(APP_DIR, "settings.json")
 DESKTOP = os.path.join(os.path.expanduser("~"), "Desktop")
 SOLUTIONS_DIR = os.path.join(DESKTOP, "Goodwill_Solutions")
+PREVIEW_DIR = os.path.join(APP_DIR, "preview")
+PREVIEW_WIDTH = 880       # A4 at 96dpi is 794px; a little wider reads better
 
-for _d in (APP_DIR, CONVERSATIONS_DIR, SOLUTIONS_DIR):
+for _d in (APP_DIR, CONVERSATIONS_DIR, SOLUTIONS_DIR, PREVIEW_DIR):
     os.makedirs(_d, exist_ok=True)
 
 # Interface palette — the Claude.ai cream scheme.
@@ -172,6 +174,8 @@ verify_report = ""
 current_html_path = None
 current_conversation_id = None
 model_ids = []            # [(id, display)] fetched from the API
+preview_window = None     # the open preview Toplevel, if any
+preview_image = None      # live PhotoImage; Tk discards it without a reference
 
 stop_event = threading.Event()
 ui_queue = queue.Queue()
@@ -564,7 +568,7 @@ def generate_pdf():
 
     path = save_html(silent=True)
     set_status("Rendering PDF with Chromium...", ACCENT)
-    pdf_btn.config(state=tk.DISABLED)
+    output_btn.config(state=tk.DISABLED)
 
     def work():
         try:
@@ -579,7 +583,7 @@ def generate_pdf():
 
 
 def pdf_done(path):
-    pdf_btn.config(state=tk.NORMAL)
+    output_btn.config(state=tk.NORMAL)
     set_status(f"PDF ready: {os.path.basename(path)}", GREEN)
     try:
         pdf_export.open_file(path)
@@ -588,17 +592,82 @@ def pdf_done(path):
 
 
 def pdf_failed(message):
-    pdf_btn.config(state=tk.NORMAL)
+    output_btn.config(state=tk.NORMAL)
     set_status("PDF failed", "#CC0000")
     messagebox.showerror("PDF export failed", message)
 
 
-def open_in_browser():
-    path = current_html_path or save_html(silent=True)
-    if path:
-        pdf_export.open_file(path)
-    else:
-        set_status("Nothing to open yet.", "#CC0000")
+def open_preview():
+    """Open the document in a window, rendered by the Chromium that makes the PDF."""
+    global preview_window
+    if not (last_full_html or "").strip():
+        set_status("Nothing to preview yet.", RED)
+        return
+
+    if preview_window is not None and preview_window.winfo_exists():
+        preview_window.destroy()
+
+    win = tk.Toplevel(root)
+    preview_window = win
+    win.title("Preview")
+    win.configure(bg=ARTIFACT_BG)
+    sw, sh = root.winfo_screenwidth(), root.winfo_screenheight()
+    win.geometry(f"{min(PREVIEW_WIDTH + 40, sw - 80)}x{min(920, sh - 140)}+{sw // 3}+20")
+
+    wrap = tk.Frame(win, bg=ARTIFACT_BG)
+    wrap.pack(fill=tk.BOTH, expand=True)
+    bar = tk.Scrollbar(wrap, orient=tk.VERTICAL)
+    bar.pack(side=tk.RIGHT, fill=tk.Y)
+    canvas = tk.Canvas(wrap, bg=ARTIFACT_BG, highlightthickness=0, bd=0,
+                       yscrollcommand=bar.set)
+    canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+    bar.config(command=canvas.yview)
+
+    def wheel(event):
+        step = -1 if (getattr(event, "delta", 0) > 0 or event.num == 4) else 1
+        canvas.yview_scroll(step * 3, "units")
+
+    for seq in ("<MouseWheel>", "<Button-4>", "<Button-5>"):
+        canvas.bind(seq, wheel)
+    canvas.focus_set()
+    canvas.create_text(24, 28, anchor="nw", text="Rendering...", fill=MUTED,
+                       font=("Georgia", 11))
+
+    html_snapshot = last_full_html
+
+    def place(png):
+        global preview_image
+        if not win.winfo_exists():
+            return
+        try:
+            preview_image = tk.PhotoImage(file=png)
+        except Exception as exc:
+            fail_preview(str(exc))
+            return
+        canvas.delete("all")
+        canvas.create_image(0, 0, anchor="nw", image=preview_image)
+        canvas.configure(scrollregion=(0, 0, preview_image.width(), preview_image.height()))
+
+    def fail_preview(message):
+        if not win.winfo_exists():
+            return
+        canvas.delete("all")
+        canvas.create_text(24, 28, anchor="nw", fill=RED, font=("Georgia", 11),
+                           width=PREVIEW_WIDTH - 60,
+                           text=f"Preview could not be rendered.\n\n{message}")
+
+    def work():
+        try:
+            tmp_html = os.path.join(PREVIEW_DIR, "preview.html")
+            with open(tmp_html, "w", encoding="utf-8") as fh:
+                fh.write(html_snapshot)
+            png = pdf_export.html_to_png(
+                tmp_html, os.path.join(PREVIEW_DIR, "preview.png"), width=PREVIEW_WIDTH)
+            post(lambda: place(png))
+        except Exception as exc:
+            post(lambda e=str(exc): fail_preview(e))
+
+    threading.Thread(target=work, daemon=True).start()
 
 
 def open_folder():
@@ -1271,40 +1340,55 @@ artifact_title = tk.Label(art_header, text="No document yet", font=("Arial", 11,
                           bg=ARTIFACT_BG, fg=TEXT)
 artifact_title.pack(side=tk.LEFT, padx=14, pady=12)
 
-# Everything that is not "make the PDF" or "look at the page" lives behind
-# this one button, so the header stays readable.
-def open_more_menu(event=None):
-    menu = tk.Menu(root, tearoff=0, bg=SIDEBAR, fg=TEXT,
+def _popup(menu, anchor):
+    """Drop a menu directly under the button that opened it."""
+    try:
+        menu.tk_popup(anchor.winfo_rootx(),
+                      anchor.winfo_rooty() + anchor.winfo_height())
+    finally:
+        menu.grab_release()
+
+
+def _menu():
+    return tk.Menu(root, tearoff=0, bg=FIELD, fg=TEXT,
                    activebackground=ACCENT, activeforeground="#FFFFFF",
-                   borderwidth=0, font=("Arial", 10))
+                   borderwidth=1, font=("Arial", 10))
+
+
+def open_output_menu(event=None):
+    """What to do with the finished document."""
+    menu = _menu()
+    menu.add_command(label="Preview", command=open_preview)
+    menu.add_separator()
+    menu.add_command(label="Save as HTML", command=lambda: save_html())
+    menu.add_command(label="Save as PDF", command=generate_pdf)
+    _popup(menu, output_btn)
+
+
+def open_more_menu(event=None):
+    """Everything to do with building the document."""
+    menu = _menu()
     menu.add_command(label="Apply my edits", command=apply_edited_html)
     menu.add_command(label="Check house style", command=check_house_style)
     menu.add_separator()
     menu.add_command(label="New document", command=start_new_document)
     menu.add_command(label="Remove last question", command=remove_last_block)
     menu.add_separator()
-    menu.add_command(label="Save HTML now", command=lambda: save_html())
     menu.add_command(label="Open solutions folder", command=open_folder)
     menu.add_command(label="Copy answer", command=copy_answer)
-    try:
-        menu.tk_popup(more_btn.winfo_rootx(),
-                      more_btn.winfo_rooty() + more_btn.winfo_height())
-    finally:
-        menu.grab_release()
+    _popup(menu, more_btn)
 
 
-pdf_btn = tk.Button(art_header, text="Generate PDF", command=generate_pdf,
-                    font=("Arial", 10, "bold"), bg=BLUE, fg="white",
-                    relief=tk.FLAT, padx=14, pady=5, cursor="hand2")
-pdf_btn.pack(side=tk.RIGHT, padx=(6, 14), pady=8)
-
-tk.Button(art_header, text="Open in browser", command=open_in_browser,
-          font=("Arial", 10), bg=SIDEBAR, fg=TEXT, relief=tk.FLAT,
-          padx=12, pady=5, cursor="hand2").pack(side=tk.RIGHT, padx=6, pady=8)
+output_btn = tk.Button(art_header, text="\u25be", command=open_output_menu,
+                       font=("Arial", 13), bg=ARTIFACT_BG, fg=TEXT,
+                       relief=tk.FLAT, padx=12, pady=2, cursor="hand2",
+                       activebackground=SIDEBAR)
+output_btn.pack(side=tk.RIGHT, padx=(4, 14), pady=8)
 
 more_btn = tk.Button(art_header, text="More", command=open_more_menu,
                      font=("Arial", 10), bg=ARTIFACT_BG, fg=MUTED,
-                     relief=tk.FLAT, padx=10, pady=5, cursor="hand2")
+                     relief=tk.FLAT, padx=10, pady=5, cursor="hand2",
+                     activebackground=SIDEBAR)
 more_btn.pack(side=tk.RIGHT, padx=2, pady=8)
 
 # ── the document, as editable HTML ───────────────────────────────────
