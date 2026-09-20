@@ -313,15 +313,26 @@ def latex_to_unicode(text):
     return text
 
 
+# A tag starts with a letter or a slash. Anything else after "<" is ordinary
+# text — "n < 5 years" is a comparison, not markup, and Chromium reads it that
+# way too. Matching a bare "<...>" instead would swallow every character up to
+# the next ">", losing part of the answer.
+TAG_RE = re.compile(r"</?[A-Za-z][^<>]*>|<!--.*?-->", re.DOTALL)
+
+
 def html_to_chat_text(html):
     """Flatten an HTML fragment into readable lines for the chat pane."""
     text = re.sub(r"<(style|script).*?</\1>", "", html, flags=re.DOTALL | re.IGNORECASE)
     text = re.sub(r'<span class="frac"><span class="num">(.*?)</span>'
                   r'<span class="den">(.*?)</span></span>', r"(\1 over \2)", text)
+    # Powers and subscripts lose their meaning when the tags are simply dropped:
+    # (1.10)<sup>3</sup> would read as "(1.10)3".
+    text = re.sub(r"<sup>(.*?)</sup>", r"^\1", text, flags=re.IGNORECASE | re.DOTALL)
+    text = re.sub(r"<sub>(.*?)</sub>", r"_\1", text, flags=re.IGNORECASE | re.DOTALL)
     text = re.sub(r"</(div|tr|table|p|h[1-6])>", "\n", text, flags=re.IGNORECASE)
     text = re.sub(r"</t[dh]>", "  ", text, flags=re.IGNORECASE)
     text = re.sub(r"</span>", " ", text, flags=re.IGNORECASE)
-    text = re.sub(r"<[^>]+>", "", text)
+    text = TAG_RE.sub("", text)
     text = (text.replace("&amp;", "&").replace("&nbsp;", " ")
                 .replace("&there4;", "therefore").replace("&#9658;", ">")
                 .replace("&lt;", "<").replace("&gt;", ">"))
