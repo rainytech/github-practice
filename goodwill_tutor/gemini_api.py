@@ -38,14 +38,20 @@ SUPPORTED_EXTS = {
     ".txt": "text/plain",
 }
 
-# Approximate USD per 1M tokens (input, output).
-# Matched by substring against the model id, longest match wins.
-# Unknown models report a blank cost rather than a wrong one.
+# USD per 1M tokens (input, output), matched by substring against the model id;
+# the longest match wins. An unknown model reports no cost rather than a wrong
+# one.
+#
+# THESE RATES ARE UNVERIFIED PLACEHOLDERS. The API does not publish prices, so
+# they were filled in by assumption. Check Google's pricing page and correct
+# them, or the rupee figure in the meter is a guess. Everything the meter shows
+# is labelled "est." until then.
 PRICING = {
     "flash-lite": (0.10, 0.40),
     "flash": (0.30, 2.50),
     "pro": (2.00, 12.00),
 }
+PRICING_VERIFIED = False      # flip to True once the rates above are confirmed
 
 USD_TO_INR = 88.0
 
@@ -166,18 +172,30 @@ def price_for(model_id):
     return best[1] if best else None
 
 
-def format_cost(model_id, in_tok, out_tok):
-    """Human-readable cost string, or a blank marker when pricing is unknown."""
+def cost_inr(model_id, in_tok, out_tok):
+    """Rupee cost of one call, or None when the model's rate is unknown."""
     prices = price_for(model_id)
     if prices is None:
-        return "cost n/a"
+        return None
     usd = (in_tok / 1_000_000) * prices[0] + (out_tok / 1_000_000) * prices[1]
-    inr = usd * USD_TO_INR
-    if inr <= 0:
+    return usd * USD_TO_INR
+
+
+def format_inr(value):
+    """Render a rupee amount, flagged as an estimate while the rates are unverified."""
+    if value is None:
+        return "cost n/a"
+    prefix = "" if PRICING_VERIFIED else "est. "
+    if value <= 0:
         return "free"
-    if inr < 1:
-        return f"{inr * 100:.0f} paise"
-    return f"Rs. {inr:.2f}"
+    if value < 1:
+        return f"{prefix}{value * 100:.0f} paise"
+    return f"{prefix}Rs. {value:.2f}"
+
+
+def format_cost(model_id, in_tok, out_tok):
+    """Human-readable cost of a single call."""
+    return format_inr(cost_inr(model_id, in_tok, out_tok))
 
 
 # ═══════════════════════════════════════════════════════════════

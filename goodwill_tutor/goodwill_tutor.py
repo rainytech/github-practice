@@ -105,6 +105,7 @@ DEFAULT_SETTINGS = {
     "active": prompts.DEFAULT_MODE,
     "presets": {k: dict(v) for k, v in prompts.MODES.items()},
     "model": "",
+    "verify_model": "",       # blank means: check with the same model that solved
     "max_tokens": api.DEFAULT_MAX_TOKENS,
     "temperature": api.DEFAULT_TEMPERATURE,
     "thinking_budget": None,
@@ -858,16 +859,20 @@ def send_message(event=None):
             )
             conversation_history.append({"role": "model", "parts": [{"text": answer}]})
 
-            verdict = ""
+            verdict, v_cost = "", None
             if SETTINGS.get("verify") and active_mode_key() == "solve" and not stop_event.is_set():
-                post(lambda: set_status("Verifying...", ACCENT))
+                checker = verify_model_for(model)
+                note = ("Verifying..." if checker == model
+                        else f"Verifying with {checker}...")
+                post(lambda m=note: set_status(m, ACCENT))
                 try:
-                    verdict = run_verification(text, files, answer, model)
+                    verdict, v_in, v_out, used = run_verification(text, files, answer, model)
+                    v_cost = (used, v_in, v_out)
                 except api.GeminiError as exc:
                     verdict = f"Verification could not run: {exc}"
 
             elapsed = (datetime.now() - started).total_seconds()
-            post(lambda: finish(answer, in_tok, out_tok, elapsed, model, verdict))
+            post(lambda: finish(answer, in_tok, out_tok, elapsed, model, verdict, v_cost))
 
         except api.GeminiError as exc:
             if conversation_history and conversation_history[-1].get("role") == "user":
@@ -892,8 +897,18 @@ def paint_stream(snapshot):
     chat.see(tk.END)
 
 
+def verify_model_for(solve_model):
+    """The model that checks the work — a different one if chosen, else the solver."""
+    chosen = (SETTINGS.get("verify_model") or "").strip()
+    if not chosen:
+        return solve_model
+    if model_ids and chosen not in [mid for mid, _ in model_ids]:
+        return solve_model          # it vanished from the account; fall back quietly
+    return chosen
+
+
 def run_verification(question_text, files, answer_html, model):
-    """Second independent pass. Returns the verdict text."""
+    """Second independent pass. Returns (verdict, input_tokens, output_tokens, model)."""
     check_parts = api.build_parts(
         "ORIGINAL INSTRUCTION FROM THE TEACHER:\n"
         f"{question_text}\n\n"
@@ -901,17 +916,18 @@ def run_verification(question_text, files, answer_html, model):
         f"{answer_html}",
         files,
     )
-    verdict, _, _ = api.generate(
+    checker = verify_model_for(model)
+    verdict, v_in, v_out = api.generate(
         [{"role": "user", "parts": check_parts}],
-        model,
+        checker,
         system_prompt=prompts.VERIFY_PROMPT,
         max_tokens=8192,
         temperature=0.0,
     )
-    return verdict.strip()
+    return verdict.strip(), v_in, v_out, checker
 
 
-def finish(answer, in_tok, out_tok, elapsed, model, verdict):
+def finish(answer, in_tok, out_tok, elapsed, model, verdict, v_cost=None):
     global busy, last_response_text, last_body, last_full_html, verify_report
     busy = False
     send_btn.config(state=tk.NORMAL)
@@ -924,8 +940,16 @@ def finish(answer, in_tok, out_tok, elapsed, model, verdict):
     chat.config(state=tk.DISABLED)
     chat.see(tk.END)
 
-    cost = api.format_cost(model, in_tok, out_tok)
-    meter_label.config(text=f"{elapsed:.1f}s  |  {in_tok}+{out_tok} tokens  |  {cost}")
+    total = api.cost_inr(model, in_tok, out_tok)
+    tokens = f"{in_tok}+{out_tok}"
+    if v_cost:
+        v_model, v_in, v_out = v_cost
+        v_inr = api.cost_inr(v_model, v_in, v_out)
+        if total is not None and v_inr is not None:
+            total += v_inr
+        tokens += f" +{v_in}+{v_out} check"
+    meter_label.config(
+        text=f"{elapsed:.1f}s  |  {tokens} tokens  |  {api.format_inr(total)}")
 
     verify_report = verdict or ""
     if verdict:
@@ -1140,10 +1164,28 @@ def open_settings():
                    bg=BG, fg=TEXT, selectcolor=BG, activebackground=BG
                    ).grid(row=2, column=0, columnspan=3, sticky="w", padx=8, pady=4)
 
+    # A model checking its own arithmetic can repeat its own slip. Solving on a
+    # cheap model and checking on a strong one costs little, because the check
+    # is short.
+    tk.Label(gen, text="Check the answer with", bg=BG, fg=TEXT
+             ).grid(row=3, column=0, sticky="w", padx=8, pady=4)
+    SAME = "Same model that solved it"
+    verify_choices = [SAME] + [f"{disp}  [{mid}]" for mid, disp in model_ids]
+    saved_vm = (SETTINGS.get("verify_model") or "").strip()
+    current_vm = SAME
+    for mid, disp in model_ids:
+        if mid == saved_vm:
+            current_vm = f"{disp}  [{mid}]"
+            break
+    verify_model_var = tk.StringVar(value=current_vm)
+    ttk.Combobox(gen, textvariable=verify_model_var, values=verify_choices,
+                 state="readonly", width=42
+                 ).grid(row=3, column=1, columnspan=3, sticky="w", pady=4)
+
     charts_var = tk.BooleanVar(value=SETTINGS.get("charts", False))
     tk.Checkbutton(gen, text="Add pie charts for profit-sharing ratios", variable=charts_var,
                    bg=BG, fg=TEXT, selectcolor=BG, activebackground=BG
-                   ).grid(row=3, column=0, columnspan=3, sticky="w", padx=8, pady=(0, 6))
+                   ).grid(row=4, column=0, columnspan=3, sticky="w", padx=8, pady=(0, 6))
 
     def do_save():
         SETTINGS["presets"][current["key"]]["system_prompt"] = box.get("1.0", tk.END).rstrip()
@@ -1158,6 +1200,9 @@ def open_settings():
         raw = think.get().strip()
         SETTINGS["thinking_budget"] = int(raw) if raw.isdigit() else None
         SETTINGS["verify"] = verify_var.get()
+        picked = verify_model_var.get()
+        SETTINGS["verify_model"] = ("" if picked == SAME
+                                    else picked.rsplit("[", 1)[-1].rstrip("]").strip())
         SETTINGS["charts"] = charts_var.get()
         save_settings()
         set_status("Settings saved.", GREEN)

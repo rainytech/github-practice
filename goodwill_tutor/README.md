@@ -57,6 +57,22 @@ The interface is warm beige throughout, with no white surfaces. The document
 does not follow it — it keeps the `#C8C8C8` house page colour, set in
 `house_style.py`.
 
+## Choosing models
+
+Two settings, both in **Settings**:
+
+- the **model** in the top bar solves the problem
+- **Check the answer with** picks the model that verifies it
+
+A model checking its own arithmetic can repeat its own slip, so solving on a
+cheap model and checking on a strong one is worth the few extra paise — the
+check is short, so it costs little.
+
+> The rupee figures in the meter are **estimates**. The API does not publish
+> prices, so the rates in `gemini_api.py` were filled in by assumption. Correct
+> `PRICING` against Google's pricing page and set `PRICING_VERIFIED = True`;
+> until then every figure is shown as "est."
+
 ## Modes
 
 - **Solve** — accounting and income tax problems, full working notes, verification pass
