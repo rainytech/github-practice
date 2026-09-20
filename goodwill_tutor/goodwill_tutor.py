@@ -767,6 +767,13 @@ def copy_answer():
 #  SENDING
 # ═══════════════════════════════════════════════════════════════
 
+def compact_tokens(n):
+    """6520 -> '6.5k tok'; keeps the meter short enough to survive the top bar."""
+    if n >= 1000:
+        return f"{n / 1000:.1f}k tok"
+    return f"{n} tok"
+
+
 def set_status(text, colour=TEXT):
     status_label.config(text=text, fg=colour)
 
@@ -784,10 +791,14 @@ def say(text, kind="note"):
 
 
 def selected_model():
-    label = model_var.get()
-    for mid, display in model_ids:
-        if f"{display}  [{mid}]" == label or mid == label:
-            return mid
+    """The model id behind the current dropdown row, chosen by position.
+
+    Matching on the label text breaks the moment the label format changes, or
+    when two models share a display name.
+    """
+    idx = model_dropdown.current()
+    if 0 <= idx < len(model_ids):
+        return model_ids[idx][0]
     return SETTINGS.get("model") or (model_ids[0][0] if model_ids else "")
 
 
@@ -952,15 +963,17 @@ def finish(answer, in_tok, out_tok, elapsed, model, verdict, v_cost=None):
     chat.see(tk.END)
 
     total = api.cost_inr(model, in_tok, out_tok)
-    tokens = f"{in_tok}+{out_tok}"
+    used = in_tok + out_tok
     if v_cost:
         v_model, v_in, v_out = v_cost
         v_inr = api.cost_inr(v_model, v_in, v_out)
         if total is not None and v_inr is not None:
             total += v_inr
-        tokens += f" +{v_in}+{v_out} check"
+        used += v_in + v_out
+    # The top bar is narrow, and a long meter is silently clipped from the
+    # right — which hides the cost, the part worth reading.
     meter_label.config(
-        text=f"{elapsed:.1f}s  |  {tokens} tokens  |  {api.format_inr(total)}")
+        text=f"{api.format_inr(total)}  ·  {compact_tokens(used)}  ·  {elapsed:.0f}s")
 
     verify_report = verdict or ""
     if verdict:
@@ -1076,7 +1089,7 @@ def refresh_models(initial=False):
 def models_loaded(found, initial):
     global model_ids
     model_ids = found
-    labels = [f"{display}  [{mid}]" for mid, display in found]
+    labels = [display for _, display in found]
     model_dropdown["values"] = labels
     if not labels:
         set_status("The API returned no usable models.", "#CC0000")
@@ -1181,17 +1194,16 @@ def open_settings():
     tk.Label(gen, text="Check the answer with", bg=BG, fg=TEXT
              ).grid(row=3, column=0, sticky="w", padx=8, pady=4)
     SAME = "Same model that solved it"
-    verify_choices = [SAME] + [f"{disp}  [{mid}]" for mid, disp in model_ids]
+    verify_choices = [SAME] + [disp for _, disp in model_ids]
     saved_vm = (SETTINGS.get("verify_model") or "").strip()
-    current_vm = SAME
-    for mid, disp in model_ids:
+    current_row = 0
+    for i, (mid, _) in enumerate(model_ids):
         if mid == saved_vm:
-            current_vm = f"{disp}  [{mid}]"
+            current_row = i + 1
             break
-    verify_model_var = tk.StringVar(value=current_vm)
-    ttk.Combobox(gen, textvariable=verify_model_var, values=verify_choices,
-                 state="readonly", width=42
-                 ).grid(row=3, column=1, columnspan=3, sticky="w", pady=4)
+    verify_dd = ttk.Combobox(gen, values=verify_choices, state="readonly", width=30)
+    verify_dd.current(current_row)
+    verify_dd.grid(row=3, column=1, columnspan=3, sticky="w", pady=4)
 
     charts_var = tk.BooleanVar(value=SETTINGS.get("charts", False))
     tk.Checkbutton(gen, text="Add pie charts for profit-sharing ratios", variable=charts_var,
@@ -1211,9 +1223,8 @@ def open_settings():
         raw = think.get().strip()
         SETTINGS["thinking_budget"] = int(raw) if raw.isdigit() else None
         SETTINGS["verify"] = verify_var.get()
-        picked = verify_model_var.get()
-        SETTINGS["verify_model"] = ("" if picked == SAME
-                                    else picked.rsplit("[", 1)[-1].rstrip("]").strip())
+        row = verify_dd.current()
+        SETTINGS["verify_model"] = ("" if row <= 0 else model_ids[row - 1][0])
         SETTINGS["charts"] = charts_var.get()
         save_settings()
         set_status("Settings saved.", GREEN)
@@ -1317,13 +1328,13 @@ mode_var = tk.StringVar(value=active_preset()["name"])
 mode_dropdown = ttk.Combobox(
     top, textvariable=mode_var,
     values=[p["name"] for p in SETTINGS["presets"].values()],
-    state="readonly", width=30,
+    state="readonly", width=14,
 )
 mode_dropdown.pack(side=tk.LEFT, padx=6)
 mode_dropdown.bind("<<ComboboxSelected>>", on_mode_change)
 
 model_var = tk.StringVar()
-model_dropdown = ttk.Combobox(top, textvariable=model_var, values=[], state="readonly", width=44)
+model_dropdown = ttk.Combobox(top, textvariable=model_var, values=[], state="readonly", width=26)
 model_dropdown.pack(side=tk.LEFT, padx=6)
 model_dropdown.bind("<<ComboboxSelected>>", on_model_change)
 
@@ -1332,7 +1343,10 @@ tk.Button(top, text="Refresh models", command=lambda: refresh_models(),
 tk.Button(top, text="Settings", command=open_settings,
           bg=SIDEBAR, fg=TEXT, relief=tk.FLAT, padx=10).pack(side=tk.RIGHT, padx=16)
 
-meter_label = tk.Label(top, text="", font=("Arial", 9), bg=SIDEBAR, fg=MUTED)
+# Anchored west so that, on a narrow window, Tk trims the seconds from the
+# right rather than the cost from the left.
+meter_label = tk.Label(top, text="", font=("Arial", 9), bg=SIDEBAR, fg=MUTED,
+                       anchor="w")
 meter_label.pack(side=tk.RIGHT, padx=10)
 
 # ── body ─────────────────────────────────────────────────────────────

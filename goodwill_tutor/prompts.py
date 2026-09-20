@@ -310,19 +310,19 @@ looks wrong, say that the textbook figure appears to be in error and show your w
 
 MODES = {
     "solve": {
-        "name": "Solve (Accounting / Income Tax)",
+        "name": "Solve",
         "system_prompt": SOLVE_PROMPT,
         "wrapper": "goodwill",
         "default_instruction": "Solve the question in the attached page. Show full working notes.",
     },
     "notes": {
-        "name": "Notes (Teaching material)",
+        "name": "Notes",
         "system_prompt": NOTES_PROMPT,
         "wrapper": "goodwill",
         "default_instruction": "Prepare professional teaching notes from the attached material.",
     },
     "general": {
-        "name": "General (Plain chat)",
+        "name": "General",
         "system_prompt": GENERAL_PROMPT,
         "wrapper": "plain",
         "default_instruction": "",
