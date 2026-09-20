@@ -877,7 +877,7 @@ def send_message(event=None):
                 del conversation_history[:len(conversation_history) - MAX_HISTORY_TURNS * 2]
 
             post(lambda: set_status("Streaming...", ACCENT))
-            answer, in_tok, out_tok = api.stream_generate(
+            answer, in_tok, out_tok, cached_tok = api.stream_generate(
                 conversation_history,
                 model,
                 system_prompt=system_prompt,
@@ -896,13 +896,15 @@ def send_message(event=None):
                         else f"Verifying with {checker}...")
                 post(lambda m=note: set_status(m, ACCENT))
                 try:
-                    verdict, v_in, v_out, used = run_verification(text, files, answer, model)
-                    v_cost = (used, v_in, v_out)
+                    verdict, v_in, v_out, v_cached, used = run_verification(
+                        text, files, answer, model)
+                    v_cost = (used, v_in, v_out, v_cached)
                 except api.GeminiError as exc:
                     verdict = f"Verification could not run: {exc}"
 
             elapsed = (datetime.now() - started).total_seconds()
-            post(lambda: finish(answer, in_tok, out_tok, elapsed, model, verdict, v_cost))
+            post(lambda: finish(answer, in_tok, out_tok, cached_tok,
+                                elapsed, model, verdict, v_cost))
 
         except api.GeminiError as exc:
             if conversation_history and conversation_history[-1].get("role") == "user":
@@ -938,7 +940,7 @@ def verify_model_for(solve_model):
 
 
 def run_verification(question_text, files, answer_html, model):
-    """Second independent pass. Returns (verdict, input_tokens, output_tokens, model)."""
+    """Second pass. Returns (verdict, input, output, cached_input, model)."""
     check_parts = api.build_parts(
         "ORIGINAL INSTRUCTION FROM THE TEACHER:\n"
         f"{question_text}\n\n"
@@ -947,17 +949,17 @@ def run_verification(question_text, files, answer_html, model):
         files,
     )
     checker = verify_model_for(model)
-    verdict, v_in, v_out = api.generate(
+    verdict, v_in, v_out, v_cached = api.generate(
         [{"role": "user", "parts": check_parts}],
         checker,
         system_prompt=prompts.VERIFY_PROMPT,
         max_tokens=8192,
         temperature=0.0,
     )
-    return verdict.strip(), v_in, v_out, checker
+    return verdict.strip(), v_in, v_out, v_cached, checker
 
 
-def finish(answer, in_tok, out_tok, elapsed, model, verdict, v_cost=None):
+def finish(answer, in_tok, out_tok, cached_tok, elapsed, model, verdict, v_cost=None):
     global busy, last_response_text, last_body, last_full_html, verify_report
     busy = False
     send_btn.config(state=tk.NORMAL)
@@ -970,18 +972,21 @@ def finish(answer, in_tok, out_tok, elapsed, model, verdict, v_cost=None):
     chat.config(state=tk.DISABLED)
     chat.see(tk.END)
 
-    total = api.cost_inr(model, in_tok, out_tok)
+    total = api.cost_inr(model, in_tok, out_tok, cached_tok)
     used = in_tok + out_tok
+    cached = cached_tok
     if v_cost:
-        v_model, v_in, v_out = v_cost
-        v_inr = api.cost_inr(v_model, v_in, v_out)
+        v_model, v_in, v_out, v_cached = v_cost
+        v_inr = api.cost_inr(v_model, v_in, v_out, v_cached)
         if total is not None and v_inr is not None:
             total += v_inr
         used += v_in + v_out
+        cached += v_cached
     # The top bar is narrow, and a long meter is silently clipped from the
     # right — which hides the cost, the part worth reading.
+    saved = f" ({compact_tokens(cached).replace(' tok', '')} cached)" if cached else ""
     meter_label.config(
-        text=f"{api.format_inr(total)}  ·  {compact_tokens(used)}  ·  {elapsed:.0f}s")
+        text=f"{api.format_inr(total)}  ·  {compact_tokens(used)}{saved}  ·  {elapsed:.0f}s")
 
     verify_report = verdict or ""
     if verdict:

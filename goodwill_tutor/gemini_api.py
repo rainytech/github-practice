@@ -205,12 +205,25 @@ def price_for(model_id, in_tok=0, on=None):
     return None
 
 
-def cost_inr(model_id, in_tok, out_tok, on=None):
-    """Rupee cost of one call, or None when the model's rate is unknown."""
+CACHED_INPUT_DISCOUNT = 0.10      # cached prompt tokens bill at a tenth
+
+
+def cost_inr(model_id, in_tok, out_tok, cached_tok=0, on=None):
+    """Rupee cost of one call, or None when the model's rate is unknown.
+
+    cached_tok is the part of in_tok that Gemini served from its cache; it is
+    included in in_tok by the API and bills at a tenth of the input rate.
+    """
     prices = price_for(model_id, in_tok, on)
     if prices is None:
         return None
-    usd = (in_tok / 1_000_000) * prices[0] + (out_tok / 1_000_000) * prices[1]
+    cached = max(0, min(cached_tok, in_tok))
+    fresh = in_tok - cached
+    usd = (
+        (fresh / 1_000_000) * prices[0]
+        + (cached / 1_000_000) * prices[0] * CACHED_INPUT_DISCOUNT
+        + (out_tok / 1_000_000) * prices[1]
+    )
     return usd * USD_TO_INR
 
 
@@ -226,9 +239,9 @@ def format_inr(value):
     return f"{prefix}Rs. {value:.2f}"
 
 
-def format_cost(model_id, in_tok, out_tok):
+def format_cost(model_id, in_tok, out_tok, cached_tok=0):
     """Human-readable cost of a single call."""
-    return format_inr(cost_inr(model_id, in_tok, out_tok))
+    return format_inr(cost_inr(model_id, in_tok, out_tok, cached_tok))
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -352,7 +365,7 @@ def stream_generate(
     url = f"{BASE}/models/{model_id}:streamGenerateContent?alt=sse"
     payload = _body(contents, system_prompt, max_tokens, temperature, thinking_budget)
 
-    full, in_tok, out_tok = "", 0, 0
+    full, in_tok, out_tok, cached_tok = "", 0, 0, 0
     finish_reason = None
 
     try:
@@ -396,6 +409,7 @@ def stream_generate(
                 if usage:
                     in_tok = usage.get("promptTokenCount", in_tok)
                     out_tok = usage.get("candidatesTokenCount", out_tok)
+                    cached_tok = usage.get("cachedContentTokenCount", cached_tok)
 
     except GeminiError:
         raise
@@ -412,7 +426,7 @@ def stream_generate(
     if not full.strip() and not (stop_event and stop_event.is_set()):
         raise GeminiError("Gemini returned an empty response.")
 
-    return full, in_tok, out_tok
+    return full, in_tok, out_tok, cached_tok
 
 
 def generate(
@@ -449,6 +463,7 @@ def generate(
                 text,
                 usage.get("promptTokenCount", 0),
                 usage.get("candidatesTokenCount", 0),
+                usage.get("cachedContentTokenCount", 0),
             )
     raise GeminiError("Gemini returned no usable content.")
 

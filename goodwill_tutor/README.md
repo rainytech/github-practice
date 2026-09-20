@@ -74,9 +74,14 @@ The rupee figure is **list price**, computed from the rates in `PRICING`
 (`gemini_api.py`, checked September 2026) at Rs. 88 to the dollar. It is shown
 with a `~` because it does not know about:
 
-- cached input, which is 90% cheaper on the Pro line
 - batch rates, which are half price
 - your actual exchange rate
+
+Cached input **is** accounted for. Gemini reports how much of a prompt it served
+from cache, that part bills at a tenth, and the meter says so:
+`~10 paise · 4.4k tok (2.2k cached)`. If no "cached" appears, nothing was
+cached and you are paying full rate for the house-style contract on every
+question — about 5 paise of the roughly 11 paise floor.
 
 The Flash line runs at an introductory rate until 31 December 2026 and doubles
 on 1 January 2027. The table carries both, and switches itself on the date.
