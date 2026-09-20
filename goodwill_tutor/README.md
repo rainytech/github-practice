@@ -42,8 +42,8 @@ python goodwill_tutor.py
 Gemini writes only the `.page-block` body. Every line of CSS comes from
 `house_style.py`, so the house style cannot drift between documents.
 
-The interface is dark. The document is not — it keeps the `#C8C8C8` house page
-colour, set in `house_style.py`.
+The interface uses the Claude cream scheme. The document does not — it keeps
+the `#C8C8C8` house page colour, set in `house_style.py`.
 
 ## Modes
 

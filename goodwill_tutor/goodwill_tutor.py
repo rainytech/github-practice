@@ -55,22 +55,22 @@ PREVIEW_WIDTH = 880       # A4 at 96dpi is 794px; a little wider reads better
 for _d in (APP_DIR, CONVERSATIONS_DIR, SOLUTIONS_DIR, PREVIEW_DIR):
     os.makedirs(_d, exist_ok=True)
 
-# Interface palette — dark. No white, no near-white anywhere in the chrome.
+# Interface palette — the Claude.ai cream scheme.
 # The DOCUMENT keeps its own #C8C8C8 page colour; that is house style and is
 # set in house_style.py, not here.
-BG = "#1F1D1B"           # main background
-SIDEBAR = "#2A2724"      # side panels and toolbars
-FIELD = "#2C2926"        # typing box, editor, lists
-TEXT = "#E6E1D8"         # primary text
-MUTED = "#9A938A"        # secondary text
-BORDER = "#3A3632"
-ACCENT = "#D97757"       # the orange, kept
-BLUE = "#5B9BD5"         # links and headings on dark
-GREEN = "#7FB069"        # success
-RED = "#E06C6C"          # failure
-USER_BUBBLE = "#33302B"
-AI_BUBBLE = "#282522"
-ARTIFACT_BG = "#232120"
+BG = "#F5F4EE"           # main background
+SIDEBAR = "#E5E4DD"      # side panels and toolbars
+FIELD = "#FFFFFF"        # typing box, editor, lists
+TEXT = "#1F1E1D"         # primary text
+MUTED = "#8A857D"        # secondary text
+BORDER = "#D8D6CC"
+ACCENT = "#D97757"       # Claude orange
+BLUE = "#0057B8"         # links and headings
+GREEN = "#2D7A2D"        # success
+RED = "#CC0000"          # failure
+USER_BUBBLE = "#E8E6DC"
+AI_BUBBLE = "#FFFFFF"
+ARTIFACT_BG = "#FAF9F5"
 
 MAX_HISTORY_TURNS = 20
 ATTACH_TYPES = [
@@ -1133,7 +1133,7 @@ _sw, _sh = root.winfo_screenwidth(), root.winfo_screenheight()
 root.geometry(f"{min(1500, _sw - 80)}x{min(800, _sh - 140)}+30+25")
 root.minsize(1000, 560)
 
-# ── dark theming for the ttk widgets ─────────────────────────────────
+# ── theming for the ttk widgets ──────────────────────────────────────
 # The native Windows theme ignores colour options, so switch to 'clam',
 # which honours them.
 style = ttk.Style(root)
@@ -1143,7 +1143,7 @@ except tk.TclError:
     pass
 
 style.configure("TNotebook", background=ARTIFACT_BG, borderwidth=0)
-style.configure("TNotebook.Tab", background=SIDEBAR, foreground=MUTED,
+style.configure("TNotebook.Tab", background=SIDEBAR, foreground=TEXT,
                 padding=(16, 7), borderwidth=0)
 style.map("TNotebook.Tab",
           background=[("selected", ARTIFACT_BG)],
