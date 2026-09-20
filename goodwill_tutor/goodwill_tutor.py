@@ -49,10 +49,8 @@ CONVERSATIONS_DIR = os.path.join(APP_DIR, "conversations")
 SETTINGS_FILE = os.path.join(APP_DIR, "settings.json")
 DESKTOP = os.path.join(os.path.expanduser("~"), "Desktop")
 SOLUTIONS_DIR = os.path.join(DESKTOP, "Goodwill_Solutions")
-PREVIEW_DIR = os.path.join(APP_DIR, "preview")
-PREVIEW_WIDTH = 880       # A4 at 96dpi is 794px; a little wider reads better
 
-for _d in (APP_DIR, CONVERSATIONS_DIR, SOLUTIONS_DIR, PREVIEW_DIR):
+for _d in (APP_DIR, CONVERSATIONS_DIR, SOLUTIONS_DIR):
     os.makedirs(_d, exist_ok=True)
 
 # Interface palette — the Claude.ai cream scheme.
@@ -174,8 +172,6 @@ verify_report = ""
 current_html_path = None
 current_conversation_id = None
 model_ids = []            # [(id, display)] fetched from the API
-preview_image = None      # live PhotoImage; Tk discards it without a reference
-preview_token = 0         # guards against a stale render landing after a newer one
 
 stop_event = threading.Event()
 ui_queue = queue.Queue()
@@ -411,8 +407,7 @@ def new_conversation():
     current_html_path = None
     verify_report = ""
     clear_chat()
-    artifact_title.config(text="Artifact — empty")
-    set_verify_text("")
+    artifact_title.config(text="No document yet")
     refresh_artifact()
     refresh_history_list()
 
@@ -495,119 +490,44 @@ def refresh_attachments():
 #  ARTIFACT PANEL
 # ═══════════════════════════════════════════════════════════════
 
-def set_preview_message(text):
-    """Show a plain message on the preview canvas instead of a rendered page."""
-    preview_canvas.delete("all")
-    preview_canvas.create_text(
-        24, 28, anchor="nw", text=text, fill=MUTED,
-        font=("Georgia", 11), width=max(320, preview_canvas.winfo_width() - 48),
-    )
-    preview_canvas.configure(scrollregion=(0, 0, 0, 0))
-
-
 def refresh_artifact():
-    """Load the document into the HTML editor and start a Chromium preview render."""
-    html = last_full_html or ""
+    """Load the current document into the HTML editor."""
     editor.delete("1.0", tk.END)
-    editor.insert(tk.END, html)
-    render_preview()
-
-
-def render_preview():
-    """Render the current document through Chromium and show the image.
-
-    The preview must agree with the PDF, so it is produced by the same engine
-    rather than by an approximate HTML widget.
-    """
-    global preview_token
-    if not (last_full_html or "").strip():
-        set_preview_message("Attach a page and send a question.\n\n"
-                            "The solved document appears here, rendered exactly as it will print.")
-        return
-
-    preview_token += 1
-    token = preview_token
-    html_snapshot = last_full_html
-    set_preview_message("Rendering preview...")
-
-    def work():
-        try:
-            tmp_html = os.path.join(PREVIEW_DIR, "preview.html")
-            tmp_png = os.path.join(PREVIEW_DIR, f"preview_{token}.png")
-            with open(tmp_html, "w", encoding="utf-8") as fh:
-                fh.write(html_snapshot)
-            out = pdf_export.html_to_png(tmp_html, tmp_png, width=PREVIEW_WIDTH)
-            post(lambda: show_preview(out, token))
-        except pdf_export.PdfExportError as exc:
-            post(lambda e=str(exc): set_preview_message(
-                f"Preview unavailable.\n\n{e}\n\n"
-                "The HTML tab still works, and 'Open in browser' shows the real page."))
-        except Exception as exc:
-            post(lambda e=str(exc): set_preview_message(f"Preview failed.\n\n{e}"))
-
-    threading.Thread(target=work, daemon=True).start()
-
-
-def show_preview(png_path, token):
-    """Place a freshly rendered page image on the canvas."""
-    global preview_image
-    if token != preview_token:
-        return                      # a newer render has already superseded this one
-    try:
-        image = tk.PhotoImage(file=png_path)
-    except Exception as exc:
-        set_preview_message(f"Could not load the preview image.\n\n{exc}")
-        return
-    preview_image = image           # keep a reference or Tk discards it
-    preview_canvas.delete("all")
-    preview_canvas.create_image(0, 0, anchor="nw", image=preview_image)
-    preview_canvas.configure(scrollregion=(0, 0, image.width(), image.height()))
-    preview_canvas.yview_moveto(0)
-    for stale in os.listdir(PREVIEW_DIR):
-        if stale.startswith("preview_") and stale != os.path.basename(png_path):
-            try:
-                os.remove(os.path.join(PREVIEW_DIR, stale))
-            except OSError:
-                pass
+    editor.insert(tk.END, last_full_html or "")
 
 
 def apply_edited_html():
-    """Take what is in the HTML tab, validate it, re-render the preview."""
+    """Take what is in the editor as the document and re-check it."""
     global last_full_html
     edited = editor.get("1.0", tk.END).rstrip()
     if not edited.strip():
-        set_status("HTML tab is empty — nothing to apply.", "#CC0000")
+        set_status("The editor is empty — nothing to apply.", RED)
         return
     last_full_html = edited
-    render_preview()
-    run_validator()
-    notebook.select(0)
-    set_status("Edited HTML applied to the preview.", GREEN)
-
-
-def run_validator():
-    errors, warnings = hs.validate_html(last_full_html or "")
-    report = hs.format_validation(errors, warnings)
-    combined = report if not verify_report else f"{verify_report}\n\n{'-' * 52}\n\n{report}"
-    set_verify_text(combined)
-    if errors:
-        verify_tab_flag(f"Verify ({len(errors)})")
-    elif warnings:
-        verify_tab_flag("Verify (!)")
+    save_html(silent=True)
+    errors, warnings = run_validator()
+    if not errors and not warnings:
+        set_status("Applied. House style clean.", GREEN)
     else:
-        verify_tab_flag("Verify")
+        set_status(f"Applied. {len(errors)} error(s), {len(warnings)} warning(s) — see the chat.", RED)
+
+
+def check_house_style():
+    """Run the validator on demand and always report the outcome."""
+    errors, warnings = run_validator()
+    if not errors and not warnings:
+        say("House style: clean — no rule violations.", "ok")
+        set_status("House style clean.", GREEN)
+    else:
+        set_status(f"{len(errors)} error(s), {len(warnings)} warning(s) — see the chat.", RED)
+
+
+def run_validator(announce=True):
+    """Check the document against the house rules and report into the chat."""
+    errors, warnings = hs.validate_html(last_full_html or "")
+    if announce and (errors or warnings):
+        say(hs.format_validation(errors, warnings), "bad" if errors else "note")
     return errors, warnings
-
-
-def verify_tab_flag(label):
-    notebook.tab(2, text=label)
-
-
-def set_verify_text(text):
-    verify_view.config(state=tk.NORMAL)
-    verify_view.delete("1.0", tk.END)
-    verify_view.insert(tk.END, text or "No verification run yet.")
-    verify_view.config(state=tk.DISABLED)
 
 
 def save_html(silent=False):
@@ -640,7 +560,6 @@ def generate_pdf():
             + "\n".join(errors[:6])
             + "\n\nGenerate the PDF anyway?",
         ):
-            notebook.select(2)
             return
 
     path = save_html(silent=True)
@@ -701,6 +620,18 @@ def copy_answer():
 
 def set_status(text, colour=TEXT):
     status_label.config(text=text, fg=colour)
+
+
+def say(text, kind="note"):
+    """Write a notice into the chat: verification results, validator findings."""
+    label = {"ok": "  Verified  ", "bad": "  Check this  ", "note": "  Note  "}[kind]
+    chat.config(state=tk.NORMAL)
+    chat.insert(tk.END, "\n", "spacer")
+    chat.insert(tk.END, label, f"{kind}_label")
+    chat.insert(tk.END, "\n", "spacer")
+    chat.insert(tk.END, f"  {text.strip()}\n\n", f"{kind}_msg")
+    chat.config(state=tk.DISABLED)
+    chat.see(tk.END)
 
 
 def selected_model():
@@ -859,16 +790,16 @@ def finish(answer, in_tok, out_tok, elapsed, model, verdict):
     cost = api.format_cost(model, in_tok, out_tok)
     meter_label.config(text=f"{elapsed:.1f}s  |  {in_tok}+{out_tok} tokens  |  {cost}")
 
-    verify_report = ""
+    verify_report = verdict or ""
     if verdict:
-        verify_report = verdict
         if verdict.upper().startswith("MISMATCH"):
-            set_status("Verification found a mismatch — see the Verify tab.", "#CC0000")
-        elif verdict.upper().startswith("VERIFIED"):
+            say(verdict, "bad")
+            set_status("Verification found a mismatch — see the chat.", RED)
+        else:
+            say(verdict, "ok")
             set_status("Verified.", GREEN)
 
     if active_mode_key() == "general":
-        set_verify_text(verify_report)
         save_conversation()
         refresh_history_list()
         if not verdict:
@@ -1287,6 +1218,15 @@ chat.tag_config("user_msg", background=USER_BUBBLE, font=("Georgia", 11),
 chat.tag_config("ai_msg", background=AI_BUBBLE, font=("Georgia", 11),
                 lmargin1=10, lmargin2=10, rmargin=10, spacing1=3, spacing3=3)
 chat.tag_config("spacer", spacing1=2, spacing3=2)
+chat.tag_config("ok_label", background=GREEN, foreground="white",
+                font=("Arial", 9, "bold"), spacing1=5, spacing3=5)
+chat.tag_config("bad_label", background=RED, foreground="white",
+                font=("Arial", 9, "bold"), spacing1=5, spacing3=5)
+chat.tag_config("note_label", background=BLUE, foreground="white",
+                font=("Arial", 9, "bold"), spacing1=5, spacing3=5)
+for _k in ("ok", "bad", "note"):
+    chat.tag_config(f"{_k}_msg", background=AI_BUBBLE, font=("Consolas", 10),
+                    lmargin1=10, lmargin2=10, rmargin=10, spacing1=3, spacing3=3)
 
 btn_row = tk.Frame(input_frame, bg=BG)
 btn_row.pack(fill=tk.X, pady=(0, 5))
@@ -1327,104 +1267,70 @@ art_header = tk.Frame(right, bg=ARTIFACT_BG, height=46)
 art_header.pack(fill=tk.X)
 art_header.pack_propagate(False)
 
-artifact_title = tk.Label(art_header, text="Artifact — empty", font=("Arial", 11, "bold"),
+artifact_title = tk.Label(art_header, text="No document yet", font=("Arial", 11, "bold"),
                           bg=ARTIFACT_BG, fg=TEXT)
 artifact_title.pack(side=tk.LEFT, padx=14, pady=12)
 
+# Everything that is not "make the PDF" or "look at the page" lives behind
+# this one button, so the header stays readable.
+def open_more_menu(event=None):
+    menu = tk.Menu(root, tearoff=0, bg=SIDEBAR, fg=TEXT,
+                   activebackground=ACCENT, activeforeground="#FFFFFF",
+                   borderwidth=0, font=("Arial", 10))
+    menu.add_command(label="Apply my edits", command=apply_edited_html)
+    menu.add_command(label="Check house style", command=check_house_style)
+    menu.add_separator()
+    menu.add_command(label="New document", command=start_new_document)
+    menu.add_command(label="Remove last question", command=remove_last_block)
+    menu.add_separator()
+    menu.add_command(label="Save HTML now", command=lambda: save_html())
+    menu.add_command(label="Open solutions folder", command=open_folder)
+    menu.add_command(label="Copy answer", command=copy_answer)
+    try:
+        menu.tk_popup(more_btn.winfo_rootx(),
+                      more_btn.winfo_rooty() + more_btn.winfo_height())
+    finally:
+        menu.grab_release()
+
+
 pdf_btn = tk.Button(art_header, text="Generate PDF", command=generate_pdf,
-                    font=("Arial", 9, "bold"), bg="#0057B8", fg="white",
-                    relief=tk.FLAT, padx=12, pady=4, cursor="hand2")
-pdf_btn.pack(side=tk.RIGHT, padx=(5, 14), pady=9)
+                    font=("Arial", 10, "bold"), bg=BLUE, fg="white",
+                    relief=tk.FLAT, padx=14, pady=5, cursor="hand2")
+pdf_btn.pack(side=tk.RIGHT, padx=(6, 14), pady=8)
 
-for label, cmd in (
-    ("Save HTML", lambda: save_html()),
-    ("Open in browser", open_in_browser),
-    ("Folder", open_folder),
-    ("Copy", copy_answer),
-    ("Remove last block", remove_last_block),
-    ("New document", start_new_document),
-):
-    tk.Button(art_header, text=label, command=cmd, font=("Arial", 9),
-              bg=SIDEBAR, fg=TEXT, relief=tk.FLAT, padx=8, pady=4,
-              cursor="hand2").pack(side=tk.RIGHT, padx=3, pady=9)
+tk.Button(art_header, text="Open in browser", command=open_in_browser,
+          font=("Arial", 10), bg=SIDEBAR, fg=TEXT, relief=tk.FLAT,
+          padx=12, pady=5, cursor="hand2").pack(side=tk.RIGHT, padx=6, pady=8)
 
-notebook = ttk.Notebook(right)
-notebook.pack(fill=tk.BOTH, expand=True, padx=14, pady=(0, 14))
+more_btn = tk.Button(art_header, text="More", command=open_more_menu,
+                     font=("Arial", 10), bg=ARTIFACT_BG, fg=MUTED,
+                     relief=tk.FLAT, padx=10, pady=5, cursor="hand2")
+more_btn.pack(side=tk.RIGHT, padx=2, pady=8)
 
-# tab 0 — preview, rendered by the same Chromium that makes the PDF
-tab_preview = tk.Frame(notebook, bg=ARTIFACT_BG)
-notebook.add(tab_preview, text="Preview")
-
-preview_bar = tk.Frame(tab_preview, bg=ARTIFACT_BG)
-preview_bar.pack(fill=tk.X)
-tk.Button(preview_bar, text="Refresh preview", command=lambda: render_preview(),
-          font=("Arial", 9), bg=SIDEBAR, fg=TEXT, relief=tk.FLAT,
-          padx=10, pady=4, cursor="hand2").pack(side=tk.LEFT, padx=6, pady=6)
-tk.Label(preview_bar, text="Rendered by Chromium — this is exactly what the PDF will look like.",
-         font=("Arial", 9), bg=ARTIFACT_BG, fg=MUTED).pack(side=tk.LEFT, padx=8)
-
-preview_wrap = tk.Frame(tab_preview, bg=ARTIFACT_BG)
-preview_wrap.pack(fill=tk.BOTH, expand=True)
-preview_scroll = tk.Scrollbar(preview_wrap, orient=tk.VERTICAL)
-preview_scroll.pack(side=tk.RIGHT, fill=tk.Y)
-preview_xscroll = tk.Scrollbar(preview_wrap, orient=tk.HORIZONTAL)
-preview_xscroll.pack(side=tk.BOTTOM, fill=tk.X)
-preview_canvas = tk.Canvas(
-    preview_wrap, bg=ARTIFACT_BG, highlightthickness=0, bd=0,
-    yscrollcommand=preview_scroll.set, xscrollcommand=preview_xscroll.set,
-)
-preview_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-preview_scroll.config(command=preview_canvas.yview)
-preview_xscroll.config(command=preview_canvas.xview)
-
-
-def _preview_wheel(event):
-    delta = -1 if (getattr(event, "delta", 0) > 0 or event.num == 4) else 1
-    preview_canvas.yview_scroll(delta * 3, "units")
-
-
-preview_canvas.bind("<MouseWheel>", _preview_wheel)   # Windows and macOS
-preview_canvas.bind("<Button-4>", _preview_wheel)     # Linux
-preview_canvas.bind("<Button-5>", _preview_wheel)
-
-# tab 1 — editable HTML
-tab_html = tk.Frame(notebook, bg=FIELD)
-notebook.add(tab_html, text="HTML")
-editor_bar = tk.Frame(tab_html, bg=ARTIFACT_BG)
-editor_bar.pack(fill=tk.X)
-tk.Button(editor_bar, text="Apply and re-render", command=apply_edited_html,
+# ── the document, as editable HTML ───────────────────────────────────
+editor_bar = tk.Frame(right, bg=ARTIFACT_BG)
+editor_bar.pack(fill=tk.X, padx=14)
+tk.Button(editor_bar, text="Apply my edits", command=apply_edited_html,
           font=("Arial", 9, "bold"), bg=ACCENT, fg="white", relief=tk.FLAT,
-          padx=12, pady=4, cursor="hand2").pack(side=tk.LEFT, padx=6, pady=6)
-tk.Button(editor_bar, text="Check house style", command=lambda: (run_validator(), notebook.select(2)),
-          font=("Arial", 9), bg=SIDEBAR, fg=TEXT, relief=tk.FLAT,
-          padx=10, pady=4).pack(side=tk.LEFT, padx=4)
+          padx=12, pady=4, cursor="hand2").pack(side=tk.LEFT, pady=(0, 6))
 tk.Label(editor_bar, text="Edit freely, then Apply. The PDF uses what is here.",
          font=("Arial", 9), bg=ARTIFACT_BG, fg=MUTED).pack(side=tk.LEFT, padx=10)
-editor = scrolledtext.ScrolledText(tab_html, wrap=tk.NONE, font=("Consolas", 9),
-                                   bg=FIELD, fg=TEXT, relief=tk.FLAT, undo=True)
-editor.pack(fill=tk.BOTH, expand=True)
 
-# tab 2 — verify
-tab_verify = tk.Frame(notebook, bg=FIELD)
-notebook.add(tab_verify, text="Verify")
-verify_view = scrolledtext.ScrolledText(tab_verify, wrap=tk.WORD, font=("Consolas", 10),
-                                        bg=FIELD, fg=TEXT, relief=tk.FLAT,
-                                        padx=12, pady=12)
-verify_view.pack(fill=tk.BOTH, expand=True)
-verify_view.config(state=tk.DISABLED)
+editor = scrolledtext.ScrolledText(right, wrap=tk.NONE, font=("Consolas", 9),
+                                   bg=FIELD, fg=TEXT, relief=tk.FLAT, undo=True)
+editor.pack(fill=tk.BOTH, expand=True, padx=14, pady=(0, 14))
 
 # ── start ────────────────────────────────────────────────────────────
 chat.config(state=tk.NORMAL)
 chat.insert(tk.END, "\n  Goodwill Gemini Tutor\n", "ai_msg")
 chat.insert(tk.END, "  Attach a PDF or image of the question, then press Send.\n", "ai_msg")
 chat.insert(tk.END, "  Solve mode builds an A4 document in house style.\n", "ai_msg")
-chat.insert(tk.END, "  Review it in the Preview or HTML tab, then Generate PDF.\n\n", "ai_msg")
+chat.insert(tk.END, "  The HTML appears on the right. Edit it, then Generate PDF.\n\n", "ai_msg")
 if not pdf_export.playwright_available():
     chat.insert(tk.END, "  For the preview and PDF export:  pip install playwright"
                         "  then  playwright install chromium\n\n", "ai_msg")
 chat.config(state=tk.DISABLED)
 
-set_verify_text("")
 refresh_artifact()
 refresh_history_list()
 root.after(40, pump)

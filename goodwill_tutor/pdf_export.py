@@ -94,50 +94,6 @@ def html_to_pdf(html_path, pdf_path=None, wait_ms=350):
     return pdf_path
 
 
-def html_to_png(html_path, png_path=None, width=880, wait_ms=300):
-    """Render an HTML file to a full-page PNG through the same Chromium that
-    makes the PDF, so the preview cannot disagree with the printed page.
-
-    Returns the png path. Raises PdfExportError on failure.
-    """
-    try:
-        from playwright.sync_api import sync_playwright
-    except ImportError:
-        raise PdfExportError(
-            "Playwright is not installed. Run:  pip install playwright  "
-            "then:  playwright install chromium"
-        )
-
-    html_path = os.path.abspath(html_path)
-    if not os.path.exists(html_path):
-        raise PdfExportError(f"HTML file not found: {html_path}")
-    if png_path is None:
-        png_path = os.path.splitext(html_path)[0] + "_preview.png"
-    png_path = os.path.abspath(png_path)
-
-    try:
-        with sync_playwright() as p:
-            browser = p.chromium.launch()
-            try:
-                page = browser.new_page(viewport={"width": width, "height": 1000})
-                page.goto(pathlib.Path(html_path).as_uri(), wait_until="load")
-                page.wait_for_timeout(wait_ms)
-                page.screenshot(path=png_path, full_page=True)
-            finally:
-                browser.close()
-    except PdfExportError:
-        raise
-    except Exception as exc:
-        msg = str(exc)
-        if "Executable doesn't exist" in msg or "playwright install" in msg:
-            raise PdfExportError(
-                "Chromium is not installed for Playwright. Run:  playwright install chromium"
-            )
-        raise PdfExportError(f"Preview render failed: {msg}")
-
-    return png_path
-
-
 def open_file(path):
     """Open a file in the system's default application."""
     if os.name == "nt":

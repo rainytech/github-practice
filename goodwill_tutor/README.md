@@ -53,12 +53,17 @@ the `#C8C8C8` house page colour, set in `house_style.py`.
 
 Switch with the dropdown in the top bar.
 
-## The three tabs
+## The right side
 
-- **Preview** — the document rendered by Chromium, the same engine that makes
-  the PDF. What you see here is what prints. Scroll with the wheel.
-- **HTML** — editable. Change anything, press *Apply and re-render*. The PDF uses what is here.
-- **Verify** — Gemini's independent second pass, plus the house-style validator
+The right side is the document as editable HTML, and nothing else.
+
+- **Generate PDF** — Chromium renders what is in the editor
+- **Open in browser** — see the finished page
+- **More** — apply edits, check house style, new document, remove the last
+  question, save, open the folder, copy
+
+Gemini's verification pass and the house-style validator report into the chat
+on the left, so there is only one place to read.
 
 ## Chapter documents
 
