@@ -14,6 +14,7 @@ Key differences from the old version:
 import json
 import mimetypes
 import os
+from datetime import date as _date
 
 import requests
 
@@ -38,21 +39,40 @@ SUPPORTED_EXTS = {
     ".txt": "text/plain",
 }
 
-# USD per 1M tokens (input, output), matched by substring against the model id;
-# the longest match wins. An unknown model reports no cost rather than a wrong
-# one.
+# ── Prices ───────────────────────────────────────────────────────────
+# USD per 1M tokens, list price on the paid tier, checked September 2026.
+# Google's own pricing page was unreachable from the machine this was written
+# on, so these came from published secondary sources; spot-check them against
+# a real bill before trusting the rupee figure to the paisa.
 #
-# THESE RATES ARE UNVERIFIED PLACEHOLDERS. The API does not publish prices, so
-# they were filled in by assumption. Check Google's pricing page and correct
-# them, or the rupee figure in the meter is a guess. Everything the meter shows
-# is labelled "est." until then.
-PRICING = {
-    "flash-lite": (0.10, 0.40),
-    "flash": (0.30, 2.50),
-    "pro": (2.00, 12.00),
-}
-PRICING_VERIFIED = False      # flip to True once the rates above are confirmed
+# ORDER MATTERS. The first pattern that appears in the model id wins, so
+# "flash-lite" is listed before "flash" — matching on the longest substring
+# instead would price gemini-3.5-flash-lite as a 3.5 Flash, which is six times
+# too much.
+#
+# Each row is (pattern, introductory_rate, standard_rate). The Flash line runs
+# at an introductory rate to 31 December 2026 and doubles on 1 January 2027;
+# where standard_rate is None the price does not change.
+INTRO_ENDS = _date(2027, 1, 1)
 
+PRICING = [
+    ("flash-lite",       (0.25, 1.50),   None),
+    ("gemini-3.8-flash", (0.75, 3.75),   (1.50, 7.50)),
+    ("gemini-3.7-flash", (0.75, 3.75),   (1.50, 7.50)),
+    ("gemini-3.6-flash", (0.75, 3.75),   (1.50, 7.50)),
+    ("gemini-3.5-flash", (1.50, 9.00),   None),
+    ("gemini-3.1-pro",   (2.00, 12.00),  None),
+    ("pro",              (2.00, 12.00),  None),
+    ("flash",            (0.75, 3.75),   (1.50, 7.50)),
+]
+
+# A prompt over this size re-rates the WHOLE request on the Pro line.
+LARGE_PROMPT_TOKENS = 200_000
+LARGE_PROMPT_PRICING = [
+    ("pro", (4.00, 18.00)),
+]
+
+PRICING_VERIFIED = True
 USD_TO_INR = 88.0
 
 
@@ -163,18 +183,31 @@ def list_models(timeout=30):
     return out
 
 
-def price_for(model_id):
-    """(input_usd_per_1M, output_usd_per_1M) or None when the model is unknown."""
-    best = None
-    for frag, prices in PRICING.items():
-        if frag in model_id and (best is None or len(frag) > len(best[0])):
-            best = (frag, prices)
-    return best[1] if best else None
+def price_for(model_id, in_tok=0, on=None):
+    """(input_usd_per_1M, output_usd_per_1M), or None when the model is unknown.
+
+    in_tok decides the large-prompt tier; `on` is the date to price for, so the
+    introductory rates can be tested either side of their expiry.
+    """
+    mid = model_id.lower()
+    today = on or _date.today()
+
+    if in_tok > LARGE_PROMPT_TOKENS:
+        for pattern, rates in LARGE_PROMPT_PRICING:
+            if pattern in mid:
+                return rates
+
+    for pattern, intro, standard in PRICING:
+        if pattern in mid:
+            if standard is not None and today >= INTRO_ENDS:
+                return standard
+            return intro
+    return None
 
 
-def cost_inr(model_id, in_tok, out_tok):
+def cost_inr(model_id, in_tok, out_tok, on=None):
     """Rupee cost of one call, or None when the model's rate is unknown."""
-    prices = price_for(model_id)
+    prices = price_for(model_id, in_tok, on)
     if prices is None:
         return None
     usd = (in_tok / 1_000_000) * prices[0] + (out_tok / 1_000_000) * prices[1]
@@ -185,7 +218,7 @@ def format_inr(value):
     """Render a rupee amount, flagged as an estimate while the rates are unverified."""
     if value is None:
         return "cost n/a"
-    prefix = "" if PRICING_VERIFIED else "est. "
+    prefix = "~" if PRICING_VERIFIED else "est. "
     if value <= 0:
         return "free"
     if value < 1:

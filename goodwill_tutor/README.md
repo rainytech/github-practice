@@ -68,10 +68,25 @@ A model checking its own arithmetic can repeat its own slip, so solving on a
 cheap model and checking on a strong one is worth the few extra paise — the
 check is short, so it costs little.
 
-> The rupee figures in the meter are **estimates**. The API does not publish
-> prices, so the rates in `gemini_api.py` were filled in by assumption. Correct
-> `PRICING` against Google's pricing page and set `PRICING_VERIFIED = True`;
-> until then every figure is shown as "est."
+### What the meter costs mean
+
+The rupee figure is **list price**, computed from the rates in `PRICING`
+(`gemini_api.py`, checked September 2026) at Rs. 88 to the dollar. It is shown
+with a `~` because it does not know about:
+
+- cached input, which is 90% cheaper on the Pro line
+- batch rates, which are half price
+- your actual exchange rate
+
+The Flash line runs at an introductory rate until 31 December 2026 and doubles
+on 1 January 2027. The table carries both, and switches itself on the date.
+A prompt over 200,000 tokens re-rates the whole request on the Pro line, which
+the table also handles.
+
+Rates differ per Flash generation — 3.5 Flash costs twice what 3.6, 3.7 and 3.8
+Flash do — so `PRICING` is an ordered list, matched first-hit. `flash-lite` is
+listed before `flash` deliberately: match on the longest substring instead and
+`gemini-3.5-flash-lite` gets priced as a 3.5 Flash, six times too much.
 
 ## Modes
 
