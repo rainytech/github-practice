@@ -60,19 +60,19 @@ for _d in (APP_DIR, CONVERSATIONS_DIR, SOLUTIONS_DIR, PREVIEW_DIR):
 # brightness, so the eye is not fighting glare all day.
 # The DOCUMENT keeps its own #C8C8C8 page colour; that is house style and is
 # set in house_style.py, not here.
-BG = "#EDE9DE"           # main background
-SIDEBAR = "#E3DECF"      # side panels and toolbars
-FIELD = "#F2EEE3"        # typing box, editor, lists
+BG = "#F3F0E7"           # main background
+SIDEBAR = "#E9E5D8"      # side panels and toolbars
+FIELD = "#F6F3EA"        # typing box, editor, lists
 TEXT = "#2A2723"         # primary text, warm near-black
-MUTED = "#837C6E"        # secondary text
-BORDER = "#D5CFBE"
+MUTED = "#8A8376"        # secondary text
+BORDER = "#DDD7C7"
 ACCENT = "#D97757"       # Claude orange
 BLUE = "#0F5FA6"         # links and headings
 GREEN = "#2D6A2D"        # success
 RED = "#B81E1E"          # failure
-USER_BUBBLE = "#E3DECF"
-AI_BUBBLE = "#F2EEE3"
-ARTIFACT_BG = "#EDE9DE"
+USER_BUBBLE = "#E9E5D8"
+AI_BUBBLE = "#F6F3EA"
+ARTIFACT_BG = "#F3F0E7"
 
 MAX_HISTORY_TURNS = 20
 ATTACH_TYPES = [
