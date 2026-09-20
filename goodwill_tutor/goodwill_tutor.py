@@ -9,7 +9,7 @@ Workflow:
     Attach PDF / image  ->  Gemini solves  ->  HTML in house style
     ->  review and edit  ->  Playwright PDF  ->  teach on Zoom
 
-Requires:  pip install requests tkinterweb playwright matplotlib
+Requires:  pip install requests playwright matplotlib
            playwright install chromium
 Key:       set GEMINI_API_KEY in the environment.
 """
@@ -32,12 +32,6 @@ import prompts
 
 # ── optional dependencies ────────────────────────────────────────────
 try:
-    from tkinterweb import HtmlFrame
-    HTML_PREVIEW = True
-except ImportError:
-    HTML_PREVIEW = False
-
-try:
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
@@ -55,18 +49,28 @@ CONVERSATIONS_DIR = os.path.join(APP_DIR, "conversations")
 SETTINGS_FILE = os.path.join(APP_DIR, "settings.json")
 DESKTOP = os.path.join(os.path.expanduser("~"), "Desktop")
 SOLUTIONS_DIR = os.path.join(DESKTOP, "Goodwill_Solutions")
+PREVIEW_DIR = os.path.join(APP_DIR, "preview")
+PREVIEW_WIDTH = 880       # A4 at 96dpi is 794px; a little wider reads better
 
-for _d in (APP_DIR, CONVERSATIONS_DIR, SOLUTIONS_DIR):
+for _d in (APP_DIR, CONVERSATIONS_DIR, SOLUTIONS_DIR, PREVIEW_DIR):
     os.makedirs(_d, exist_ok=True)
 
-# Interface palette (unchanged from the previous version).
-BG = "#F5F4EE"
-SIDEBAR = "#E5E4DD"
-TEXT = "#1F1E1D"
-ACCENT = "#D97757"
-USER_BUBBLE = "#E8E6DC"
-AI_BUBBLE = "#FFFFFF"
-ARTIFACT_BG = "#FAF9F5"
+# Interface palette — dark. No white, no near-white anywhere in the chrome.
+# The DOCUMENT keeps its own #C8C8C8 page colour; that is house style and is
+# set in house_style.py, not here.
+BG = "#1F1D1B"           # main background
+SIDEBAR = "#2A2724"      # side panels and toolbars
+FIELD = "#2C2926"        # typing box, editor, lists
+TEXT = "#E6E1D8"         # primary text
+MUTED = "#9A938A"        # secondary text
+BORDER = "#3A3632"
+ACCENT = "#D97757"       # the orange, kept
+BLUE = "#5B9BD5"         # links and headings on dark
+GREEN = "#7FB069"        # success
+RED = "#E06C6C"          # failure
+USER_BUBBLE = "#33302B"
+AI_BUBBLE = "#282522"
+ARTIFACT_BG = "#232120"
 
 MAX_HISTORY_TURNS = 20
 ATTACH_TYPES = [
@@ -170,6 +174,8 @@ verify_report = ""
 current_html_path = None
 current_conversation_id = None
 model_ids = []            # [(id, display)] fetched from the API
+preview_image = None      # live PhotoImage; Tk discards it without a reference
+preview_token = 0         # guards against a stale render landing after a newer one
 
 stop_event = threading.Event()
 ui_queue = queue.Queue()
@@ -206,7 +212,7 @@ CHART_TITLES = {
     "SACRIFICE": "Sacrificing Ratio",
     "CAPITAL": "Capital Contribution",
 }
-CHART_COLORS = ["#0057B8", "#6A0DAD", "#CC0000", "#2d7a2d", "#C2185B", "#e07a3c"]
+CHART_COLORS = ["#0057B8", "#6A0DAD", RED, GREEN, "#C2185B", "#e07a3c"]
 
 CHART_INSTRUCTION = """
 
@@ -443,7 +449,7 @@ def load_conversation(conv_id):
     chat.see(tk.END)
     artifact_title.config(text=data.get("title", "Artifact"))
     refresh_artifact()
-    set_status(f"Loaded: {data.get('title', conv_id)}", "#2d7a2d")
+    set_status(f"Loaded: {data.get('title', conv_id)}", GREEN)
 
 
 def delete_conversation(conv_id):
@@ -478,7 +484,7 @@ def clear_attachments():
 
 def refresh_attachments():
     if not attachments:
-        attach_label.config(text="No pages attached", fg="#888888")
+        attach_label.config(text="No pages attached", fg=MUTED)
         return
     names = ", ".join(os.path.basename(p) for p in attachments[:3])
     extra = f" +{len(attachments) - 3} more" if len(attachments) > 3 else ""
@@ -489,20 +495,80 @@ def refresh_attachments():
 #  ARTIFACT PANEL
 # ═══════════════════════════════════════════════════════════════
 
+def set_preview_message(text):
+    """Show a plain message on the preview canvas instead of a rendered page."""
+    preview_canvas.delete("all")
+    preview_canvas.create_text(
+        24, 28, anchor="nw", text=text, fill=MUTED,
+        font=("Georgia", 11), width=max(320, preview_canvas.winfo_width() - 48),
+    )
+    preview_canvas.configure(scrollregion=(0, 0, 0, 0))
+
+
 def refresh_artifact():
-    """Push last_full_html into the preview and the HTML editor."""
+    """Load the document into the HTML editor and start a Chromium preview render."""
     html = last_full_html or ""
-    if HTML_PREVIEW:
-        preview.load_html(html or "<html><body style='background:#FAF9F5;font-family:Georgia;"
-                                  "padding:30px;color:#888'><h3>Artifact</h3>"
-                                  "<p>Attach a page and send a question.</p></body></html>")
-    else:
-        preview.config(state=tk.NORMAL)
-        preview.delete("1.0", tk.END)
-        preview.insert(tk.END, html or "Install tkinterweb for a live preview:\n\n  pip install tkinterweb")
-        preview.config(state=tk.DISABLED)
     editor.delete("1.0", tk.END)
     editor.insert(tk.END, html)
+    render_preview()
+
+
+def render_preview():
+    """Render the current document through Chromium and show the image.
+
+    The preview must agree with the PDF, so it is produced by the same engine
+    rather than by an approximate HTML widget.
+    """
+    global preview_token
+    if not (last_full_html or "").strip():
+        set_preview_message("Attach a page and send a question.\n\n"
+                            "The solved document appears here, rendered exactly as it will print.")
+        return
+
+    preview_token += 1
+    token = preview_token
+    html_snapshot = last_full_html
+    set_preview_message("Rendering preview...")
+
+    def work():
+        try:
+            tmp_html = os.path.join(PREVIEW_DIR, "preview.html")
+            tmp_png = os.path.join(PREVIEW_DIR, f"preview_{token}.png")
+            with open(tmp_html, "w", encoding="utf-8") as fh:
+                fh.write(html_snapshot)
+            out = pdf_export.html_to_png(tmp_html, tmp_png, width=PREVIEW_WIDTH)
+            post(lambda: show_preview(out, token))
+        except pdf_export.PdfExportError as exc:
+            post(lambda e=str(exc): set_preview_message(
+                f"Preview unavailable.\n\n{e}\n\n"
+                "The HTML tab still works, and 'Open in browser' shows the real page."))
+        except Exception as exc:
+            post(lambda e=str(exc): set_preview_message(f"Preview failed.\n\n{e}"))
+
+    threading.Thread(target=work, daemon=True).start()
+
+
+def show_preview(png_path, token):
+    """Place a freshly rendered page image on the canvas."""
+    global preview_image
+    if token != preview_token:
+        return                      # a newer render has already superseded this one
+    try:
+        image = tk.PhotoImage(file=png_path)
+    except Exception as exc:
+        set_preview_message(f"Could not load the preview image.\n\n{exc}")
+        return
+    preview_image = image           # keep a reference or Tk discards it
+    preview_canvas.delete("all")
+    preview_canvas.create_image(0, 0, anchor="nw", image=preview_image)
+    preview_canvas.configure(scrollregion=(0, 0, image.width(), image.height()))
+    preview_canvas.yview_moveto(0)
+    for stale in os.listdir(PREVIEW_DIR):
+        if stale.startswith("preview_") and stale != os.path.basename(png_path):
+            try:
+                os.remove(os.path.join(PREVIEW_DIR, stale))
+            except OSError:
+                pass
 
 
 def apply_edited_html():
@@ -513,11 +579,10 @@ def apply_edited_html():
         set_status("HTML tab is empty — nothing to apply.", "#CC0000")
         return
     last_full_html = edited
-    if HTML_PREVIEW:
-        preview.load_html(last_full_html)
+    render_preview()
     run_validator()
     notebook.select(0)
-    set_status("Edited HTML applied to the preview.", "#2d7a2d")
+    set_status("Edited HTML applied to the preview.", GREEN)
 
 
 def run_validator():
@@ -558,7 +623,7 @@ def save_html(silent=False):
     current_html_path = path
     artifact_title.config(text=os.path.basename(path))
     if not silent:
-        set_status(f"Saved: {os.path.basename(path)}", "#2d7a2d")
+        set_status(f"Saved: {os.path.basename(path)}", GREEN)
     return path
 
 
@@ -596,7 +661,7 @@ def generate_pdf():
 
 def pdf_done(path):
     pdf_btn.config(state=tk.NORMAL)
-    set_status(f"PDF ready: {os.path.basename(path)}", "#2d7a2d")
+    set_status(f"PDF ready: {os.path.basename(path)}", GREEN)
     try:
         pdf_export.open_file(path)
     except Exception:
@@ -625,9 +690,9 @@ def copy_answer():
     if last_response_text:
         root.clipboard_clear()
         root.clipboard_append(last_response_text)
-        set_status("Copied to clipboard.", "#2d7a2d")
+        set_status("Copied to clipboard.", GREEN)
     else:
-        set_status("Nothing to copy yet.", "#888888")
+        set_status("Nothing to copy yet.", MUTED)
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -782,7 +847,7 @@ def finish(answer, in_tok, out_tok, elapsed, model, verdict):
     global busy, last_response_text, last_body, last_full_html, verify_report
     busy = False
     send_btn.config(state=tk.NORMAL)
-    stop_btn.config(state=tk.DISABLED, bg="#999999")
+    stop_btn.config(state=tk.DISABLED, bg=BORDER)
 
     last_response_text = answer
     chat.config(state=tk.NORMAL)
@@ -800,14 +865,14 @@ def finish(answer, in_tok, out_tok, elapsed, model, verdict):
         if verdict.upper().startswith("MISMATCH"):
             set_status("Verification found a mismatch — see the Verify tab.", "#CC0000")
         elif verdict.upper().startswith("VERIFIED"):
-            set_status("Verified.", "#2d7a2d")
+            set_status("Verified.", GREEN)
 
     if active_mode_key() == "general":
         set_verify_text(verify_report)
         save_conversation()
         refresh_history_list()
         if not verdict:
-            set_status("Done.", "#2d7a2d")
+            set_status("Done.", GREEN)
         return
 
     body = api.strip_code_fence(answer)
@@ -830,14 +895,14 @@ def finish(answer, in_tok, out_tok, elapsed, model, verdict):
     save_conversation()
     refresh_history_list()
     if not verdict:
-        set_status(f"Done — {len(doc_blocks)} block(s) in this document.", "#2d7a2d")
+        set_status(f"Done — {len(doc_blocks)} block(s) in this document.", GREEN)
 
 
 def fail(message):
     global busy
     busy = False
     send_btn.config(state=tk.NORMAL)
-    stop_btn.config(state=tk.DISABLED, bg="#999999")
+    stop_btn.config(state=tk.DISABLED, bg=BORDER)
     chat.config(state=tk.NORMAL)
     chat.delete("stream_start", tk.END)
     chat.insert(tk.END, f"[{message}]\n\n", "ai_msg")
@@ -848,7 +913,7 @@ def fail(message):
 
 def stop_generation():
     stop_event.set()
-    set_status("Stopping...", "#CC0000")
+    set_status("Stopping...", RED)
 
 
 def clear_chat():
@@ -869,7 +934,7 @@ def start_new_document():
     current_html_path = None
     artifact_title.config(text="Artifact — empty")
     refresh_artifact()
-    set_status("New document started. The next answer begins a fresh chapter.", "#2d7a2d")
+    set_status("New document started. The next answer begins a fresh chapter.", GREEN)
 
 
 def remove_last_block():
@@ -885,7 +950,7 @@ def remove_last_block():
     else:
         last_full_html = last_full_html[:cut].rstrip() + "\n</body>\n</html>\n"
     refresh_artifact()
-    set_status(f"Removed the last block — {len(doc_blocks)} remaining.", "#2d7a2d")
+    set_status(f"Removed the last block — {len(doc_blocks)} remaining.", GREEN)
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -928,7 +993,7 @@ def models_loaded(found, initial):
     model_var.set(labels[chosen])
     SETTINGS["model"] = found[chosen][0]
     save_settings()
-    set_status(f"{len(found)} models available. Using {found[chosen][0]}.", "#2d7a2d")
+    set_status(f"{len(found)} models available. Using {found[chosen][0]}.", GREEN)
 
 
 def models_failed(message, initial):
@@ -1025,7 +1090,7 @@ def open_settings():
         SETTINGS["verify"] = verify_var.get()
         SETTINGS["charts"] = charts_var.get()
         save_settings()
-        set_status("Settings saved.", "#2d7a2d")
+        set_status("Settings saved.", GREEN)
         win.destroy()
 
     def do_reset():
@@ -1033,7 +1098,7 @@ def open_settings():
         if key in prompts.MODES:
             SETTINGS["presets"][key]["system_prompt"] = prompts.MODES[key]["system_prompt"]
             show(key)
-            set_status(f"'{SETTINGS['presets'][key]['name']}' prompt reset to the built-in version.", "#2d7a2d")
+            set_status(f"'{SETTINGS['presets'][key]['name']}' prompt reset to the built-in version.", GREEN)
 
     bar = tk.Frame(win, bg=BG)
     bar.pack(fill=tk.X, padx=16, pady=(0, 14))
@@ -1041,7 +1106,7 @@ def open_settings():
               relief=tk.FLAT, padx=18, pady=5).pack(side=tk.LEFT)
     tk.Button(bar, text="Reset this prompt", command=do_reset, bg=SIDEBAR, fg=TEXT,
               relief=tk.FLAT, padx=14, pady=5).pack(side=tk.LEFT, padx=8)
-    tk.Button(bar, text="Cancel", command=win.destroy, bg="#CCCCCC", fg=TEXT,
+    tk.Button(bar, text="Cancel", command=win.destroy, bg=BORDER, fg=TEXT,
               relief=tk.FLAT, padx=14, pady=5).pack(side=tk.RIGHT)
 
 
@@ -1067,6 +1132,51 @@ root.title("Goodwill Gemini Tutor")
 _sw, _sh = root.winfo_screenwidth(), root.winfo_screenheight()
 root.geometry(f"{min(1500, _sw - 80)}x{min(800, _sh - 140)}+30+25")
 root.minsize(1000, 560)
+
+# ── dark theming for the ttk widgets ─────────────────────────────────
+# The native Windows theme ignores colour options, so switch to 'clam',
+# which honours them.
+style = ttk.Style(root)
+try:
+    style.theme_use("clam")
+except tk.TclError:
+    pass
+
+style.configure("TNotebook", background=ARTIFACT_BG, borderwidth=0)
+style.configure("TNotebook.Tab", background=SIDEBAR, foreground=MUTED,
+                padding=(16, 7), borderwidth=0)
+style.map("TNotebook.Tab",
+          background=[("selected", ARTIFACT_BG)],
+          foreground=[("selected", ACCENT)])
+
+style.configure("TCombobox", fieldbackground=FIELD, background=SIDEBAR,
+                foreground=TEXT, arrowcolor=TEXT, borderwidth=0, padding=4)
+style.map("TCombobox",
+          fieldbackground=[("readonly", FIELD)],
+          background=[("readonly", FIELD)],
+          foreground=[("readonly", TEXT)],
+          selectbackground=[("readonly", FIELD)],
+          selectforeground=[("readonly", TEXT)])
+
+# The combobox drop-down list is a classic Tk listbox, themed separately.
+root.option_add("*TCombobox*Listbox.background", FIELD)
+root.option_add("*TCombobox*Listbox.foreground", TEXT)
+root.option_add("*TCombobox*Listbox.selectBackground", ACCENT)
+root.option_add("*TCombobox*Listbox.selectForeground", "#FFFFFF")
+root.option_add("*TCombobox*Listbox.font", ("Arial", 9))
+
+# Scrollbars
+for _opt, _val in (("background", SIDEBAR), ("troughColor", BG),
+                   ("activeBackground", BORDER), ("borderWidth", 0),
+                   ("highlightThickness", 0)):
+    root.option_add(f"*Scrollbar.{_opt}", _val)
+
+# Text cursor and selection inside the dark input fields
+for _cls in ("Text", "Entry", "Listbox"):
+    root.option_add(f"*{_cls}.insertBackground", TEXT)
+    root.option_add(f"*{_cls}.selectBackground", ACCENT)
+    root.option_add(f"*{_cls}.selectForeground", "#FFFFFF")
+    root.option_add(f"*{_cls}.highlightThickness", 0)
 root.configure(bg=BG)
 
 # ── top bar ──────────────────────────────────────────────────────────
@@ -1075,7 +1185,7 @@ top.pack(fill=tk.X)
 top.pack_propagate(False)
 
 tk.Label(top, text="GOODWILL TUITION CENTRE", font=("Georgia", 12, "bold"),
-         bg=SIDEBAR, fg="#0057B8").pack(side=tk.LEFT, padx=16)
+         bg=SIDEBAR, fg=BLUE).pack(side=tk.LEFT, padx=16)
 
 mode_var = tk.StringVar(value=active_preset()["name"])
 mode_dropdown = ttk.Combobox(
@@ -1096,7 +1206,7 @@ tk.Button(top, text="Refresh models", command=lambda: refresh_models(),
 tk.Button(top, text="Settings", command=open_settings,
           bg=SIDEBAR, fg=TEXT, relief=tk.FLAT, padx=10).pack(side=tk.RIGHT, padx=16)
 
-meter_label = tk.Label(top, text="", font=("Arial", 9), bg=SIDEBAR, fg="#666666")
+meter_label = tk.Label(top, text="", font=("Arial", 9), bg=SIDEBAR, fg=MUTED)
 meter_label.pack(side=tk.RIGHT, padx=10)
 
 # ── body ─────────────────────────────────────────────────────────────
@@ -1111,7 +1221,7 @@ history_panel.pack_propagate(False)
 tk.Button(history_panel, text="+ New chat", command=lambda: new_conversation(),
           bg=ACCENT, fg="white", relief=tk.FLAT, pady=6).pack(fill=tk.X, padx=10, pady=(12, 8))
 tk.Label(history_panel, text="History", font=("Arial", 9, "bold"),
-         bg=SIDEBAR, fg="#666666").pack(anchor="w", padx=12)
+         bg=SIDEBAR, fg=MUTED).pack(anchor="w", padx=12)
 
 hist_wrap = tk.Frame(history_panel, bg=SIDEBAR)
 hist_wrap.pack(fill=tk.BOTH, expand=True, padx=8, pady=6)
@@ -1144,7 +1254,7 @@ history_listbox.bind("<<ListboxSelect>>", on_history_select)
 tk.Button(history_panel, text="Delete chat",
           command=lambda: delete_conversation(history_ids[history_listbox.curselection()[0]])
           if history_listbox.curselection() else None,
-          bg=SIDEBAR, fg="#999999", relief=tk.FLAT).pack(fill=tk.X, padx=10, pady=(0, 12))
+          bg=SIDEBAR, fg=MUTED, relief=tk.FLAT).pack(fill=tk.X, padx=10, pady=(0, 12))
 
 # split
 split = tk.PanedWindow(body, orient=tk.HORIZONTAL, bg=SIDEBAR, sashwidth=6,
@@ -1184,13 +1294,13 @@ send_btn = tk.Button(btn_row, text="Send", command=send_message, font=("Arial", 
                      bg=ACCENT, fg="white", relief=tk.FLAT, padx=22, pady=6, cursor="hand2")
 send_btn.pack(side=tk.LEFT)
 stop_btn = tk.Button(btn_row, text="Stop", command=lambda: stop_generation(),
-                     font=("Arial", 10), bg="#999999", fg="white", relief=tk.FLAT,
+                     font=("Arial", 10), bg=BORDER, fg=TEXT, relief=tk.FLAT,
                      padx=14, pady=6, state=tk.DISABLED)
 stop_btn.pack(side=tk.LEFT, padx=6)
 tk.Button(btn_row, text="Clear chat", command=lambda: clear_chat(), font=("Arial", 9),
-          bg=BG, fg="#888888", relief=tk.FLAT).pack(side=tk.LEFT, padx=6)
+          bg=BG, fg=MUTED, relief=tk.FLAT).pack(side=tk.LEFT, padx=6)
 
-status_label = tk.Label(btn_row, text="Ready", font=("Arial", 9), bg=BG, fg="#666666")
+status_label = tk.Label(btn_row, text="Ready", font=("Arial", 9), bg=BG, fg=MUTED)
 status_label.pack(side=tk.RIGHT)
 
 attach_row = tk.Frame(input_frame, bg=BG)
@@ -1198,13 +1308,13 @@ attach_row.pack(fill=tk.X, pady=(0, 6))
 tk.Button(attach_row, text="Attach PDF / image", command=attach_files, font=("Arial", 9),
           bg=SIDEBAR, fg=TEXT, relief=tk.FLAT, padx=10, cursor="hand2").pack(side=tk.LEFT)
 tk.Button(attach_row, text="Clear", command=clear_attachments, font=("Arial", 9),
-          bg=BG, fg="#888888", relief=tk.FLAT).pack(side=tk.LEFT, padx=5)
+          bg=BG, fg=MUTED, relief=tk.FLAT).pack(side=tk.LEFT, padx=5)
 attach_label = tk.Label(attach_row, text="No pages attached", font=("Arial", 9),
-                        bg=BG, fg="#888888")
+                        bg=BG, fg=MUTED)
 attach_label.pack(side=tk.LEFT, padx=10)
 
 entry = tk.Text(input_frame, height=4, wrap=tk.WORD, font=("Georgia", 11),
-                bg="white", fg=TEXT, relief=tk.FLAT, padx=10, pady=8)
+                bg=FIELD, fg=TEXT, relief=tk.FLAT, padx=10, pady=8)
 entry.pack(fill=tk.X)
 entry.bind("<Return>", send_message)
 entry.bind("<Shift-Return>", lambda e: None)
@@ -1241,18 +1351,44 @@ for label, cmd in (
 notebook = ttk.Notebook(right)
 notebook.pack(fill=tk.BOTH, expand=True, padx=14, pady=(0, 14))
 
-# tab 0 — preview
-tab_preview = tk.Frame(notebook, bg="white")
+# tab 0 — preview, rendered by the same Chromium that makes the PDF
+tab_preview = tk.Frame(notebook, bg=ARTIFACT_BG)
 notebook.add(tab_preview, text="Preview")
-if HTML_PREVIEW:
-    preview = HtmlFrame(tab_preview, messages_enabled=False)
-else:
-    preview = scrolledtext.ScrolledText(tab_preview, wrap=tk.WORD, font=("Consolas", 9),
-                                        bg="white", fg=TEXT, relief=tk.FLAT)
-preview.pack(fill=tk.BOTH, expand=True)
+
+preview_bar = tk.Frame(tab_preview, bg=ARTIFACT_BG)
+preview_bar.pack(fill=tk.X)
+tk.Button(preview_bar, text="Refresh preview", command=lambda: render_preview(),
+          font=("Arial", 9), bg=SIDEBAR, fg=TEXT, relief=tk.FLAT,
+          padx=10, pady=4, cursor="hand2").pack(side=tk.LEFT, padx=6, pady=6)
+tk.Label(preview_bar, text="Rendered by Chromium — this is exactly what the PDF will look like.",
+         font=("Arial", 9), bg=ARTIFACT_BG, fg=MUTED).pack(side=tk.LEFT, padx=8)
+
+preview_wrap = tk.Frame(tab_preview, bg=ARTIFACT_BG)
+preview_wrap.pack(fill=tk.BOTH, expand=True)
+preview_scroll = tk.Scrollbar(preview_wrap, orient=tk.VERTICAL)
+preview_scroll.pack(side=tk.RIGHT, fill=tk.Y)
+preview_xscroll = tk.Scrollbar(preview_wrap, orient=tk.HORIZONTAL)
+preview_xscroll.pack(side=tk.BOTTOM, fill=tk.X)
+preview_canvas = tk.Canvas(
+    preview_wrap, bg=ARTIFACT_BG, highlightthickness=0, bd=0,
+    yscrollcommand=preview_scroll.set, xscrollcommand=preview_xscroll.set,
+)
+preview_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+preview_scroll.config(command=preview_canvas.yview)
+preview_xscroll.config(command=preview_canvas.xview)
+
+
+def _preview_wheel(event):
+    delta = -1 if (getattr(event, "delta", 0) > 0 or event.num == 4) else 1
+    preview_canvas.yview_scroll(delta * 3, "units")
+
+
+preview_canvas.bind("<MouseWheel>", _preview_wheel)   # Windows and macOS
+preview_canvas.bind("<Button-4>", _preview_wheel)     # Linux
+preview_canvas.bind("<Button-5>", _preview_wheel)
 
 # tab 1 — editable HTML
-tab_html = tk.Frame(notebook, bg="white")
+tab_html = tk.Frame(notebook, bg=FIELD)
 notebook.add(tab_html, text="HTML")
 editor_bar = tk.Frame(tab_html, bg=ARTIFACT_BG)
 editor_bar.pack(fill=tk.X)
@@ -1263,16 +1399,16 @@ tk.Button(editor_bar, text="Check house style", command=lambda: (run_validator()
           font=("Arial", 9), bg=SIDEBAR, fg=TEXT, relief=tk.FLAT,
           padx=10, pady=4).pack(side=tk.LEFT, padx=4)
 tk.Label(editor_bar, text="Edit freely, then Apply. The PDF uses what is here.",
-         font=("Arial", 9), bg=ARTIFACT_BG, fg="#888888").pack(side=tk.LEFT, padx=10)
+         font=("Arial", 9), bg=ARTIFACT_BG, fg=MUTED).pack(side=tk.LEFT, padx=10)
 editor = scrolledtext.ScrolledText(tab_html, wrap=tk.NONE, font=("Consolas", 9),
-                                   bg="white", fg=TEXT, relief=tk.FLAT, undo=True)
+                                   bg=FIELD, fg=TEXT, relief=tk.FLAT, undo=True)
 editor.pack(fill=tk.BOTH, expand=True)
 
 # tab 2 — verify
-tab_verify = tk.Frame(notebook, bg="white")
+tab_verify = tk.Frame(notebook, bg=FIELD)
 notebook.add(tab_verify, text="Verify")
 verify_view = scrolledtext.ScrolledText(tab_verify, wrap=tk.WORD, font=("Consolas", 10),
-                                        bg="white", fg=TEXT, relief=tk.FLAT,
+                                        bg=FIELD, fg=TEXT, relief=tk.FLAT,
                                         padx=12, pady=12)
 verify_view.pack(fill=tk.BOTH, expand=True)
 verify_view.config(state=tk.DISABLED)
@@ -1282,11 +1418,10 @@ chat.config(state=tk.NORMAL)
 chat.insert(tk.END, "\n  Goodwill Gemini Tutor\n", "ai_msg")
 chat.insert(tk.END, "  Attach a PDF or image of the question, then press Send.\n", "ai_msg")
 chat.insert(tk.END, "  Solve mode builds an A4 document in house style.\n", "ai_msg")
-chat.insert(tk.END, "  Review it in the HTML tab, then Generate PDF.\n\n", "ai_msg")
-if not HTML_PREVIEW:
-    chat.insert(tk.END, "  For the live preview:  pip install tkinterweb\n\n", "ai_msg")
+chat.insert(tk.END, "  Review it in the Preview or HTML tab, then Generate PDF.\n\n", "ai_msg")
 if not pdf_export.playwright_available():
-    chat.insert(tk.END, "  For PDF export:  pip install playwright  then  playwright install chromium\n\n", "ai_msg")
+    chat.insert(tk.END, "  For the preview and PDF export:  pip install playwright"
+                        "  then  playwright install chromium\n\n", "ai_msg")
 chat.config(state=tk.DISABLED)
 
 set_verify_text("")

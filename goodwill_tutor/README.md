@@ -37,10 +37,13 @@ python goodwill_tutor.py
 | `house_style.py` | The A4 stylesheet, header, validator | Changing colours, fonts, spacing |
 | `prompts.py` | What Gemini is told in each mode | Changing how it solves or writes |
 | `gemini_api.py` | All network calls | Changing models, tokens, uploads |
-| `pdf_export.py` | Playwright PDF conversion | Changing the PDF geometry |
+| `pdf_export.py` | Playwright PDF and preview rendering | Changing the PDF geometry |
 
 Gemini writes only the `.page-block` body. Every line of CSS comes from
 `house_style.py`, so the house style cannot drift between documents.
+
+The interface is dark. The document is not — it keeps the `#C8C8C8` house page
+colour, set in `house_style.py`.
 
 ## Modes
 
@@ -52,7 +55,8 @@ Switch with the dropdown in the top bar.
 
 ## The three tabs
 
-- **Preview** — the rendered document
+- **Preview** — the document rendered by Chromium, the same engine that makes
+  the PDF. What you see here is what prints. Scroll with the wheel.
 - **HTML** — editable. Change anything, press *Apply and re-render*. The PDF uses what is here.
 - **Verify** — Gemini's independent second pass, plus the house-style validator
 
