@@ -333,6 +333,9 @@ def html_to_chat_text(html):
     text = re.sub(r"</t[dh]>", "  ", text, flags=re.IGNORECASE)
     text = re.sub(r"</span>", " ", text, flags=re.IGNORECASE)
     text = TAG_RE.sub("", text)
+    # A streamed snapshot can stop in the middle of a tag. Drop the dangling
+    # opener so "<div class=\"t" does not appear as text in the chat.
+    text = re.sub(r"<[^<>]*$", "", text)
     text = (text.replace("&amp;", "&").replace("&nbsp;", " ")
                 .replace("&there4;", "therefore").replace("&#9658;", ">")
                 .replace("&lt;", "<").replace("&gt;", ">"))
@@ -830,7 +833,12 @@ def send_message(event=None):
     chat.insert(tk.END, f"  Gemini — {active_preset()['name']}  ", "ai_label")
     chat.insert(tk.END, "\n", "spacer")
     chat.insert(tk.END, "  ", "ai_msg")
-    chat.mark_set("stream_start", tk.END)
+    # "end" in a Text widget is the position AFTER the trailing newline, one
+    # line below where inserted text actually lands. A mark set there never
+    # precedes the streamed text, so delete(mark, END) removes nothing and each
+    # repaint appends instead of replacing. "end-1c" anchors it to a real
+    # character.
+    chat.mark_set("stream_start", "end-1c")
     chat.mark_gravity("stream_start", tk.LEFT)
     chat.config(state=tk.DISABLED)
     chat.see(tk.END)
