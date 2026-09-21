@@ -99,7 +99,7 @@ ATTACH_TYPES = [
 
 # Bumped when the preset structure changes. A file written by an older
 # version is migrated on load rather than being trusted as-is.
-SETTINGS_SCHEMA = 2
+SETTINGS_SCHEMA = 3
 
 DEFAULT_SETTINGS = {
     "schema": SETTINGS_SCHEMA,
@@ -133,18 +133,23 @@ def load_settings():
             for key, mode in prompts.MODES.items():
                 merged["presets"][key] = dict(mode)
 
-            if old_schema < SETTINGS_SCHEMA:
-                # Keep the teacher's own presets, but rename any legacy one out
-                # of the way and start them on the new Solve mode.
-                legacy = merged["presets"].pop("default", None)
-                if legacy and legacy.get("system_prompt"):
-                    legacy["name"] = f"{legacy.get('name', 'Old preset')} (v1)"
-                    merged["presets"]["default_v1"] = legacy
+            if old_schema < 2:
+                # Last year's model IDs and limits no longer exist.
                 merged["active"] = prompts.DEFAULT_MODE
-                merged["schema"] = SETTINGS_SCHEMA
-                merged["model"] = ""          # old model IDs are long gone
+                merged["model"] = ""
                 merged["max_tokens"] = api.DEFAULT_MAX_TOKENS
                 merged["temperature"] = api.DEFAULT_TEMPERATURE
+
+            if old_schema < 3:
+                # Last year's preset writes markdown, not house-style HTML, and
+                # picking it by mistake wastes a paid call. Schema 2 kept it as
+                # "(v1)"; it is now removed. The model and limits are left
+                # alone here — only the dead preset goes.
+                merged["presets"].pop("default", None)
+                merged["presets"].pop("default_v1", None)
+
+            if old_schema < SETTINGS_SCHEMA:
+                merged["schema"] = SETTINGS_SCHEMA
 
             if merged["active"] not in merged["presets"]:
                 merged["active"] = prompts.DEFAULT_MODE

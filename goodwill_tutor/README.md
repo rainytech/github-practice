@@ -99,7 +99,9 @@ listed before `flash` deliberately: match on the longest substring instead and
 - **Notes** — teaching notes from source material, same house style
 - **General** — plain conversation, no document
 
-Switch with the dropdown in the top bar.
+Switch with the dropdown in the top bar. Last year's preset is removed on first
+run — it wrote markdown, not house-style HTML. Your own presets, model and
+limits are untouched.
 
 ## The right side
 
