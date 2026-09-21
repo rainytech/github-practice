@@ -83,6 +83,11 @@ from cache, that part bills at a tenth, and the meter says so:
 cached and you are paying full rate for the house-style contract on every
 question — about 5 paise of the roughly 11 paise floor.
 
+Gemma models cost nothing — Google serves them on the Gemini API free, with
+rate limits instead of a bill — so the meter reads **free**. They do not follow
+the house-style contract closely: expect slash fractions instead of stacked
+ones and repeated top-bars, both of which the validator flags.
+
 The Flash line runs at an introductory rate until 31 December 2026 and doubles
 on 1 January 2027. The table carries both, and switches itself on the date.
 A prompt over 200,000 tokens re-rates the whole request on the Pro line, which
@@ -198,3 +203,8 @@ Forced page breaks, break-avoidance scope, `.q > span` versus `.q span`,
 slash fractions, `table-layout: fixed`, repeated headers, and social links.
 
 Errors are listed before the PDF is generated, with the option to continue anyway.
+
+Table cells are painted `#C8C8C8` with `!important`, so a model that writes
+`style="background:#fff"` into a row cannot whiten the page — the validator
+warns about it as well. White seen in **Icecream PDF Editor** is that program's
+Edit mode outlining each text object; switch to **Annotate** and it goes.

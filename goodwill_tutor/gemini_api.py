@@ -66,6 +66,11 @@ PRICING = [
     ("flash",            (0.75, 3.75),   (1.50, 7.50)),
 ]
 
+# Google serves the Gemma models on the Gemini API at no charge — there is no
+# paid line for them, only rate limits. Priced at zero so the meter says "free"
+# instead of "cost n/a", which reads like a fault.
+FREE_MODELS = ("gemma",)
+
 # A prompt over this size re-rates the WHOLE request on the Pro line.
 LARGE_PROMPT_TOKENS = 200_000
 LARGE_PROMPT_PRICING = [
@@ -191,6 +196,9 @@ def price_for(model_id, in_tok=0, on=None):
     """
     mid = model_id.lower()
     today = on or _date.today()
+
+    if any(marker in mid for marker in FREE_MODELS):
+        return (0.0, 0.0)
 
     if in_tok > LARGE_PROMPT_TOKENS:
         for pattern, rates in LARGE_PROMPT_PRICING:

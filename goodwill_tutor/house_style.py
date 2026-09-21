@@ -218,7 +218,14 @@ table.wn th, table.wn td {
   word-wrap:      break-word;
   overflow-wrap:  break-word;
 }
-table.wn th {
+/* Every cell is coloured explicitly. A model that writes style="background:#fff"
+   on a row cannot turn the page white: an author rule marked !important beats
+   an inline declaration that carries no !important. */
+table.wn td,
+.page-block table td { background-color: #C8C8C8 !important; }
+
+table.wn th,
+.page-block table th {
   font-style:  italic;
   font-weight: bold;
   text-align:  center;
@@ -398,6 +405,9 @@ def validate_html(html):
                                  flags=re.DOTALL | re.IGNORECASE))
     inline_styles = " ".join(re.findall(r'style\s*=\s*"([^"]*)"', clean))
     css = style + "\n" + inline_styles
+    # The markup alone — the house stylesheet is ours and is not under suspicion.
+    markup = re.sub(r"<style[^>]*>.*?</style>", "", clean,
+                    flags=re.DOTALL | re.IGNORECASE)
 
     # --- RULE 3 : no forced page breaks anywhere ---
     for label, pattern in _BANNED_BREAKS:
@@ -467,6 +477,15 @@ def validate_html(html):
         warnings.append("TABLES — a <table> without class='wn' found; it will miss the house style")
     if "table.wn" in css and not re.search(r"table-layout\s*:\s*fixed", css):
         errors.append("TABLES — table.wn is missing table-layout: fixed")
+
+    # --- WHITE ---
+    # White inside the page is painful to read from and never house style.
+    for hit in set(re.findall(
+            r"(?:background(?:-color)?\s*:\s*|bgcolor\s*=\s*[\"']\s*)"
+            r"(#fff(?:fff)?\b|white\b)", markup, re.I)):
+        warnings.append(
+            f"WHITE — a background of '{hit}' was written into the answer; "
+            "the page colour is #C8C8C8")
 
     # --- STRUCTURE ---
     if 'class="page-block"' not in clean:
