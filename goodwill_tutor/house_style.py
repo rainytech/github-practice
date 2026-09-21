@@ -11,6 +11,7 @@ Nothing here depends on the API or the GUI.
 """
 
 from datetime import date
+import collections
 import re
 
 # ═══════════════════════════════════════════════════════════════
@@ -168,8 +169,13 @@ table.wn tr,
   font-size:       0.85em;
   line-height:     1.1;
 }
-.frac span.num { padding: 0 0.1em; font-size: 1em; font-weight: inherit; }
-.frac span.den { border-top: 1px solid currentColor; padding: 0 0.1em; }
+/* Both halves stretch to the wider of the two, so the bar spans the whole
+   fraction: "Future Value (F)" over "(1 + r)" gets a full-width rule instead of
+   a stub under the shorter line. */
+.frac span.num,
+.frac span.den { align-self: stretch; text-align: center; padding: 0 0.1em; }
+.frac span.num { font-size: 1em; font-weight: inherit; }
+.frac span.den { border-top: 1px solid currentColor; }
 
 /* ---------- FORMULA BOX ---------- */
 .formula-box {
@@ -440,8 +446,12 @@ _FRAC = ('<span class="frac"><span class="num">{n}</span>'
 
 # A number as it is written on these pages: 1,23,456.75 or 0.7513 or 10%.
 _NUM = r"(?:Rs\.?\s*)?\d[\d,]*(?:\.\d+)?%?"
-# A name or a bracketed expression: "Future Value", "(1 + r)", "(1 + 0.10)".
-_TERM = r"(?:\([^()<>]{1,40}\)|[A-Za-z][A-Za-z ]{0,28}[A-Za-z])"
+# A name, a bracketed expression, or both together. "Future Value (F)" must be
+# taken whole: splitting it leaves the words stranded beside the fraction with
+# only "(F)" over the line.
+_WORDS = r"[A-Za-z][A-Za-z ]{0,28}[A-Za-z]"
+_BRACKET = r"\([^()<>]{1,40}\)"
+_TERM = rf"(?:{_WORDS}\s*{_BRACKET}|{_BRACKET}|{_WORDS})"
 
 # An operand may carry its own power: (1 + 0.10)^3 belongs under the line, not
 # beside it. The exponent is converted inside the fraction, never left outside.
@@ -481,6 +491,40 @@ def _on_text(html, fn):
     return "".join(out)
 
 
+_TABLE = re.compile(r"<table\b[^>]*>.*?</table>", re.I | re.S)
+_ROW = re.compile(r"<tr\b[^>]*>(.*?)</tr>", re.I | re.S)
+_CELL = re.compile(r"<t[dh]\b", re.I)
+_FULL_CLASS = re.compile(r'(class\s*=\s*"[^"]*?)\bfull\b\s*', re.I)
+
+
+def _fit_tables(html, counts):
+    """Keep 'wn full' for two-sided accounts only.
+
+    class="wn full" spans the page so a Dr./Cr. account's halves match. A model
+    that puts it on a two-column statement undoes the fitting the teacher asked
+    for, so it is taken off anything narrower than four columns.
+    """
+    def one(m):
+        table = m.group(0)
+        cut = table.find(">") + 1
+        head = table[:cut]
+        if not _FULL_CLASS.search(head):
+            return table
+        widest = max((len(_CELL.findall(row)) for row in _ROW.findall(table)),
+                     default=0)
+        if widest >= 4:
+            return table
+        counts["table fitted to its contents"] += 1
+        head = _FULL_CLASS.sub(r"\1", head, count=1)
+        head = re.sub(r'(class\s*=\s*")\s+', r"\1", head)
+        head = re.sub(r'\s+"', '"', head)
+        # Slice by the ORIGINAL opening tag, never the shortened one, or the
+        # tail of the old tag prints on the page as  ull">.
+        return head + table[cut:]
+
+    return _TABLE.sub(one, html)
+
+
 def repair_markup(html):
     """Fix what a weak model gets wrong, without touching its figures.
 
@@ -488,7 +532,7 @@ def repair_markup(html):
     and carets become superscripts — RULE: every division is a stacked .frac,
     and the arithmetic is never altered, only how it is written.
     """
-    counts = {"fraction": 0, "exponent": 0}
+    counts = collections.Counter({"fraction": 0, "exponent": 0})
 
     def sup(m):
         counts["exponent"] += 1
@@ -512,8 +556,8 @@ def repair_markup(html):
 
         return powers(text)
 
-    fixed = _on_text(html, fix)
-    notes = [f"{n} {name}{'s' if n > 1 else ''}"
+    fixed = _fit_tables(_on_text(html, fix), counts)
+    notes = [f"{n} {name}{'s' if n > 1 and not name.endswith('contents') else ''}"
              for name, n in counts.items() if n]
     return fixed, notes
 
