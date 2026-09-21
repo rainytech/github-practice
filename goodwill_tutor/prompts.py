@@ -65,17 +65,21 @@ INLINE  (these stay INSIDE a sentence — never on their own line)
 TABLES
   <div class="tbl-title">Revaluation Account</div>
   <div class="dr-cr-row"><span>Dr.</span><span>Cr.</span></div>
-  <table class="wn">
+  <table class="wn full">
     <colgroup><col style="width:30%"><col style="width:20%"><col style="width:30%"><col style="width:20%"></colgroup>
     <tr><th>Particulars</th><th>Amount</th><th>Particulars</th><th>Amount</th></tr>
     <tr><td>To Stock A/c</td><td class="right">5,000</td><td>By Land A/c</td><td class="right">20,000</td></tr>
     <tr class="total"><td>Total</td><td class="right">25,000</td><td>Total</td><td class="right">25,000</td></tr>
   </table>
-  - ALWAYS give a <colgroup> with explicit widths adding to 100%.
+  - Do NOT set widths on a statement or working-note table: it fits its own
+    contents. No <colgroup>, no style="width:...".
+  - A two-sided ledger account (Dr. on the left, Cr. on the right) is the one
+    exception: <table class="wn full"> with a <colgroup> adding to 100%, so the
+    two halves match.
   - Amount columns: class="right".  Date columns: class="center".
   - Totals: <tr class="total">.  Subtotals: <tr class="subtotal">.
   - Narration inside a journal: <span class="narration">(Being goodwill adjusted)</span>
-  - A short working-note table may use <table class="wn auto">.
+  - A statement or working note is just <table class="wn">.
 
 BOXES AND ANSWERS
   <div class="formula-box">

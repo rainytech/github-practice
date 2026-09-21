@@ -200,6 +200,16 @@ Work from the previous version is copied into a chapter called
 their pages by the timestamp in the filenames. **Originals are copied, never
 moved** — `Desktop/Goodwill_Solutions` is left exactly as it was.
 
+### Table widths
+
+A table fits its own contents — a three-row statement no longer spreads across
+the page with blank space beside every amount, and a wide journal still stays on
+the paper and wraps instead of cropping.
+
+The exception is a two-sided ledger account, where both halves must match:
+`<table class="wn full">` with a `<colgroup>` spans the page. Gemini is told
+which to use.
+
 ## Page geometry
 
 Fixed, and enforced by the validator:

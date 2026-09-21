@@ -204,8 +204,12 @@ table.wn tr,
 
 /* ---------- TABLES ---------- */
 table.wn {
-  width:           100%;
-  table-layout:    fixed;
+  /* Fits its own contents. A three-row statement no longer spreads across the
+     page with an acre of blank space beside every amount. max-width keeps a
+     wide journal on the paper, and word-wrap below stops any cropping. */
+  width:           auto;
+  max-width:       100%;
+  table-layout:    auto;
   border-collapse: collapse;
   font-size:       12.5pt;
   margin:          8px 0;
@@ -237,7 +241,14 @@ table.wn tr.total td    { font-weight: bold; border-top: 2px solid #000; }
 table.wn tr.subtotal td { border-top: 1px solid #000; }
 table.wn .small { color: #C2185B; font-style: italic; font-size: 11pt; }
 
-/* Opt-out for short working-note tables that would look stretched */
+/* A two-sided ledger account: both halves must match, so it spans the page and
+   takes its column widths from the colgroup. */
+table.wn.full {
+  width:        100%;
+  table-layout: fixed;
+}
+
+/* Was the opt-out when tables were full-width by default; now the default. */
 table.wn.auto { width: auto; table-layout: auto; }
 
 /* ---------- NARRATION IN JOURNALS ---------- */
@@ -627,8 +638,10 @@ def validate_html(html):
     # --- TABLES ---
     if re.search(r"<table(?![^>]*class=)", clean, flags=re.IGNORECASE):
         warnings.append("TABLES — a <table> without class='wn' found; it will miss the house style")
-    if "table.wn" in css and not re.search(r"table-layout\s*:\s*fixed", css):
-        errors.append("TABLES — table.wn is missing table-layout: fixed")
+    # Tables size themselves to their contents; max-width is what keeps a wide
+    # one on the paper, so that is the guard worth checking.
+    if "table.wn" in css and not re.search(r"max-width\s*:\s*100%", css):
+        errors.append("TABLES — table.wn is missing max-width: 100%; a wide table would crop")
 
     # --- WHITE ---
     # White inside the page is painful to read from and never house style.
