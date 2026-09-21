@@ -449,7 +449,9 @@ _NUM = r"(?:Rs\.?\s*)?\d[\d,]*(?:\.\d+)?%?"
 # A name, a bracketed expression, or both together. "Future Value (F)" must be
 # taken whole: splitting it leaves the words stranded beside the fraction with
 # only "(F)" over the line.
-_WORDS = r"[A-Za-z][A-Za-z ]{0,28}[A-Za-z]"
+# A single letter counts too: formulas are written "F / (1 + r)^n" and "P = ...".
+# Only the spaced form admits letters, so "Bank A/c", "P/L" and "w/o" are safe.
+_WORDS = r"(?:[A-Za-z][A-Za-z ]{0,28}[A-Za-z]|[A-Za-z])"
 _BRACKET = r"\([^()<>]{1,40}\)"
 _TERM = rf"(?:{_WORDS}\s*{_BRACKET}|{_BRACKET}|{_WORDS})"
 
