@@ -525,6 +525,142 @@ def _fit_tables(html, counts):
     return _TABLE.sub(one, html)
 
 
+# A fraction is written inside one line, so the flattener reads through inline
+# markup only. An unclassed <span> is a block here — ".q > span" and
+# ".formula-box .line" are display:block — so it ends a run like a <div> does.
+_TRANSPARENT_TAGS = {"sup", "sub", "b", "i", "em", "strong", "u", "abbr", "font"}
+_TRANSPARENT_CLASSES = {"amt", "small", "source", "narration"}
+_CLASS_ATTR = re.compile(r'class\s*=\s*"([^"]*)"', re.I)
+
+
+def _flatten(html):
+    """The visible text, with a map from each character back into the HTML.
+
+    An amount arrives wrapped — "66,550</span> / <span>1.331" — so a repair that
+    reads one text run at a time never sees digits on both sides of the slash.
+    Flattening lets the pattern read across inline tags; the map puts the fix
+    back in the right place. A block boundary and anything already inside a
+    .frac become one sentinel character, so nothing is re-read and no two lines
+    are joined into one number.
+    """
+    text, index, pos, depth = [], [], 0, 0
+    spans = []                       # is each open <span> transparent?
+
+    def sentinel(at):
+        if text and text[-1] != "\x01":
+            text.append("\x01")
+            index.append(at)
+
+    for tag in _TAG.finditer(html):
+        chunk = html[pos:tag.start()]
+        if depth:
+            if chunk:
+                sentinel(pos)
+        else:
+            for k, ch in enumerate(chunk):
+                text.append(ch)
+                index.append(pos + k)
+
+        raw = tag.group(0)
+        low = raw.lower()
+        name = re.match(r"</?([a-z0-9]+)", low)
+        name = name.group(1) if name else ""
+        closing = low.startswith("</")
+
+        if name in _TRANSPARENT_TAGS:
+            transparent = True
+        elif name == "span":
+            if closing:
+                transparent = spans.pop() if spans else False
+            else:
+                classes = _CLASS_ATTR.search(raw)
+                transparent = bool(
+                    set((classes.group(1) if classes else "").split())
+                    & _TRANSPARENT_CLASSES)
+                spans.append(transparent)
+        else:
+            transparent = False
+        if not transparent:
+            sentinel(tag.start())
+
+        if 'class="frac"' in low:
+            depth += 1
+        elif depth and closing and name == "span":
+            depth -= 1
+        pos = tag.end()
+
+    if not depth:
+        for k, ch in enumerate(html[pos:]):
+            text.append(ch)
+            index.append(pos + k)
+    return "".join(text), index
+
+
+def _balanced(fragment):
+    """True if every tag opened in this fragment is closed inside it."""
+    stack = []
+    for closing, name in re.findall(r"<(/?)([A-Za-z]+)[^>]*>", fragment):
+        if closing:
+            if not stack or stack.pop() != name.lower():
+                return False
+        elif name.lower() not in ("br", "img", "col"):
+            stack.append(name.lower())
+    return not stack
+
+
+_TAG_PARTS = re.compile(r"<(/?)([A-Za-z][A-Za-z0-9]*)[^>]*>")
+
+
+def _mend(removed):
+    """Tags to put back after a replacement, so the page stays well formed.
+
+    A division often starts inside one amount and ends inside the next, so the
+    replaced stretch swallows the first amount's </span> and opens the second's.
+    What it consumed is reinstated after the fraction: the closers first, then
+    the openers whose closing tags are still to come.
+    """
+    stack, orphan_closers, opened = [], [], []
+    for m in _TAG_PARTS.finditer(removed):
+        closing, name = m.group(1), m.group(2).lower()
+        if name in ("br", "img", "col", "hr"):
+            continue
+        if closing:
+            if stack and stack[-1][0] == name:
+                stack.pop()
+            else:
+                orphan_closers.append(name)
+        else:
+            stack.append((name, m.group(0)))
+    opened = [raw for _, raw in stack]
+    return "".join(f"</{n}>" for n in orphan_closers) + "".join(opened)
+
+
+def _apply_fractions(html, pattern, counts, powers):
+    """Turn each division the pattern finds into a stacked fraction.
+
+    The two sides keep their own markup — an amount stays red — unless taking
+    the HTML would leave a tag unclosed, in which case the plain text is used.
+    """
+    while True:
+        text, index = _flatten(html)
+        m = pattern.search(text)
+        if not m:
+            return html
+
+        def piece(group):
+            raw = html[index[m.start(group)]:index[m.end(group) - 1] + 1]
+            if not _balanced(raw):
+                raw = _TAG.sub("", raw)
+            return _on_text(raw, powers).strip()
+
+        counts["fraction"] += 1
+        start, stop = index[m.start()], index[m.end() - 1] + 1
+        html = (html[:start]
+                + _FRAC.format(n=piece(1), d=piece(2))
+                + _mend(html[start:stop])
+                + html[stop:])
+
+
 def repair_markup(html):
     """Fix what a weak model gets wrong, without touching its figures.
 
@@ -541,22 +677,10 @@ def repair_markup(html):
     def powers(text):
         return _CARET.sub(sup, text)
 
-    def fix(text):
-        if not text.strip():
-            return text
+    for pattern in (_DIVIDE, _SLASH_NUM, _SLASH_TERM):
+        html = _apply_fractions(html, pattern, counts, powers)
 
-        def frac(m):
-            counts["fraction"] += 1
-            return _FRAC.format(n=powers(m.group(1).strip()),
-                                d=powers(m.group(2).strip()))
-
-        text = _DIVIDE.sub(frac, text)
-        text = _SLASH_NUM.sub(frac, text)
-        text = _SLASH_TERM.sub(frac, text)
-
-        return powers(text)
-
-    fixed = _fit_tables(_on_text(html, fix), counts)
+    fixed = _fit_tables(_on_text(html, powers), counts)
     notes = [f"{n} {name}{'s' if n > 1 and not name.endswith('contents') else ''}"
              for name, n in counts.items() if n]
     return fixed, notes
