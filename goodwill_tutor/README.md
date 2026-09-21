@@ -119,13 +119,41 @@ remove the last question, open the folder, copy.
 Gemini's verification pass and the house-style validator report into the chat
 on the left, so there is only one place to read.
 
-## Chapter documents
+## Chapters and documents
 
-Each answer is appended to the open document as a new `.page-block`, so one
-chapter becomes one HTML file and one PDF. *New document* starts a fresh one.
-*Remove last block* drops the most recent question.
+The sidebar is a two-level tree. A **chapter** holds **documents**; a document
+is one HTML page, its PDF, and the conversation that produced it.
 
-Manual edits made in the HTML tab survive later appends.
+- **Double-click** a document to reopen it — chat and all
+- **Right-click** for Rename, Duplicate, Pin, Delete
+- **+ Chapter** / **+ Document** at the top
+- A pinned chapter sorts to the top, marked `*`
+
+Each answer appends to the open document as a new `.page-block`, so one chapter
+becomes one HTML file and one PDF. Manual edits in the editor survive later
+appends. Under the editor, two cards open the PDF and the HTML.
+
+Send a question with nothing open and a document is created for you, titled
+from what you typed.
+
+### Where it lives
+
+```
+~/.goodwill_tutor/
+    library.json                 chapters, order, pins
+    chapters/<chapter>/
+        chapter.json
+        <document>/
+            document.json        title, blocks, model
+            document.html
+            document.pdf
+            conversation.json
+```
+
+Work from the previous version is copied into a chapter called
+**"Before chapters"** the first time you run this. Chats are matched back to
+their pages by the timestamp in the filenames. **Originals are copied, never
+moved** — `Desktop/Goodwill_Solutions` is left exactly as it was.
 
 ## Page geometry
 

@@ -27,6 +27,7 @@ from tkinter import filedialog, messagebox, scrolledtext, ttk
 
 import gemini_api as api
 import house_style as hs
+import library
 import pdf_export
 import prompts
 
@@ -183,8 +184,8 @@ last_full_html = ""
 last_body = ""
 last_response_text = ""
 verify_report = ""
-current_html_path = None
-current_conversation_id = None
+current_chapter = None    # the open chapter's id
+current_doc = None        # the open document's id
 model_ids = []            # [(id, display)] fetched from the API
 preview_window = None     # the open preview Toplevel, if any
 preview_image = None      # live PhotoImage; Tk discards it without a reference
@@ -362,54 +363,10 @@ def indian_format(value):
 
 
 # ═══════════════════════════════════════════════════════════════
-#  CONVERSATIONS
+#  THE LIBRARY — chapters and documents
 # ═══════════════════════════════════════════════════════════════
 
-def list_conversations():
-    items = []
-    for name in os.listdir(CONVERSATIONS_DIR):
-        if not name.endswith(".json"):
-            continue
-        try:
-            with open(os.path.join(CONVERSATIONS_DIR, name), "r", encoding="utf-8") as fh:
-                data = json.load(fh)
-            items.append((data.get("id", name[:-5]),
-                          data.get("title", "Untitled"),
-                          data.get("created", "")))
-        except Exception:
-            continue
-    items.sort(key=lambda t: t[2], reverse=True)
-    return items
-
-
-def save_conversation():
-    global current_conversation_id
-    if not conversation_history:
-        return
-    if not current_conversation_id:
-        current_conversation_id = datetime.now().strftime("%Y%m%d_%H%M%S%f")
-    title = "New chat"
-    for turn in conversation_history:
-        if turn.get("role") == "user":
-            for part in turn.get("parts", []):
-                if part.get("text", "").strip():
-                    title = part["text"].strip()[:60]
-                    break
-            break
-    payload = {
-        "id": current_conversation_id,
-        "title": title,
-        "created": datetime.now().isoformat(),
-        "history": strip_binary(conversation_history),
-        "blocks": doc_blocks,
-        "last_html": last_full_html,
-    }
-    try:
-        path = os.path.join(CONVERSATIONS_DIR, f"{current_conversation_id}.json")
-        with open(path, "w", encoding="utf-8") as fh:
-            json.dump(payload, fh, ensure_ascii=False)
-    except Exception as exc:
-        print(f"[conversation save failed] {exc}")
+LIB = library.Library(APP_DIR)
 
 
 def strip_binary(history):
@@ -426,36 +383,52 @@ def strip_binary(history):
     return out
 
 
-def new_conversation():
-    global current_conversation_id, conversation_history, doc_blocks
-    global last_full_html, last_body, current_html_path, verify_report
-    current_conversation_id = None
-    conversation_history = []
-    doc_blocks = []
-    last_full_html = ""
-    last_body = ""
-    current_html_path = None
-    verify_report = ""
-    clear_chat()
-    artifact_title.config(text="No document yet")
-    refresh_artifact()
-    refresh_history_list()
+def title_from(text):
+    """A short document title taken from the teacher's first instruction."""
+    line = (text or "").strip().splitlines()[0] if (text or "").strip() else ""
+    return (line[:60].strip() or "Untitled")
 
 
-def load_conversation(conv_id):
-    global current_conversation_id, conversation_history, doc_blocks
-    global last_full_html, current_html_path
+def ensure_target(title_hint=""):
+    """The chapter and document to write into, creating them if needed."""
+    global current_chapter, current_doc
+    if current_chapter is None:
+        chapters = LIB.list_chapters()
+        current_chapter = chapters[0]["id"] if chapters else LIB.create_chapter("My questions")
+    if current_doc is None:
+        current_doc = LIB.create_document(current_chapter, title_from(title_hint))
+        refresh_tree(select=("d", current_chapter, current_doc))
+    return current_chapter, current_doc
+
+
+def save_current(html=None, blocks=None, conversation=None, title=None, model=None):
+    """Persist whatever has changed about the open document."""
+    if current_chapter is None or current_doc is None:
+        return None
     try:
-        with open(os.path.join(CONVERSATIONS_DIR, f"{conv_id}.json"), "r", encoding="utf-8") as fh:
-            data = json.load(fh)
-    except Exception as exc:
-        set_status(f"Could not load chat: {exc}", "#CC0000")
+        LIB.write_document(current_chapter, current_doc, html=html, blocks=blocks,
+                           conversation=conversation, title=title, model=model)
+    except library.LibraryError as exc:
+        set_status(str(exc), RED)
+        return None
+    refresh_file_cards()
+    return LIB.html_path(current_chapter, current_doc)
+
+
+def open_document(chapter_id, doc_id):
+    """Load a stored document into the editor and the chat."""
+    global current_chapter, current_doc, conversation_history, doc_blocks
+    global last_full_html, verify_report
+    try:
+        data = LIB.read_document(chapter_id, doc_id)
+    except library.LibraryError as exc:
+        set_status(str(exc), RED)
         return
-    current_conversation_id = conv_id
-    conversation_history = data.get("history", [])
-    doc_blocks = data.get("blocks", [])
-    last_full_html = data.get("last_html", "")
-    current_html_path = None
+    current_chapter, current_doc = chapter_id, doc_id
+    conversation_history = data["conversation"]
+    doc_blocks = list(data["meta"].get("blocks", []))
+    last_full_html = data["html"]
+    verify_report = ""
 
     chat.config(state=tk.NORMAL)
     chat.delete("1.0", tk.END)
@@ -472,20 +445,138 @@ def load_conversation(conv_id):
             chat.insert(tk.END, f"  {html_to_chat_text(body)}\n\n", "ai_msg")
     chat.config(state=tk.DISABLED)
     chat.see(tk.END)
-    artifact_title.config(text=data.get("title", "Artifact"))
+
     refresh_artifact()
-    set_status(f"Loaded: {data.get('title', conv_id)}", GREEN)
+    refresh_title()
+    refresh_file_cards()
+    set_status(f"Opened: {data['meta'].get('title', doc_id)}", GREEN)
 
 
-def delete_conversation(conv_id):
-    try:
-        os.remove(os.path.join(CONVERSATIONS_DIR, f"{conv_id}.json"))
-    except Exception:
-        pass
-    if current_conversation_id == conv_id:
-        new_conversation()
+def refresh_title():
+    if current_chapter is None or current_doc is None:
+        artifact_title.config(text="No document yet")
+        return
+    docs = {d["id"]: d for d in LIB.list_documents(current_chapter)}
+    chapters = {c["id"]: c for c in LIB.list_chapters()}
+    name = chapters.get(current_chapter, {}).get("name", "")
+    title = docs.get(current_doc, {}).get("title", "Untitled")
+    artifact_title.config(text=f"{name} — {title}" if name else title)
+
+
+# ── chapter and document actions ────────────────────────────────────
+
+def new_chapter():
+    name = _ask_text("New chapter", "Name this chapter:")
+    if not name:
+        return
+    cid = LIB.create_chapter(name)
+    refresh_tree(select=("c", cid, None))
+    set_status(f"Chapter created: {name}", GREEN)
+
+
+def new_document():
+    """Start a fresh document in the selected chapter."""
+    global current_chapter, current_doc
+    kind, cid, _ = selected_node()
+    if cid is None:
+        chapters = LIB.list_chapters()
+        cid = chapters[0]["id"] if chapters else LIB.create_chapter("My questions")
+    title = _ask_text("New document", "Title:", "Untitled")
+    if title is None:
+        return
+    current_chapter = cid
+    current_doc = LIB.create_document(cid, title or "Untitled")
+    reset_workspace()
+    refresh_tree(select=("d", current_chapter, current_doc))
+    refresh_title()
+    set_status("New document started.", GREEN)
+
+
+def reset_workspace():
+    """Clear the chat, the blocks and the editor, keeping the open document."""
+    global conversation_history, doc_blocks, last_full_html, verify_report
+    conversation_history = []
+    doc_blocks = []
+    last_full_html = ""
+    verify_report = ""
+    clear_chat()
+    refresh_artifact()
+    refresh_file_cards()
+
+
+def rename_selected():
+    kind, cid, did = selected_node()
+    if kind == "c":
+        current = next((c["name"] for c in LIB.list_chapters() if c["id"] == cid), "")
+        name = _ask_text("Rename chapter", "New name:", current)
+        if name:
+            LIB.rename_chapter(cid, name)
+            refresh_tree(select=("c", cid, None))
+            refresh_title()
+    elif kind == "d":
+        current = next((d["title"] for d in LIB.list_documents(cid) if d["id"] == did), "")
+        title = _ask_text("Rename document", "New title:", current)
+        if title:
+            LIB.rename_document(cid, did, title)
+            refresh_tree(select=("d", cid, did))
+            refresh_title()
     else:
-        refresh_history_list()
+        set_status("Select a chapter or a document first.", RED)
+
+
+def duplicate_selected():
+    kind, cid, did = selected_node()
+    if kind != "d":
+        set_status("Select a document to duplicate.", RED)
+        return
+    new_id = LIB.duplicate_document(cid, did)
+    refresh_tree(select=("d", cid, new_id))
+    set_status("Duplicated.", GREEN)
+
+
+def pin_selected():
+    kind, cid, _ = selected_node()
+    if kind is None:
+        set_status("Select a chapter to pin.", RED)
+        return
+    now = next((c["pinned"] for c in LIB.list_chapters() if c["id"] == cid), False)
+    LIB.pin_chapter(cid, not now)
+    refresh_tree(select=("c", cid, None))
+    set_status("Unpinned." if now else "Pinned to the top.", GREEN)
+
+
+def delete_selected():
+    global current_chapter, current_doc
+    kind, cid, did = selected_node()
+    if kind == "c":
+        name = next((c["name"] for c in LIB.list_chapters() if c["id"] == cid), cid)
+        count = len(LIB.list_documents(cid))
+        if not messagebox.askyesno(
+            "Delete chapter",
+            f"Delete '{name}' and its {count} document(s)?\n\n"
+            "The HTML and PDF files inside go too. This cannot be undone."):
+            return
+        LIB.delete_chapter(cid)
+        if current_chapter == cid:
+            current_chapter = current_doc = None
+            reset_workspace()
+            refresh_title()
+    elif kind == "d":
+        title = next((d["title"] for d in LIB.list_documents(cid) if d["id"] == did), did)
+        if not messagebox.askyesno(
+            "Delete document",
+            f"Delete '{title}'?\n\nIts HTML and PDF go too. This cannot be undone."):
+            return
+        LIB.delete_document(cid, did)
+        if current_doc == did:
+            current_doc = None
+            reset_workspace()
+            refresh_title()
+    else:
+        set_status("Select something to delete.", RED)
+        return
+    refresh_tree()
+    set_status("Deleted.", GREEN)
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -618,19 +709,16 @@ def run_validator(announce=True):
 
 
 def save_html(silent=False):
-    global current_html_path
+    """Write the open document's HTML into its own folder."""
     if not last_full_html.strip():
         if not silent:
-            set_status("Nothing to save yet.", "#CC0000")
+            set_status("Nothing to save yet.", RED)
         return None
-    stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    path = os.path.join(SOLUTIONS_DIR, f"goodwill_{stamp}.html")
-    with open(path, "w", encoding="utf-8") as fh:
-        fh.write(last_full_html)
-    current_html_path = path
-    artifact_title.config(text=os.path.basename(path))
-    if not silent:
-        set_status(f"Saved: {os.path.basename(path)}", GREEN)
+    ensure_target()
+    path = save_current(html=last_full_html, blocks=doc_blocks,
+                        conversation=strip_binary(conversation_history))
+    if path and not silent:
+        set_status("Saved.", GREEN)
     return path
 
 
@@ -650,12 +738,15 @@ def generate_pdf():
             return
 
     path = save_html(silent=True)
+    if not path:
+        return
+    target = LIB.pdf_path(current_chapter, current_doc)
     set_status("Rendering PDF with Chromium...", ACCENT)
     output_btn.config(state=tk.DISABLED)
 
     def work():
         try:
-            out = pdf_export.html_to_pdf(path)
+            out = pdf_export.html_to_pdf(path, target)
             post(lambda: pdf_done(out))
         except pdf_export.PdfExportError as exc:
             post(lambda e=exc: pdf_failed(str(e)))
@@ -667,7 +758,8 @@ def generate_pdf():
 
 def pdf_done(path):
     output_btn.config(state=tk.NORMAL)
-    set_status(f"PDF ready: {os.path.basename(path)}", GREEN)
+    refresh_file_cards()
+    set_status("PDF ready.", GREEN)
     try:
         pdf_export.open_file(path)
     except Exception:
@@ -754,7 +846,14 @@ def open_preview():
 
 
 def open_folder():
-    pdf_export.open_file(SOLUTIONS_DIR)
+    """Reveal the open document's own folder, or the library root."""
+    target = LIB.root
+    if current_chapter and current_doc:
+        try:
+            target = LIB.document_path(current_chapter, current_doc)
+        except library.LibraryError:
+            pass
+    pdf_export.open_file(target)
 
 
 def copy_answer():
@@ -822,6 +921,7 @@ def send_message(event=None):
         return "break"
 
     files = list(attachments)
+    ensure_target(text)
 
     chat.config(state=tk.NORMAL)
     chat.insert(tk.END, "\n", "spacer")
@@ -998,8 +1098,7 @@ def finish(answer, in_tok, out_tok, cached_tok, elapsed, model, verdict, v_cost=
             set_status("Verified.", GREEN)
 
     if active_mode_key() == "general":
-        save_conversation()
-        refresh_history_list()
+        save_current(conversation=strip_binary(conversation_history))
         if not verdict:
             set_status("Done.", GREEN)
         return
@@ -1020,9 +1119,10 @@ def finish(answer, in_tok, out_tok, cached_tok, elapsed, model, verdict, v_cost=
 
     refresh_artifact()
     run_validator()
-    save_html(silent=True)
-    save_conversation()
-    refresh_history_list()
+    save_current(html=last_full_html, blocks=doc_blocks,
+                 conversation=strip_binary(conversation_history), model=model)
+    refresh_tree(select=("d", current_chapter, current_doc))
+    refresh_title()
     if not verdict:
         set_status(f"Done — {len(doc_blocks)} block(s) in this document.", GREEN)
 
@@ -1055,17 +1155,6 @@ def clear_chat():
     meter_label.config(text="")
 
 
-def start_new_document():
-    """Keep the chat, start a fresh chapter document."""
-    global doc_blocks, last_full_html, current_html_path
-    doc_blocks = []
-    last_full_html = ""
-    current_html_path = None
-    artifact_title.config(text="Artifact — empty")
-    refresh_artifact()
-    set_status("New document started. The next answer begins a fresh chapter.", GREEN)
-
-
 def remove_last_block():
     """Drop the last question from the open document, keeping any manual edits above it."""
     global last_full_html
@@ -1079,6 +1168,7 @@ def remove_last_block():
     else:
         last_full_html = last_full_html[:cut].rstrip() + "\n</body>\n</html>\n"
     refresh_artifact()
+    save_current(html=last_full_html, blocks=doc_blocks)
     set_status(f"Removed the last block — {len(doc_blocks)} remaining.", GREEN)
 
 
@@ -1366,48 +1456,167 @@ meter_label.pack(side=tk.RIGHT, padx=10)
 body = tk.Frame(root, bg=BG)
 body.pack(fill=tk.BOTH, expand=True)
 
-# history sidebar
-history_panel = tk.Frame(body, bg=SIDEBAR, width=210)
-history_panel.pack(side=tk.LEFT, fill=tk.Y)
-history_panel.pack_propagate(False)
+# ── sidebar: chapters and their documents ────────────────────────────
+side = tk.Frame(body, bg=SIDEBAR, width=240)
+side.pack(side=tk.LEFT, fill=tk.Y)
+side.pack_propagate(False)
 
-tk.Button(history_panel, text="+ New chat", command=lambda: new_conversation(),
-          bg=ACCENT, fg="white", relief=tk.FLAT, pady=6).pack(fill=tk.X, padx=10, pady=(12, 8))
-tk.Label(history_panel, text="History", font=("Arial", 9, "bold"),
-         bg=SIDEBAR, fg=MUTED).pack(anchor="w", padx=12)
+side_buttons = tk.Frame(side, bg=SIDEBAR)
+side_buttons.pack(fill=tk.X, padx=10, pady=(12, 6))
+tk.Button(side_buttons, text="+ Chapter", command=lambda: new_chapter(),
+          bg=SIDEBAR, fg=TEXT, relief=tk.FLAT, font=("Arial", 9),
+          padx=8, pady=5, cursor="hand2").pack(side=tk.LEFT)
+tk.Button(side_buttons, text="+ Document", command=lambda: new_document(),
+          bg=ACCENT, fg="white", relief=tk.FLAT, font=("Arial", 9, "bold"),
+          padx=10, pady=5, cursor="hand2").pack(side=tk.RIGHT)
 
-hist_wrap = tk.Frame(history_panel, bg=SIDEBAR)
-hist_wrap.pack(fill=tk.BOTH, expand=True, padx=8, pady=6)
-hist_scroll = tk.Scrollbar(hist_wrap)
-hist_scroll.pack(side=tk.RIGHT, fill=tk.Y)
-history_listbox = tk.Listbox(hist_wrap, font=("Arial", 9), bg=SIDEBAR, fg=TEXT,
-                             relief=tk.FLAT, yscrollcommand=hist_scroll.set,
-                             highlightthickness=0, bd=0, activestyle="none")
-history_listbox.pack(fill=tk.BOTH, expand=True)
-hist_scroll.config(command=history_listbox.yview)
+tree_wrap = tk.Frame(side, bg=SIDEBAR)
+tree_wrap.pack(fill=tk.BOTH, expand=True, padx=8, pady=(0, 8))
+tree_scroll = tk.Scrollbar(tree_wrap)
+tree_scroll.pack(side=tk.RIGHT, fill=tk.Y)
+tree = ttk.Treeview(tree_wrap, show="tree", selectmode="browse",
+                    yscrollcommand=tree_scroll.set)
+tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+tree_scroll.config(command=tree.yview)
 
-history_ids = []
+style.configure("Treeview", background=SIDEBAR, fieldbackground=SIDEBAR,
+                foreground=TEXT, borderwidth=0, rowheight=24)
+style.map("Treeview", background=[("selected", ACCENT)],
+          foreground=[("selected", "#FFFFFF")])
 
-
-def refresh_history_list():
-    history_listbox.delete(0, tk.END)
-    history_ids.clear()
-    for cid, title, _ in list_conversations():
-        history_ids.append(cid)
-        history_listbox.insert(tk.END, f" {title[:30]}")
-
-
-def on_history_select(_evt=None):
-    if history_listbox.curselection():
-        load_conversation(history_ids[history_listbox.curselection()[0]])
+tk.Button(side, text="Rename", command=lambda: rename_selected(),
+          bg=SIDEBAR, fg=MUTED, relief=tk.FLAT, font=("Arial", 9),
+          cursor="hand2").pack(fill=tk.X, padx=10)
+tk.Button(side, text="Delete", command=lambda: delete_selected(),
+          bg=SIDEBAR, fg=MUTED, relief=tk.FLAT, font=("Arial", 9),
+          cursor="hand2").pack(fill=tk.X, padx=10, pady=(0, 12))
 
 
-history_listbox.bind("<<ListboxSelect>>", on_history_select)
+def selected_node():
+    """(kind, chapter_id, document_id) for the highlighted row.
 
-tk.Button(history_panel, text="Delete chat",
-          command=lambda: delete_conversation(history_ids[history_listbox.curselection()[0]])
-          if history_listbox.curselection() else None,
-          bg=SIDEBAR, fg=MUTED, relief=tk.FLAT).pack(fill=tk.X, padx=10, pady=(0, 12))
+    kind is "c" for a chapter, "d" for a document, None for nothing.
+
+    The id carries its parts separated by "|". Tcl truncates a string at a NUL
+    byte, so a NUL separator silently collapses every chapter to the same item;
+    slugs are [a-z0-9-] only, so "|" can never appear inside one.
+    """
+    sel = tree.selection()
+    if not sel:
+        return (None, None, None)
+    parts = sel[0].split("|")
+    if parts[0] == "c":
+        return ("c", parts[1], None)
+    if parts[0] == "d":
+        return ("d", parts[1], parts[2])
+    return (None, None, None)
+
+
+def refresh_tree(select=None):
+    """Rebuild the tree, keeping what was open expanded.
+
+    select is ("c", chapter_id, None) or ("d", chapter_id, doc_id).
+    """
+    opened = {iid for iid in tree.get_children("") if tree.item(iid, "open")}
+    tree.delete(*tree.get_children(""))
+    for chapter in LIB.list_chapters():
+        cid = chapter["id"]
+        iid = f"c|{cid}"
+        label = ("* " if chapter["pinned"] else "") + chapter["name"]
+        if chapter["documents"]:
+            label += f"   {chapter['documents']}"
+        tree.insert("", "end", iid=iid, text=label, open=(iid in opened
+                                                          or cid == current_chapter))
+        for doc in LIB.list_documents(cid):
+            tree.insert(iid, "end", iid=f"d|{cid}|{doc['id']}",
+                        text="   " + doc["title"])
+    if select:
+        kind, cid, did = select
+        iid = f"c|{cid}" if kind == "c" else f"d|{cid}|{did}"
+        if tree.exists(iid):
+            parent = tree.parent(iid)
+            if parent:
+                tree.item(parent, open=True)
+            tree.selection_set(iid)
+            tree.see(iid)
+
+
+def on_tree_open(_evt=None):
+    """Open a document on double-click; a single click only selects."""
+    kind, cid, did = selected_node()
+    if kind == "d":
+        open_document(cid, did)
+
+
+tree.bind("<Double-1>", on_tree_open)
+tree.bind("<Return>", on_tree_open)
+
+
+def open_tree_menu(event):
+    """Right-click actions, matched to what was clicked."""
+    iid = tree.identify_row(event.y)
+    if iid:
+        tree.selection_set(iid)
+    kind, cid, did = selected_node()
+    menu = _menu()
+    if kind == "d":
+        menu.add_command(label="Open", command=lambda: open_document(cid, did))
+        menu.add_separator()
+        menu.add_command(label="Rename", command=rename_selected)
+        menu.add_command(label="Duplicate", command=duplicate_selected)
+        menu.add_command(label="Delete", command=delete_selected)
+    elif kind == "c":
+        menu.add_command(label="New document here", command=new_document)
+        menu.add_separator()
+        menu.add_command(label="Rename", command=rename_selected)
+        menu.add_command(label="Pin / unpin", command=pin_selected)
+        menu.add_command(label="Delete chapter", command=delete_selected)
+    else:
+        menu.add_command(label="New chapter", command=new_chapter)
+    try:
+        menu.tk_popup(event.x_root, event.y_root)
+    finally:
+        menu.grab_release()
+
+
+tree.bind("<Button-3>", open_tree_menu)
+
+
+def _ask_text(title, label, default=""):
+    """A small modal prompt. Returns None when cancelled."""
+    win = tk.Toplevel(root)
+    win.title(title)
+    win.configure(bg=BG)
+    win.transient(root)
+    win.resizable(False, False)
+    tk.Label(win, text=label, bg=BG, fg=TEXT, font=("Arial", 10)).pack(
+        anchor="w", padx=16, pady=(14, 4))
+    entry_box = tk.Entry(win, width=44, bg=FIELD, fg=TEXT, relief=tk.FLAT,
+                         font=("Arial", 11))
+    entry_box.pack(padx=16)
+    entry_box.insert(0, default)
+    entry_box.select_range(0, tk.END)
+    answer = {"value": None}
+
+    def ok(_e=None):
+        answer["value"] = entry_box.get().strip()
+        win.destroy()
+
+    row = tk.Frame(win, bg=BG)
+    row.pack(fill=tk.X, padx=16, pady=12)
+    tk.Button(row, text="OK", command=ok, bg=ACCENT, fg="white", relief=tk.FLAT,
+              padx=16, pady=4).pack(side=tk.LEFT)
+    tk.Button(row, text="Cancel", command=win.destroy, bg=BORDER, fg=TEXT,
+              relief=tk.FLAT, padx=12, pady=4).pack(side=tk.RIGHT)
+    entry_box.bind("<Return>", ok)
+    entry_box.bind("<Escape>", lambda _e: win.destroy())
+    win.update_idletasks()
+    win.geometry(f"+{root.winfo_rootx() + 180}+{root.winfo_rooty() + 150}")
+    entry_box.focus_set()
+    win.grab_set()
+    root.wait_window(win)
+    return answer["value"]
+
 
 # split
 split = tk.PanedWindow(body, orient=tk.HORIZONTAL, bg=SIDEBAR, sashwidth=6,
@@ -1515,6 +1724,30 @@ def _menu():
                    borderwidth=1, font=("Arial", 10))
 
 
+def _select_open_document():
+    """Point the tree at the open document, so the shared actions act on it."""
+    if current_chapter is None or current_doc is None:
+        set_status("No document open.", RED)
+        return False
+    refresh_tree(select=("d", current_chapter, current_doc))
+    return True
+
+
+def rename_this():
+    if _select_open_document():
+        rename_selected()
+
+
+def duplicate_this():
+    if _select_open_document():
+        duplicate_selected()
+
+
+def delete_this():
+    if _select_open_document():
+        delete_selected()
+
+
 def open_output_menu(event=None):
     """What to do with the finished document."""
     menu = _menu()
@@ -1531,10 +1764,15 @@ def open_more_menu(event=None):
     menu.add_command(label="Apply my edits", command=apply_edited_html)
     menu.add_command(label="Check house style", command=check_house_style)
     menu.add_separator()
-    menu.add_command(label="New document", command=start_new_document)
+    menu.add_command(label="New document", command=new_document)
+    menu.add_command(label="New chapter", command=new_chapter)
     menu.add_command(label="Remove last question", command=remove_last_block)
     menu.add_separator()
-    menu.add_command(label="Open solutions folder", command=open_folder)
+    menu.add_command(label="Rename this document", command=rename_this)
+    menu.add_command(label="Duplicate this document", command=duplicate_this)
+    menu.add_command(label="Delete this document", command=delete_this)
+    menu.add_separator()
+    menu.add_command(label="Open this document's folder", command=open_folder)
     menu.add_command(label="Copy answer", command=copy_answer)
     _popup(menu, more_btn)
 
@@ -1562,29 +1800,99 @@ tk.Label(editor_bar, text="Edit freely, then Apply. The PDF uses what is here.",
 
 editor = scrolledtext.ScrolledText(right, wrap=tk.NONE, font=("Consolas", 9),
                                    bg=FIELD, fg=TEXT, relief=tk.FLAT, undo=True)
-editor.pack(fill=tk.BOTH, expand=True, padx=14, pady=(0, 14))
+editor.pack(fill=tk.BOTH, expand=True, padx=14, pady=(0, 6))
 editor.frame.config(bg=ARTIFACT_BG)
+
+# ── the document's files, as a pair you can open ─────────────────────
+files_row = tk.Frame(right, bg=ARTIFACT_BG)
+files_row.pack(fill=tk.X, padx=14, pady=(0, 12))
+
+
+def _open_doc_file(which):
+    if current_chapter is None or current_doc is None:
+        set_status("No document open.", RED)
+        return
+    path = (LIB.pdf_path(current_chapter, current_doc) if which == "pdf"
+            else LIB.html_path(current_chapter, current_doc))
+    if not os.path.exists(path):
+        set_status("Not made yet — use the \u25be menu to save it.", RED)
+        return
+    pdf_export.open_file(path)
+
+
+def _card(parent, glyph, kind):
+    card = tk.Frame(parent, bg=SIDEBAR, highlightbackground=BORDER,
+                    highlightthickness=1)
+    card.pack(side=tk.LEFT, padx=(0, 10))
+    tk.Label(card, text=glyph, bg=SIDEBAR, fg=MUTED,
+             font=("Arial", 14)).pack(side=tk.LEFT, padx=(10, 6), pady=6)
+    label = tk.Label(card, text="—", bg=SIDEBAR, fg=TEXT, font=("Arial", 9),
+                     anchor="w", width=22, justify="left")
+    label.pack(side=tk.LEFT, pady=6)
+    button = tk.Button(card, text="Open", command=lambda: _open_doc_file(kind),
+                       bg=SIDEBAR, fg=TEXT, relief=tk.FLAT, font=("Arial", 9),
+                       padx=10, cursor="hand2")
+    button.pack(side=tk.LEFT, padx=(6, 8), pady=5)
+    return label, button
+
+
+pdf_label, pdf_open_btn = _card(files_row, "\U0001F4C4", "pdf")
+html_label, html_open_btn = _card(files_row, "\U0001F310", "html")
+
+
+def refresh_file_cards():
+    """Show whether this document has been saved and printed yet."""
+    if current_chapter is None or current_doc is None:
+        for lbl, btn in ((pdf_label, pdf_open_btn), (html_label, html_open_btn)):
+            lbl.config(text="No document", fg=MUTED)
+            btn.config(state=tk.DISABLED, fg=MUTED)
+        return
+    title = artifact_title.cget("text").split(" — ")[-1][:22]
+    for lbl, btn, path, kind in (
+        (pdf_label, pdf_open_btn, LIB.pdf_path(current_chapter, current_doc), "PDF"),
+        (html_label, html_open_btn, LIB.html_path(current_chapter, current_doc), "HTML"),
+    ):
+        if os.path.exists(path):
+            lbl.config(text=f"{title}\n{kind}", fg=TEXT)
+            btn.config(state=tk.NORMAL, fg=TEXT)
+        else:
+            lbl.config(text=f"{kind} not made yet", fg=MUTED)
+            btn.config(state=tk.DISABLED, fg=MUTED)
 
 # ── start ────────────────────────────────────────────────────────────
 chat.config(state=tk.NORMAL)
 chat.insert(tk.END, "\n  Goodwill Gemini Tutor\n", "ai_msg")
 chat.insert(tk.END, "  Attach or paste (Ctrl+V) a PDF or image of the question, then press Send.\n", "ai_msg")
 chat.insert(tk.END, "  Solve mode builds an A4 document in house style.\n", "ai_msg")
-chat.insert(tk.END, "  The HTML appears on the right. Edit it, then Generate PDF.\n\n", "ai_msg")
+chat.insert(tk.END, "  The HTML appears on the right. Edit it, then Save as PDF.\n", "ai_msg")
+chat.insert(tk.END, "  Chapters are on the left. Double-click a document to reopen it.\n\n", "ai_msg")
 if not pdf_export.playwright_available():
     chat.insert(tk.END, "  For the preview and PDF export:  pip install playwright"
                         "  then  playwright install chromium\n\n", "ai_msg")
 chat.config(state=tk.DISABLED)
 
 refresh_artifact()
-refresh_history_list()
+refresh_title()
+refresh_file_cards()
+
+# Bring last year's flat files into a chapter. Copies only — the originals in
+# Desktop/Goodwill_Solutions and the old conversations folder are left alone.
+try:
+    _moved = LIB.migrate(CONVERSATIONS_DIR, SOLUTIONS_DIR)
+    if _moved["documents"]:
+        say(f"Brought {_moved['documents']} earlier item(s) into the chapter "
+            f"'Before chapters'. Your original files were copied, not moved.", "note")
+except library.LibraryError as _exc:
+    print(f"[migration failed] {_exc}")
+
+refresh_tree()
 root.after(40, pump)
 
 try:
     api.get_api_key()
     refresh_models(initial=True)
 except api.GeminiError as exc:
-    set_status("GEMINI_API_KEY is not set.", "#CC0000")
+    set_status("GEMINI_API_KEY is not set.", RED)
     _key_error = str(exc)
     root.after(300, lambda m=_key_error: messagebox.showerror("API key missing", m))
 
