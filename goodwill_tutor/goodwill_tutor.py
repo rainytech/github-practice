@@ -1817,6 +1817,13 @@ def _open_doc_file(which):
     if not os.path.exists(path):
         set_status("Not made yet — use the \u25be menu to save it.", RED)
         return
+    if which == "pdf" and pdf_is_stale():
+        if not messagebox.askyesno(
+            "PDF is out of date",
+            "This PDF was made before the latest change to the document.\n\n"
+            "Open the old one anyway?\n\n"
+            "Choose No, then use  \u25be  >  Save as PDF  to remake it."):
+            return
     pdf_export.open_file(path)
 
 
@@ -1840,24 +1847,55 @@ pdf_label, pdf_open_btn = _card(files_row, "\U0001F4C4", "pdf")
 html_label, html_open_btn = _card(files_row, "\U0001F310", "html")
 
 
+def pdf_is_stale():
+    """True when the HTML has changed since the PDF was made.
+
+    Existence is not freshness: adding a second question rewrites the HTML but
+    leaves the old PDF on disk, and a card that only checks existence keeps
+    offering it.
+    """
+    if current_chapter is None or current_doc is None:
+        return False
+    pdf = LIB.pdf_path(current_chapter, current_doc)
+    html = LIB.html_path(current_chapter, current_doc)
+    if not (os.path.exists(pdf) and os.path.exists(html)):
+        return False
+    try:
+        return os.path.getmtime(html) > os.path.getmtime(pdf) + 1
+    except OSError:
+        return False
+
+
 def refresh_file_cards():
-    """Show whether this document has been saved and printed yet."""
+    """Show whether this document has been saved, printed, and is up to date."""
     if current_chapter is None or current_doc is None:
         for lbl, btn in ((pdf_label, pdf_open_btn), (html_label, html_open_btn)):
             lbl.config(text="No document", fg=MUTED)
             btn.config(state=tk.DISABLED, fg=MUTED)
         return
-    title = artifact_title.cget("text").split(" — ")[-1][:22]
-    for lbl, btn, path, kind in (
-        (pdf_label, pdf_open_btn, LIB.pdf_path(current_chapter, current_doc), "PDF"),
-        (html_label, html_open_btn, LIB.html_path(current_chapter, current_doc), "HTML"),
-    ):
-        if os.path.exists(path):
-            lbl.config(text=f"{title}\n{kind}", fg=TEXT)
-            btn.config(state=tk.NORMAL, fg=TEXT)
-        else:
-            lbl.config(text=f"{kind} not made yet", fg=MUTED)
-            btn.config(state=tk.DISABLED, fg=MUTED)
+
+    title = artifact_title.cget("text").split(" — ")[-1][:20]
+    stale = pdf_is_stale()
+
+    pdf = LIB.pdf_path(current_chapter, current_doc)
+    if not os.path.exists(pdf):
+        pdf_label.config(text="PDF not made yet", fg=MUTED)
+        pdf_open_btn.config(state=tk.DISABLED, fg=MUTED)
+    elif stale:
+        pdf_label.config(text=f"{title}\nPDF — out of date", fg=RED)
+        pdf_open_btn.config(state=tk.NORMAL, fg=TEXT)
+    else:
+        pdf_label.config(text=f"{title}\nPDF", fg=TEXT)
+        pdf_open_btn.config(state=tk.NORMAL, fg=TEXT)
+
+    html = LIB.html_path(current_chapter, current_doc)
+    if os.path.exists(html):
+        html_label.config(text=f"{title}\nHTML", fg=TEXT)
+        html_open_btn.config(state=tk.NORMAL, fg=TEXT)
+    else:
+        html_label.config(text="HTML not made yet", fg=MUTED)
+        html_open_btn.config(state=tk.DISABLED, fg=MUTED)
+
 
 # ── start ────────────────────────────────────────────────────────────
 chat.config(state=tk.NORMAL)

@@ -57,6 +57,19 @@ def html_to_pdf(html_path, pdf_path=None, wait_ms=350):
 
     file_url = pathlib.Path(html_path).as_uri()
 
+    # Windows refuses to overwrite a PDF that a viewer still has open, and the
+    # failure would otherwise arrive as an opaque Chromium error after a long
+    # render. Fail fast, with the fix in the message.
+    if os.path.exists(pdf_path):
+        try:
+            with open(pdf_path, "ab"):
+                pass
+        except OSError:
+            raise PdfExportError(
+                f"'{os.path.basename(pdf_path)}' is open in another program.\n\n"
+                "Close it in your PDF reader and try again."
+            )
+
     try:
         with sync_playwright() as p:
             browser = p.chromium.launch()

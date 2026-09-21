@@ -136,6 +136,16 @@ appends. Under the editor, two cards open the PDF and the HTML.
 Send a question with nothing open and a document is created for you, titled
 from what you typed.
 
+### The PDF goes out of date
+
+Adding a question rewrites the HTML but leaves the old PDF on disk. The card
+then reads **"PDF — out of date"** in red, and opening it asks first. Use
+**▾ > Save as PDF** to remake it.
+
+If the PDF is open in your reader, Windows will not let it be overwritten. The
+app checks before rendering and tells you to close it, rather than failing
+several seconds later with a Chromium error.
+
 ### Where it lives
 
 ```
