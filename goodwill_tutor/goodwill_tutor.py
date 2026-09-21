@@ -192,6 +192,9 @@ last_response_text = ""
 verify_report = ""
 current_chapter = None    # the open chapter's id
 current_doc = None        # the open document's id
+# Titles this app wrote itself. A document keeps an app-written name only until
+# the teacher renames it; after that his name stands.
+auto_titles = {}
 model_ids = []            # [(id, display)] fetched from the API
 preview_window = None     # the open preview Toplevel, if any
 preview_image = None      # live PhotoImage; Tk discards it without a reference
@@ -402,7 +405,9 @@ def ensure_target(title_hint=""):
         chapters = LIB.list_chapters()
         current_chapter = chapters[0]["id"] if chapters else LIB.create_chapter("My questions")
     if current_doc is None:
-        current_doc = LIB.create_document(current_chapter, title_from(title_hint))
+        auto = title_from(title_hint)
+        current_doc = LIB.create_document(current_chapter, auto)
+        auto_titles[current_doc] = auto
         refresh_tree(select=("d", current_chapter, current_doc))
     return current_chapter, current_doc
 
@@ -539,6 +544,7 @@ def rename_selected():
         title = _ask_text("Rename document", "New title:", current)
         if title:
             LIB.rename_document(cid, did, title)
+            auto_titles.pop(did, None)   # his name now, not the app's
             refresh_tree(select=("d", cid, did))
             refresh_title()
     else:
@@ -1192,6 +1198,22 @@ def finish(answer, in_tok, out_tok, cached_tok, elapsed, model, verdict, v_cost=
     body = api.strip_code_fence(answer)
     body = latex_to_unicode(body)
     body = render_charts(body)
+
+    # A weak model narrates before it writes. That planning used to be printed
+    # into the PDF as page one. Keep the document, say what was dropped.
+    body, dropped = hs.extract_document(body)
+    if dropped:
+        say(f"Removed {len(dropped)} characters the model wrote before the "
+            f"document — its own notes, not part of the answer.", "note")
+
+    # Slashes and carets are the house style's own rule, not a matter of
+    # opinion, so Python fixes them rather than asking the model again. No
+    # figure is altered — only how the division is written.
+    body, repairs = hs.repair_markup(body)
+    if repairs:
+        say("Repaired " + " and ".join(repairs)
+            + " — divisions are stacked fractions, powers are superscripts.", "note")
+
     if 'class="page-block"' not in body:
         body = f'<div class="page-block">\n{body}\n</div>'
     last_body = body
@@ -1207,11 +1229,37 @@ def finish(answer, in_tok, out_tok, cached_tok, elapsed, model, verdict, v_cost=
     run_validator()
     save_current(html=last_full_html, blocks=doc_blocks,
                  conversation=strip_binary(conversation_history), model=model)
+    name_document_from(body)
     refresh_tree(select=("d", current_chapter, current_doc))
     refresh_title()
     if not verdict:
         set_status(f"Done — {len(doc_blocks)} block(s) in this document.", GREEN)
     auto_pdf(keep_status=bool(verdict))
+
+
+def name_document_from(block):
+    """Rename a document from its first answer, never over a name he chose.
+
+    A document is created from the instruction typed at the time, so a chapter
+    fills with twenty documents all called "solve it in a table format". The
+    answer knows better: "Discounting — Illustration 6 (Pg. 43)".
+    """
+    if current_chapter is None or current_doc is None:
+        return
+    if len(doc_blocks) > 1:          # only the first answer names it
+        return
+    current = next((d["title"] for d in LIB.list_documents(current_chapter)
+                    if d["id"] == current_doc), "")
+    if current != auto_titles.get(current_doc):
+        return                       # he renamed it himself; leave it alone
+    title = hs.title_from_block(block, "")
+    if not title or title == current:
+        return
+    try:
+        LIB.rename_document(current_chapter, current_doc, title)
+    except library.LibraryError:
+        return
+    auto_titles[current_doc] = title
 
 
 def fail(message):

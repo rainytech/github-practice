@@ -392,6 +392,158 @@ def _declaration(blocks, prop):
     return value
 
 
+# ═══════════════════════════════════════════════════════════════
+#  CLEANING WHAT THE MODEL SENT
+# ═══════════════════════════════════════════════════════════════
+
+_BLOCK_START = re.compile(r'<div[^>]*class\s*=\s*"[^"]*page-block', re.I)
+
+
+def extract_document(text):
+    """Return (body, dropped) — the document, and what was thrown away.
+
+    A weak model narrates before it writes: "* Topic: Discounting * `page-block`
+    * `top-bar` (Title: DISCOUNTING) ...". That planning went straight into the
+    PDF and filled a whole page. Everything before the first .page-block, and
+    anything trailing the last closing tag, is not the document.
+    """
+    body = (text or "").strip()
+    start = _BLOCK_START.search(body)
+    if not start:
+        return body, ""
+
+    dropped = body[:start.start()].strip()
+    body = body[start.start():]
+
+    end = body.rfind("</div>")
+    if end != -1:
+        tail = body[end + 6:].strip()
+        if tail:
+            dropped = (dropped + "\n" + tail).strip()
+        body = body[:end + 6]
+    return body.strip(), dropped
+
+
+_FRAC = ('<span class="frac"><span class="num">{n}</span>'
+         '<span class="den">{d}</span></span>')
+
+# A number as it is written on these pages: 1,23,456.75 or 0.7513 or 10%.
+_NUM = r"(?:Rs\.?\s*)?\d[\d,]*(?:\.\d+)?%?"
+# A name or a bracketed expression: "Future Value", "(1 + r)", "(1 + 0.10)".
+_TERM = r"(?:\([^()<>]{1,40}\)|[A-Za-z][A-Za-z ]{0,28}[A-Za-z])"
+
+# An operand may carry its own power: (1 + 0.10)^3 belongs under the line, not
+# beside it. The exponent is converted inside the fraction, never left outside.
+_EXP = r"(?:\^\{?[A-Za-z0-9]{1,4}\}?)?"
+
+# Digits either side, spaces optional: 66,550/1.331. Not a date, not 24/7/365.
+_SLASH_NUM = re.compile(rf"(?<![\w/.])({_NUM}{_EXP})\s*/\s*({_NUM}{_EXP})(?![\w/])")
+# Words or brackets either side, but only when the slash is spaced, so that
+# "and/or", "w/o" and "P/L" are left alone.
+_SLASH_TERM = re.compile(
+    rf"(?<![\w/])((?:{_TERM}|{_NUM}){_EXP})\s+/\s+((?:{_TERM}|{_NUM}){_EXP})(?![\w/])")
+# 10^3, (1 + r)^n, x^{12}
+_CARET = re.compile(r"\^\{?([A-Za-z0-9]{1,4})\}?")
+_DIVIDE = re.compile(rf"({_NUM})\s*(?:\u00f7|&divide;)\s*({_NUM})")
+
+_TAG = re.compile(r"<[^>]+>")
+# Text inside these is markup we must not touch.
+_SKIP_INSIDE = re.compile(r"<(script|style|span class=\"frac\")", re.I)
+
+
+def _on_text(html, fn):
+    """Apply fn to the text between tags only, never inside a tag or a .frac."""
+    out, pos, depth = [], 0, 0
+    for tag in _TAG.finditer(html):
+        chunk = html[pos:tag.start()]
+        out.append(chunk if depth else fn(chunk))
+        raw = tag.group(0)
+        low = raw.lower()
+        if 'class="frac"' in low:
+            depth += 1
+        elif depth and low.startswith("</span"):
+            depth -= 1
+        out.append(raw)
+        pos = tag.end()
+    rest = html[pos:]
+    out.append(rest if depth else fn(rest))
+    return "".join(out)
+
+
+def repair_markup(html):
+    """Fix what a weak model gets wrong, without touching its figures.
+
+    Returns (html, notes). Slashes and division signs become stacked fractions
+    and carets become superscripts — RULE: every division is a stacked .frac,
+    and the arithmetic is never altered, only how it is written.
+    """
+    counts = {"fraction": 0, "exponent": 0}
+
+    def sup(m):
+        counts["exponent"] += 1
+        return f"<sup>{m.group(1)}</sup>"
+
+    def powers(text):
+        return _CARET.sub(sup, text)
+
+    def fix(text):
+        if not text.strip():
+            return text
+
+        def frac(m):
+            counts["fraction"] += 1
+            return _FRAC.format(n=powers(m.group(1).strip()),
+                                d=powers(m.group(2).strip()))
+
+        text = _DIVIDE.sub(frac, text)
+        text = _SLASH_NUM.sub(frac, text)
+        text = _SLASH_TERM.sub(frac, text)
+
+        return powers(text)
+
+    fixed = _on_text(html, fix)
+    notes = [f"{n} {name}{'s' if n > 1 else ''}"
+             for name, n in counts.items() if n]
+    return fixed, notes
+
+
+_TOPBAR = re.compile(r'class\s*=\s*"[^"]*\btitle\b[^"]*"[^>]*>(.*?)</', re.I | re.S)
+_QNO = re.compile(r'class\s*=\s*"qno"[^>]*>(.*?)</span>\s*', re.I | re.S)
+_PGREF = re.compile(r'Pg\.\s*<span class="num">([^<]+)</span>', re.I)
+
+
+def title_from_block(html, fallback="Untitled"):
+    """A document title taken from the answer itself.
+
+    "Discounting — Illustration 6 (Pg. 43)" tells the teacher what a document
+    holds. The instruction he typed — "solve it in a table format" — does not,
+    and every document ends up with the same name.
+    """
+    def clean(text):
+        return re.sub(r"\s+", " ", _TAG.sub("", text or "")).strip(" .|—-")
+
+    topic = ""
+    bar = _TOPBAR.search(html or "")
+    if bar:
+        topic = clean(bar.group(1)).title()
+
+    number = ""
+    qno = _QNO.search(html or "")
+    if qno:
+        number = clean(qno.group(1))
+
+    page = ""
+    pg = _PGREF.search(html or "")
+    if pg:
+        page = f"Pg. {clean(pg.group(1))}"
+
+    parts = [p for p in (topic, number) if p]
+    title = " — ".join(parts)
+    if page:
+        title = f"{title} ({page})" if title else page
+    return title[:70] or fallback
+
+
 def validate_html(html):
     """Check a document against the house rules.
 

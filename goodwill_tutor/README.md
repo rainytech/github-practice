@@ -53,6 +53,16 @@ python goodwill_tutor.py
 Gemini writes only the `.page-block` body. Every line of CSS comes from
 `house_style.py`, so the house style cannot drift between documents.
 
+What the model sends is cleaned before it is kept:
+
+- anything written **before** the first `.page-block` is dropped — a weak model
+  narrates its plan first, and that planning used to print as page one
+- `66,550 / 1.331` becomes a stacked fraction and `(1 + r)^n` a superscript,
+  with the power kept under the line where it belongs
+- no figure is ever changed; only how a division is written
+
+Both are reported in the chat, so you can see what was done.
+
 The interface is warm beige throughout, with no white surfaces. The document
 does not follow it — it keeps the `#C8C8C8` house page colour, set in
 `house_style.py`.
@@ -155,7 +165,11 @@ If the PDF is open in your reader, Windows locks it and the status bar says so
 in red — close it and apply again, or use **▾ > Save as PDF**.
 
 Send a question with nothing open and a document is created for you, titled
-from what you typed.
+from what you typed. When the first answer arrives the document is renamed from
+the answer itself — **"Discounting — Illustration 6 (Pg. 43)"** — taken from the
+top bar and the question number, so a chapter does not fill with twenty
+documents all called "solve it in a table format". Rename one yourself and your
+name stands; the app never overwrites it.
 
 ### The PDF goes out of date
 
