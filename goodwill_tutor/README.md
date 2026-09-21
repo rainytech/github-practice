@@ -121,6 +121,11 @@ remove the last question, open the folder, copy.
 Gemini's verification pass and the house-style validator report into the chat
 on the left, so there is only one place to read.
 
+The verifier is told to ignore rounding: a four-decimal table factor cannot give
+an exact round figure, so a difference of a rupee or less that comes only from
+rounding is not reported. It reports what a student would write down wrongly —
+a wrong factor, period, rate or treatment.
+
 ## Chapters and documents
 
 The sidebar is a two-level tree. A **chapter** holds **documents**; a document
@@ -135,18 +140,23 @@ Each answer appends to the open document as a new `.page-block`, so one chapter
 becomes one HTML file and one PDF. Manual edits in the editor survive later
 appends. Under the editor, two cards open the PDF and the HTML.
 
-An answer writes the HTML only. Chromium is never run behind your back, so the
-PDF card reads **"PDF — not made yet"** until you choose **▾ > Save as PDF** —
-that is the normal state after a question, not a fault.
+The PDF is made for you as soon as an answer lands, and again whenever you
+apply an edit, so the card is current without your doing anything. It takes a
+couple of seconds, runs in the background, and costs nothing — Chromium is on
+your own machine. Turn it off in **Settings > Make the PDF automatically after
+each answer**, and then **▾ > Save as PDF** makes it on demand.
+
+If the PDF is open in your reader, Windows locks it and the status bar says so
+in red — close it and apply again, or use **▾ > Save as PDF**.
 
 Send a question with nothing open and a document is created for you, titled
 from what you typed.
 
 ### The PDF goes out of date
 
-Adding a question rewrites the HTML but leaves the old PDF on disk. The card
-then reads **"PDF — out of date"** in red, and opening it asks first. Use
-**▾ > Save as PDF** to remake it.
+With the automatic render switched off, adding a question rewrites the HTML but
+leaves the old PDF on disk. The card then reads **"PDF — out of date"** in red,
+and opening it asks first. Use **▾ > Save as PDF** to remake it.
 
 If the PDF is open in your reader, Windows will not let it be overwritten. The
 app checks before rendering and tells you to close it, rather than failing

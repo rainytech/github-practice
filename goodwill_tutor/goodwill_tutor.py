@@ -112,6 +112,7 @@ DEFAULT_SETTINGS = {
     "thinking_budget": None,
     "verify": True,
     "charts": False,
+    "auto_pdf": True,         # make the PDF straight after each answer
 }
 
 
@@ -708,6 +709,9 @@ def apply_edited_html():
         set_status("Applied. House style clean.", GREEN)
     else:
         set_status(f"Applied. {len(errors)} error(s), {len(warnings)} warning(s) — see the chat.", RED)
+    # Your edit is now the document, so the PDF is out of date the moment it is
+    # applied. Remake it, keeping the message above.
+    auto_pdf(keep_status=True)
 
 
 def check_house_style():
@@ -790,6 +794,68 @@ def pdf_failed(message):
     output_btn.config(state=tk.NORMAL)
     set_status("PDF failed", "#CC0000")
     messagebox.showerror("PDF export failed", message)
+
+
+# A render takes a couple of seconds. If a second answer lands while one is
+# running, both threads would write the same file, so the second waits its turn.
+auto_pdf_running = False
+auto_pdf_again = False
+
+
+def auto_pdf(keep_status=False):
+    """Make the PDF in the background after an answer, without opening it.
+
+    keep_status : leave the status bar alone, so a verification mismatch is
+                  not wiped off the screen by a PDF message.
+    """
+    global auto_pdf_running, auto_pdf_again
+    if not SETTINGS.get("auto_pdf", True):
+        return
+    if current_chapter is None or current_doc is None:
+        return
+    if not pdf_export.playwright_available():
+        return
+    html = LIB.html_path(current_chapter, current_doc)
+    if not os.path.exists(html):
+        return
+    if auto_pdf_running:
+        auto_pdf_again = True
+        return
+
+    auto_pdf_running = True
+    target = LIB.pdf_path(current_chapter, current_doc)
+
+    def work():
+        try:
+            pdf_export.html_to_pdf(html, target)
+            post(lambda: auto_pdf_done(keep_status))
+        except Exception as exc:
+            post(lambda e=exc: auto_pdf_failed(str(e), keep_status))
+
+    threading.Thread(target=work, daemon=True).start()
+
+
+def auto_pdf_done(keep_status):
+    global auto_pdf_running, auto_pdf_again
+    auto_pdf_running = False
+    refresh_file_cards()
+    if not keep_status:
+        set_status("Done — PDF ready.", GREEN)
+    if auto_pdf_again:
+        auto_pdf_again = False
+        auto_pdf(keep_status)
+
+
+def auto_pdf_failed(message, keep_status):
+    """Nobody asked for this PDF, so no dialog box — the status bar is enough.
+
+    The usual cause is the PDF being open in a reader, which Windows locks.
+    """
+    global auto_pdf_running, auto_pdf_again
+    auto_pdf_running = False
+    auto_pdf_again = False
+    refresh_file_cards()
+    set_status(f"PDF not remade — {message.strip().splitlines()[0]}", RED)
 
 
 def open_preview():
@@ -1145,6 +1211,7 @@ def finish(answer, in_tok, out_tok, cached_tok, elapsed, model, verdict, v_cost=
     refresh_title()
     if not verdict:
         set_status(f"Done — {len(doc_blocks)} block(s) in this document.", GREEN)
+    auto_pdf(keep_status=bool(verdict))
 
 
 def fail(message):
@@ -1333,6 +1400,12 @@ def open_settings():
                    bg=BG, fg=TEXT, selectcolor=BG, activebackground=BG
                    ).grid(row=4, column=0, columnspan=3, sticky="w", padx=8, pady=(0, 6))
 
+    autopdf_var = tk.BooleanVar(value=SETTINGS.get("auto_pdf", True))
+    tk.Checkbutton(gen, text="Make the PDF automatically after each answer",
+                   variable=autopdf_var, bg=BG, fg=TEXT, selectcolor=BG,
+                   activebackground=BG
+                   ).grid(row=5, column=0, columnspan=3, sticky="w", padx=8, pady=(0, 6))
+
     def do_save():
         SETTINGS["presets"][current["key"]]["system_prompt"] = box.get("1.0", tk.END).rstrip()
         try:
@@ -1349,6 +1422,7 @@ def open_settings():
         row = verify_dd.current()
         SETTINGS["verify_model"] = ("" if row <= 0 else model_ids[row - 1][0])
         SETTINGS["charts"] = charts_var.get()
+        SETTINGS["auto_pdf"] = autopdf_var.get()
         save_settings()
         set_status("Settings saved.", GREEN)
         win.destroy()

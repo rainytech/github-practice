@@ -288,6 +288,19 @@ Check all of the following:
   9. Fidelity     — every figure matches the question as printed; none was silently altered
  10. Textbook     — if the source shows an answer, does the solution match it
 
+ROUNDING — these are NOT errors. Do not report them:
+  - A printed table factor is rounded to four decimals, so it can never give an
+    exact round figure. 66,550 x 0.7513 = 49,999.015, and the true present value
+    is 50,000, because 66,550 / 1.331 = 50,000 exactly. Report nothing.
+  - Any difference of Re. 1 or less that comes only from rounding a factor, a
+    rate, or paise. The same for a difference of one paise in a total.
+  - A figure rounded to the nearest rupee where the question shows paise.
+Report a difference only when a student would write down a different figure:
+the wrong factor, the wrong period, the wrong rate, a wrong treatment, or a
+genuine slip in the working.
+Before reporting any arithmetic difference, do the multiplication a second time
+and check your own product first. A wrong complaint is worse than no complaint.
+
 OUTPUT FORMAT — plain text, no HTML, no markdown.
 
 If everything checks out, output exactly:
