@@ -133,6 +133,10 @@ Each answer appends to the open document as a new `.page-block`, so one chapter
 becomes one HTML file and one PDF. Manual edits in the editor survive later
 appends. Under the editor, two cards open the PDF and the HTML.
 
+An answer writes the HTML only. Chromium is never run behind your back, so the
+PDF card reads **"PDF — not made yet"** until you choose **▾ > Save as PDF** —
+that is the normal state after a question, not a fault.
+
 Send a question with nothing open and a document is created for you, titled
 from what you typed.
 

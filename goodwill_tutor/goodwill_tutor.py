@@ -452,6 +452,21 @@ def open_document(chapter_id, doc_id):
     set_status(f"Opened: {data['meta'].get('title', doc_id)}", GREEN)
 
 
+def current_title():
+    """The open document's title, read from the library.
+
+    Not from the title bar: finish() repaints the cards before the title, so a
+    card that read the widget showed "No document yet" on the first answer of
+    a session while the title bar above it showed the real name.
+    """
+    if current_chapter is None or current_doc is None:
+        return ""
+    for d in LIB.list_documents(current_chapter):
+        if d["id"] == current_doc:
+            return d.get("title", "Untitled")
+    return "Untitled"
+
+
 def refresh_title():
     if current_chapter is None or current_doc is None:
         artifact_title.config(text="No document yet")
@@ -1874,12 +1889,14 @@ def refresh_file_cards():
             btn.config(state=tk.DISABLED, fg=MUTED)
         return
 
-    title = artifact_title.cget("text").split(" — ")[-1][:20]
+    title = current_title()[:20]
     stale = pdf_is_stale()
 
     pdf = LIB.pdf_path(current_chapter, current_doc)
     if not os.path.exists(pdf):
-        pdf_label.config(text="PDF not made yet", fg=MUTED)
+        # Answering a question writes the HTML but never runs Chromium, so
+        # this is the normal state until  \u25be  >  Save as PDF  is used.
+        pdf_label.config(text=f"{title}\nPDF — not made yet", fg=MUTED)
         pdf_open_btn.config(state=tk.DISABLED, fg=MUTED)
     elif stale:
         pdf_label.config(text=f"{title}\nPDF — out of date", fg=RED)
@@ -1893,7 +1910,7 @@ def refresh_file_cards():
         html_label.config(text=f"{title}\nHTML", fg=TEXT)
         html_open_btn.config(state=tk.NORMAL, fg=TEXT)
     else:
-        html_label.config(text="HTML not made yet", fg=MUTED)
+        html_label.config(text=f"{title}\nHTML — not saved yet", fg=MUTED)
         html_open_btn.config(state=tk.DISABLED, fg=MUTED)
 
 
