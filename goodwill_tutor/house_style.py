@@ -336,14 +336,46 @@ def wrap_document(body_blocks, title="Goodwill Solution"):
     )
 
 
+_STYLE_BLOCK = re.compile(r"<style[^>]*>.*?</style>", re.DOTALL | re.IGNORECASE)
+
+
+def restyle(html):
+    """Put today's stylesheet into a document written by an older version.
+
+    A document keeps the stylesheet it was born with: the page is saved whole,
+    and later questions are spliced into it so that manual edits survive. That
+    also means a document from last year — or from before this morning's fix —
+    keeps last year's colours for ever, and looks wrong in every program that
+    opens it. Only the <style> block is replaced; the questions, and any edit
+    made by hand, are untouched.
+    """
+    if not html or not html.strip():
+        return html
+    if not _STYLE_BLOCK.search(html):
+        blocks = re.findall(
+            r'<div[^>]*class\s*=\s*"[^"]*page-block[^"]*"[^>]*>.*?</div>\s*(?=<div[^>]*class\s*=\s*"[^"]*page-block|</body>|\Z)',
+            html, re.DOTALL | re.IGNORECASE)
+        return wrap_document(blocks or [html])
+    return _STYLE_BLOCK.sub(lambda m: f"<style>{GOODWILL_CSS}</style>", html, count=1)
+
+
+def needs_restyle(html):
+    """True if this document carries a stylesheet other than today's."""
+    found = _STYLE_BLOCK.search(html or "")
+    if not found:
+        return bool((html or "").strip())
+    return GOODWILL_CSS.strip() not in found.group(0)
+
+
 def append_block(existing_html, new_block):
     """Append a new .page-block to an existing document — RULE 9, one artifact per chapter.
 
-    Falls back to building a fresh document if the input is not a full page.
+    The stylesheet is brought up to date at the same time: a question added to
+    an old document must not inherit an old page colour.
     """
     if not existing_html or "</body>" not in existing_html:
         return wrap_document(new_block)
-    return existing_html.replace(
+    return restyle(existing_html).replace(
         "</body>", f"\n{new_block.strip()}\n</body>", 1
     )
 

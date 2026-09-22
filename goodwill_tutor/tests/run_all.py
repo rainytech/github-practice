@@ -19,6 +19,7 @@ FILES = [
     ("test_library.py", "chapters and documents"),
     ("test_answer.py", "a whole answer"),
     ("test_bad_model.py", "a weak model"),
+    ("test_restyle.py", "an older document"),
     ("test_window.py", "the window"),
     ("test_pdf.py", "the printed page"),
 ]

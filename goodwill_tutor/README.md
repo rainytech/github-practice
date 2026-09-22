@@ -196,6 +196,19 @@ top bar and the question number, so a chapter does not fill with twenty
 documents all called "solve it in a table format". Rename one yourself and your
 name stands; the app never overwrites it.
 
+### An older document keeps its old colours
+
+A document is saved whole — stylesheet and all — and a new question is spliced
+into it so your own edits survive. The cost is that a document written last
+year, or this morning before a fix, keeps the stylesheet it was born with, and
+looks wrong in **every** program that opens it: Chrome, a PDF reader, anything.
+That is not the viewer's fault and no setting will change it.
+
+Opening such a document says so in the chat. **More > Restyle with the current
+house style** swaps the stylesheet and nothing else — every question, table and
+hand-made edit stays exactly where it is — then remakes the PDF. Adding a new
+question to an old document brings its stylesheet up to date at the same time.
+
 ### The PDF goes out of date
 
 With the automatic render switched off, adding a question rewrites the HTML but
@@ -251,6 +264,7 @@ so it can be run as often as you like — after any change, before any class.
 | chapters and documents | saving, renaming, copying, deleting, odd names |
 | a whole answer | clean answer in, house-style page out, named, saved |
 | a weak model | reciting, looping and chatty verdicts all handled |
+| an older document | old stylesheet spotted, swapped, questions kept |
 | the window | every control reachable, cards honest, no white |
 | the printed page | A4, selectable text, `#C8C8C8` throughout |
 
