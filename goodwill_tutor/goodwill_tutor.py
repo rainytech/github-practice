@@ -21,6 +21,7 @@ import os
 import queue
 import re
 import threading
+import time
 import tkinter as tk
 from datetime import datetime
 from tkinter import filedialog, messagebox, scrolledtext, ttk
@@ -806,6 +807,7 @@ def pdf_failed(message):
 # running, both threads would write the same file, so the second waits its turn.
 auto_pdf_running = False
 auto_pdf_again = False
+closing = False
 
 
 def auto_pdf(keep_status=False):
@@ -815,7 +817,7 @@ def auto_pdf(keep_status=False):
                   not wiped off the screen by a PDF message.
     """
     global auto_pdf_running, auto_pdf_again
-    if not SETTINGS.get("auto_pdf", True):
+    if closing or not SETTINGS.get("auto_pdf", True):
         return
     if current_chapter is None or current_doc is None:
         return
@@ -2127,6 +2129,27 @@ try:
             f"'Before chapters'. Your original files were copied, not moved.", "note")
 except library.LibraryError as _exc:
     print(f"[migration failed] {_exc}")
+
+def on_close():
+    """Let a PDF finish before the window goes.
+
+    Chromium is driven through a Node process on the other end of a pipe.
+    Closing the window mid-render takes Python away while that process is still
+    talking, and Node prints a wall of "EPIPE: broken pipe" to the console.
+    Nothing is lost by it, but it reads like a crash.
+    """
+    global closing
+    closing = True
+    if auto_pdf_running:
+        set_status("Finishing the PDF before closing...", ACCENT)
+        deadline = time.time() + 20
+        while auto_pdf_running and time.time() < deadline:
+            root.update()
+            time.sleep(0.05)
+    root.destroy()
+
+
+root.protocol("WM_DELETE_WINDOW", on_close)
 
 refresh_tree()
 root.after(40, pump)

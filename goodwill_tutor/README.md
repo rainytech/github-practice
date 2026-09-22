@@ -177,6 +177,11 @@ each answer**, and then **▾ > Save as PDF** makes it on demand.
 If the PDF is open in your reader, Windows locks it and the status bar says so
 in red — close it and apply again, or use **▾ > Save as PDF**.
 
+Closing the window while a PDF is still rendering waits for it — the status bar
+says "Finishing the PDF before closing...". Without that wait, Chromium's Node
+process loses the pipe to Python and prints a page of `EPIPE: broken pipe` to
+the console, which looks alarming and means nothing.
+
 Send a question with nothing open and a document is created for you, titled
 from what you typed. When the first answer arrives the document is renamed from
 the answer itself — **"Discounting — Illustration 6 (Pg. 43)"** — taken from the
