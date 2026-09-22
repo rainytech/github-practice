@@ -24,12 +24,24 @@ r.check("an old page is spotted", hs.needs_restyle(OLD_PAGE))
 r.check("today's page is not", hs.needs_restyle(hs.wrap_document(["<div class='page-block'>x</div>"])), False)
 r.check("an empty document needs nothing", hs.needs_restyle(""), False)
 
-app.ensure_target("an old document")
-app.last_full_html = OLD_PAGE
-app.save_html(silent=True)
-app.refresh_artifact()
-app.restyle_document()
-fixed = app.last_full_html
+# Three old documents on disk, as if written by last year's version.
+chapter = app.LIB.create_chapter("Old chapter")
+ids = [app.LIB.create_document(chapter, f"Old {n}") for n in range(3)]
+for doc in ids:
+    app.LIB.write_document(chapter, doc, html=OLD_PAGE)
+current = app.LIB.create_document(chapter, "Today's")
+app.LIB.write_document(chapter, current, html=hs.wrap_document(
+    ['<div class="page-block"><div class="q"><span>New.</span></div></div>']))
+
+r.check("three need repair", app.restyle_everything(), 3)
+r.check("and none the second time", app.restyle_everything(), 0)
+
+fixed = app.LIB.read_document(chapter, ids[0])["html"]
+r.check("today's document was not rewritten",
+        "New." in app.LIB.read_document(chapter, current)["html"])
+
+app.open_document(chapter, ids[1])
+r.check("opening one shows the repaired page", hs.needs_restyle(app.last_full_html), False)
 
 r.check("the page is grey now", "background:    #C8C8C8;" in fixed)
 r.check("the white page colour is gone", "background: #FFFFFF" in fixed, False)
@@ -38,9 +50,10 @@ r.check("the question is kept", "Illustration 6" in fixed)
 r.check("the table is kept", "Future Value" in fixed)
 r.check("my own note is kept", "a note I typed myself" in fixed)
 r.check("it is saved to disk", "#C8C8C8" in open(
-    app.LIB.html_path(app.current_chapter, app.current_doc), encoding="utf-8").read())
+    app.LIB.html_path(chapter, ids[0]), encoding="utf-8").read())
 r.check("and it no longer needs restyling", hs.needs_restyle(fixed), False)
-r.check("the chat explains", "older stylesheet" in app.chat.get("1.0", "end"))
+r.check("nothing was announced in the chat",
+        "stylesheet" in app.chat.get("1.0", "end"), False)
 
 errors, warnings = hs.validate_html(fixed)
 r.check("the restyled page passes the house rules", errors, [])

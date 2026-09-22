@@ -461,13 +461,13 @@ def open_document(chapter_id, doc_id):
     refresh_artifact()
     refresh_title()
     refresh_file_cards()
+    # A document opened from an older version is repaired on the spot: the
+    # stylesheet belongs to the app, not to the document.
     if hs.needs_restyle(last_full_html):
-        say("This document was written by an older version, so it still has the "
-            "old colours. Use  More  >  Restyle with the current house style  "
-            "to bring it up to date.", "note")
-        set_status("Opened — older stylesheet; see the chat.", ACCENT)
-    else:
-        set_status(f"Opened: {data['meta'].get('title', doc_id)}", GREEN)
+        last_full_html = hs.restyle(last_full_html)
+        refresh_artifact()
+        save_current(html=last_full_html)
+    set_status(f"Opened: {data['meta'].get('title', doc_id)}", GREEN)
 
 
 def current_title():
@@ -727,28 +727,32 @@ def apply_edited_html():
     auto_pdf(keep_status=True)
 
 
-def restyle_document():
-    """Give an older document today's stylesheet, keeping every question.
+def restyle_everything():
+    """Bring every stored document up to the current house style, at startup.
 
-    A page is saved whole, so a document made last year — or this morning,
-    before a fix — keeps the colours it was born with, in every program that
-    opens it. This swaps the stylesheet and nothing else.
+    A page is saved whole, so a document written by an older version keeps that
+    version's colours in every program that opens it. The stylesheet belongs to
+    the app, not to the document, so old ones are simply repaired — no menu, no
+    question asked. Only the <style> block changes; questions, tables and any
+    edit made by hand are untouched, and a document whose style is already
+    current is not rewritten at all.
     """
-    global last_full_html
-    if not (last_full_html or "").strip():
-        set_status("Nothing to restyle yet.", RED)
-        return
-    if not hs.needs_restyle(last_full_html):
-        set_status("Already in the current house style.", GREEN)
-        return
-    last_full_html = hs.restyle(last_full_html)
-    refresh_artifact()
-    save_html(silent=True)
-    say("This document was carrying an older stylesheet — the page colour, the "
-        "table cells and the fractions are now today's. Your questions and any "
-        "edits you made are untouched.", "note")
-    set_status("Restyled. Remaking the PDF...", ACCENT)
-    auto_pdf(keep_status=True)
+    fixed = 0
+    for chapter in LIB.list_chapters():
+        for document in LIB.list_documents(chapter["id"]):
+            try:
+                stored = LIB.read_document(chapter["id"], document["id"])["html"]
+            except library.LibraryError:
+                continue
+            if not hs.needs_restyle(stored):
+                continue
+            try:
+                LIB.write_document(chapter["id"], document["id"],
+                                   html=hs.restyle(stored))
+                fixed += 1
+            except library.LibraryError:
+                continue
+    return fixed
 
 
 def check_house_style():
@@ -2016,8 +2020,6 @@ def open_more_menu(event=None):
     menu = _menu()
     menu.add_command(label="Apply my edits", command=apply_edited_html)
     menu.add_command(label="Check house style", command=check_house_style)
-    menu.add_command(label="Restyle with the current house style",
-                     command=restyle_document)
     menu.add_separator()
     menu.add_command(label="New document", command=new_document)
     menu.add_command(label="New chapter", command=new_chapter)
@@ -2208,6 +2210,15 @@ def on_close():
 
 
 root.protocol("WM_DELETE_WINDOW", on_close)
+
+def _restyle_sweep():
+    count = restyle_everything()
+    if count:
+        post(lambda n=count: set_status(
+            f"{n} older document(s) brought up to the current house style.", GREEN))
+
+
+threading.Thread(target=_restyle_sweep, daemon=True).start()
 
 refresh_tree()
 root.after(40, pump)
