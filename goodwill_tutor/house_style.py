@@ -415,6 +415,29 @@ def _declaration(blocks, prop):
 
 _BLOCK_START = re.compile(r'<div[^>]*class\s*=\s*"[^"]*page-block', re.I)
 
+# Markup a real solution carries. Prose about the rules carries none of it.
+_DOCUMENT_MARKS = ('class="q"', 'class="qno"', 'class="wn', 'class="tbl-title"',
+                   'class="formula-box"', 'class="final-ans"', 'class="sol-label"',
+                   'class="part-heading"', 'class="top-bar"', '<table', 'class="adj"',
+                   'class="notes"', 'class="rule-note"', 'class="ans"')
+
+
+def _quoted(text, at):
+    """True if this position sits inside a `code span`.
+
+    A model that recites the contract writes: the HTML must start with
+    `<div class="page-block">` and end with `</div>`. That tag is an example,
+    not the document, and taking it left "` and end with `" as the whole page.
+    """
+    return text.count("`", 0, at) % 2 == 1
+
+
+def looks_like_document(body):
+    """True if this is a solution rather than the model talking about one."""
+    if any(mark in (body or "").lower() for mark in _DOCUMENT_MARKS):
+        return True
+    return len(re.sub(r"\s+", " ", _TAG.sub("", body or "")).strip()) >= 200
+
 
 def extract_document(text):
     """Return (body, dropped) — the document, and what was thrown away.
@@ -425,7 +448,11 @@ def extract_document(text):
     anything trailing the last closing tag, is not the document.
     """
     body = (text or "").strip()
-    start = _BLOCK_START.search(body)
+    start = None
+    for match in _BLOCK_START.finditer(body):
+        if not _quoted(body, match.start()):
+            start = match
+            break
     if not start:
         return body, ""
 

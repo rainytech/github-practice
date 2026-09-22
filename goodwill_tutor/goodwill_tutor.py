@@ -1214,6 +1214,18 @@ def finish(answer, in_tok, out_tok, cached_tok, elapsed, model, verdict, v_cost=
         say("Repaired " + " and ".join(repairs)
             + " — divisions are stacked fractions, powers are superscripts.", "note")
 
+    # A small model sometimes recites the contract instead of answering it.
+    # Saving that would put a page of quoted instructions into the chapter and
+    # overwrite nothing useful, so the document is left exactly as it was.
+    if not hs.looks_like_document(body):
+        say("The model wrote about the instructions instead of solving the "
+            "question, so nothing was added to the document. Press Send to try "
+            "again, or choose a stronger model — Gemini 3.1 Flash-Lite is about "
+            "10 paise a question.", "bad")
+        set_status("No document produced — nothing was changed.", RED)
+        save_current(conversation=strip_binary(conversation_history))
+        return
+
     if 'class="page-block"' not in body:
         body = f'<div class="page-block">\n{body}\n</div>'
     last_body = body

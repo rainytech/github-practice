@@ -63,6 +63,12 @@ What the model sends is cleaned before it is kept:
 
 Both are reported in the chat, so you can see what was done.
 
+A small model sometimes recites the contract instead of following it — "the
+HTML must start with `<div class="page-block">` and end with `</div>`". That
+quoted tag is an example, not a document, so it is ignored, and an answer with
+no house-style markup in it is refused outright: the chat says so and the open
+document is left exactly as it was.
+
 The interface is warm beige throughout, with no white surfaces. The document
 does not follow it — it keeps the `#C8C8C8` house page colour, set in
 `house_style.py`.
