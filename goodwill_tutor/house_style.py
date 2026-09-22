@@ -749,6 +749,34 @@ def _apply_fractions(html, pattern, counts, powers):
                 + html[stop:])
 
 
+# A power written without a caret: "(1 + 0.10)3", "(1 + r)n". Nothing marks it
+# as an exponent, and printed flat it reads as a multiplication. Only a bracket
+# closing immediately before it counts, so "(a) 3 years" and "(2024)" are safe.
+_IMPLIED_POWER = re.compile(r"(?<=\))(\d{1,3}|[A-Za-z])(?![\w.,%)])")
+
+
+def _apply_powers(html, counts):
+    """Raise an exponent the model left sitting on the line."""
+    done = 0
+    while True:
+        text, index = _flatten(html)
+        found = None
+        for match in _IMPLIED_POWER.finditer(text):
+            if "<sup>" not in html[max(0, index[match.start()] - 12):index[match.start()]]:
+                found = match
+                break
+        if not found or done > 40:
+            return html
+        done += 1
+        counts["exponent"] += 1
+        start = index[found.start()]
+        stop = index[found.end() - 1] + 1
+        raw = html[start:stop]
+        if not _balanced(raw):
+            raw = _TAG.sub("", raw)
+        html = html[:start] + f"<sup>{raw}</sup>" + _mend(html[start:stop]) + html[stop:]
+
+
 def repair_markup(html):
     """Fix what a weak model gets wrong, without touching its figures.
 
@@ -768,7 +796,7 @@ def repair_markup(html):
     for pattern in (_DIVIDE, _SLASH_NUM, _SLASH_TERM):
         html = _apply_fractions(html, pattern, counts, powers)
 
-    fixed = _fit_tables(_on_text(html, powers), counts)
+    fixed = _fit_tables(_apply_powers(_on_text(html, powers), counts), counts)
     notes = [f"{n} {name}{'s' if n > 1 and not name.endswith('contents') else ''}"
              for name, n in counts.items() if n]
     return fixed, notes

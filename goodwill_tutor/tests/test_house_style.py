@@ -65,6 +65,19 @@ r.check("the markup is still sound", hs._balanced(fixed))
 r.check("a single letter divides too",
         frac("F", "(1 + r)<sup>n</sup>") in hs.repair_markup(
             "<span>P = F / (1 + r)^n</span>")[0])
+# A power the model left flat: "(1 + 0.10)3" reads as a multiplication.
+raised, notes = hs.repair_markup('<span>P = 66,550 (1 + 0.10)3</span>')
+r.check("a flat exponent is raised", "<sup>3</sup>" in raised)
+r.check("and counted", any("exponent" in n for n in notes))
+for name, src in [
+        ("a question label", "<span>(a) 3 years of interest</span>"),
+        ("a year", "<span>the year (2024) was good</span>"),
+        ("a note in brackets", "<span>(Profit on revaluation) shared</span>"),
+        ("a percentage", "<span>(1 + 0.10)%</span>"),
+        ("one already raised", "<span>(1 + r)<sup>n</sup></span>"),
+]:
+    r.check(f"left flat — {name}", hs.repair_markup(src), (src, []))
+
 r.check("a division sign is stacked",
         frac("66,550", "1.331") in hs.repair_markup("<span>66,550 ÷ 1.331</span>")[0])
 
