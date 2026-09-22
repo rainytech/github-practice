@@ -841,8 +841,16 @@ def validate_html(html):
         errors.append(f"RULE 2 — body padding is '{padding}'; it must be 0.5cm")
 
     # --- RULE 6 : page background ---
-    if "#C8C8C8" not in css.upper():
-        errors.append("RULE 6 — page background #C8C8C8 missing")
+    # Read body's own background, not merely whether the colour appears
+    # somewhere: a stylesheet that colours the cells and leaves the page white
+    # passes a search and fails the eye.
+    page_colour = (_declaration(_blocks_for(css, "body"), "background")
+                   or _declaration(_blocks_for(css, "body"), "background-color")
+                   or "")
+    if not page_colour:
+        errors.append("RULE 6 — body has no background; the page must be #C8C8C8")
+    elif "#C8C8C8" not in page_colour.upper():
+        errors.append(f"RULE 6 — the page is '{page_colour}'; it must be #C8C8C8")
 
     # --- FRACTIONS : no division sign, no slash fractions ---
     visible = re.sub(r"<(style|script)[^>]*>.*?</\1>", " ", clean,

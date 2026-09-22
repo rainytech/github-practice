@@ -235,6 +235,32 @@ The exception is a two-sided ledger account, where both halves must match:
 `<table class="wn full">` with a `<colgroup>` spans the page. Gemini is told
 which to use.
 
+## Checking that it still works
+
+```
+python tests\run_all.py
+```
+
+Six groups, about five seconds, and it prints `ALL PASS` or names what broke.
+It runs against a throwaway folder, sends nothing to Gemini and costs nothing,
+so it can be run as often as you like — after any change, before any class.
+
+| Group | What it holds to |
+|---|---|
+| the document rules | preamble stripped, fractions stacked, loops caught, titles read |
+| chapters and documents | saving, renaming, copying, deleting, odd names |
+| a whole answer | clean answer in, house-style page out, named, saved |
+| a weak model | reciting, looping and chatty verdicts all handled |
+| the window | every control reachable, cards honest, no white |
+| the printed page | A4, selectable text, `#C8C8C8` throughout |
+
+The last group runs Chromium and takes a few seconds; it says SKIP instead of
+failing if Playwright is not installed. `pip install pypdfium2` adds the page
+size and colour checks.
+
+Break something on purpose to see it work — change the page colour in
+`house_style.py` and three of the six groups will name it.
+
 ## Page geometry
 
 Fixed, and enforced by the validator:
