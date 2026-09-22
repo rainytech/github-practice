@@ -1990,7 +1990,8 @@ editor_bar.pack(fill=tk.X, padx=14)
 tk.Button(editor_bar, text="Apply my edits", command=apply_edited_html,
           font=("Arial", 9, "bold"), bg=ACCENT, fg="white", relief=tk.FLAT,
           padx=12, pady=4, cursor="hand2").pack(side=tk.LEFT, pady=(0, 6))
-tk.Label(editor_bar, text="Edit freely, then Apply. The PDF uses what is here.",
+# Short enough to survive a narrow panel; the long version was cut mid-word.
+tk.Label(editor_bar, text="Edit, then Apply.",
          font=("Arial", 9), bg=ARTIFACT_BG, fg=MUTED).pack(side=tk.LEFT, padx=10)
 
 editor = scrolledtext.ScrolledText(right, wrap=tk.NONE, font=("Consolas", 9),
@@ -2023,18 +2024,25 @@ def _open_doc_file(which):
 
 
 def _card(parent, glyph, kind):
+    """One file card: icon, name, Open.
+
+    The two cards share the row and shrink with it, and Open is packed to the
+    card's right edge BEFORE the name. Packed after a fixed-width name, the
+    second card's Open button was pushed off the edge of the panel and could
+    not be reached at all on a narrower window.
+    """
     card = tk.Frame(parent, bg=SIDEBAR, highlightbackground=BORDER,
                     highlightthickness=1)
-    card.pack(side=tk.LEFT, padx=(0, 10))
+    card.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 10))
     tk.Label(card, text=glyph, bg=SIDEBAR, fg=MUTED,
              font=("Arial", 14)).pack(side=tk.LEFT, padx=(10, 6), pady=6)
-    label = tk.Label(card, text="—", bg=SIDEBAR, fg=TEXT, font=("Arial", 9),
-                     anchor="w", width=22, justify="left")
-    label.pack(side=tk.LEFT, pady=6)
     button = tk.Button(card, text="Open", command=lambda: _open_doc_file(kind),
                        bg=SIDEBAR, fg=TEXT, relief=tk.FLAT, font=("Arial", 9),
                        padx=10, cursor="hand2")
-    button.pack(side=tk.LEFT, padx=(6, 8), pady=5)
+    button.pack(side=tk.RIGHT, padx=(6, 8), pady=5)
+    label = tk.Label(card, text="—", bg=SIDEBAR, fg=TEXT, font=("Arial", 9),
+                     anchor="w", width=10, justify="left")
+    label.pack(side=tk.LEFT, fill=tk.X, expand=True, pady=6)
     return label, button
 
 
