@@ -1049,6 +1049,8 @@ def send_message(event=None):
     acc = [""]
     last_paint = [0.0]
 
+    looped = [False]
+
     def on_chunk(piece):
         acc[0] += piece
         now = datetime.now().timestamp()
@@ -1057,6 +1059,13 @@ def send_message(event=None):
         last_paint[0] = now
         snapshot = acc[0]
         post(lambda s=snapshot: paint_stream(s))
+
+        # A model can argue with the contract for thousands of words and never
+        # start the document. Waiting for the token limit wastes minutes, and
+        # real money on a paid model, so it is cut off as soon as it repeats.
+        if not looped[0] and hs.is_looping(snapshot):
+            looped[0] = True
+            stop_event.set()
 
     def work():
         try:
@@ -1097,6 +1106,9 @@ def send_message(event=None):
                     verdict = f"Verification could not run: {exc}"
 
             elapsed = (datetime.now() - started).total_seconds()
+            if looped[0]:
+                post(lambda n=len(answer.split()): loop_stopped(n))
+                return
             post(lambda: finish(answer, in_tok, out_tok, cached_tok,
                                 elapsed, model, verdict, v_cost))
 
@@ -1315,6 +1327,20 @@ def name_document_from(block):
     except library.LibraryError:
         return
     auto_titles[current_doc] = title
+
+
+def loop_stopped(words):
+    """The model went round in circles and was cut off."""
+    global busy
+    busy = False
+    send_btn.config(state=tk.NORMAL)
+    stop_btn.config(state=tk.DISABLED, bg=BORDER)
+    say(f"The model kept repeating itself — {words} words and no document — so "
+        "it was stopped. Nothing was added. Press Send to try again, or choose "
+        "a model that follows instructions; Gemini 3.1 Flash-Lite is about 10 "
+        "paise a question.", "bad")
+    set_status("Stopped — the model was going in circles.", RED)
+    save_current(conversation=strip_binary(conversation_history))
 
 
 def fail(message):

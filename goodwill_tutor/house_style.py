@@ -439,6 +439,33 @@ def looks_like_document(body):
     return len(re.sub(r"\s+", " ", _TAG.sub("", body or "")).strip()) >= 200
 
 
+def is_looping(text, repeats=4, prefix=34, cap=9000):
+    """True when the model is repeating itself instead of writing the document.
+
+    Gemma does this with the contract's own rules — fifteen lines of
+    *Wait, the prompt says "No LaTeX: no \\times".* I'll use "multiplied by".
+    each a little different, so counting identical lines misses it; the opening
+    of each line is what repeats.
+
+    Only prose is counted, and only before the document has begun: a real
+    answer is full of rows that open alike, and repetition inside a document is
+    the model's business, not ours.
+    """
+    body = text or ""
+    if _BLOCK_START.search(body):
+        return False
+    if len(body) > cap:
+        return True
+
+    heads = collections.Counter()
+    for line in body.splitlines():
+        line = re.sub(r"\s+", " ", line).strip().lower()
+        if len(line) < 20 or "<" in line:
+            continue
+        heads[line[:prefix]] += 1
+    return any(n >= repeats for n in heads.values())
+
+
 def extract_document(text):
     """Return (body, dropped) — the document, and what was thrown away.
 

@@ -63,6 +63,13 @@ What the model sends is cleaned before it is kept:
 
 Both are reported in the chat, so you can see what was done.
 
+A small model sometimes argues with the contract for thousands of words
+without ever starting the document — "Wait, the prompt says no \\times, I'll
+use multiplied by", over and over. That is cut off as soon as the same kind of
+line appears four times, or after 9,000 characters with no document in sight:
+the chat says the model kept repeating itself, and nothing is added. Waiting
+for the token limit instead would cost minutes, and real money on a paid model.
+
 A small model sometimes recites the contract instead of following it — "the
 HTML must start with `<div class="page-block">` and end with `</div>`". That
 quoted tag is an example, not a document, so it is ignored, and an answer with
