@@ -142,6 +142,13 @@ remove the last question, open the folder, copy.
 Gemini's verification pass and the house-style validator report into the chat
 on the left, so there is only one place to read.
 
+The verdict is read from the whole of what the checker wrote, not its first
+word. A small model writes a paragraph before it answers, and sometimes glues
+the word to a figure — "Present Value: 50,000VERIFIED" — so a mismatch buried
+under a preamble would otherwise have been reported in green as a pass. A
+mismatch anywhere wins; "no mismatch" and "could not be verified" are not
+verdicts; anything else is reported as unclear rather than as a pass.
+
 The verifier is told to ignore rounding: a four-decimal table factor cannot give
 an exact round figure, so a difference of a rupee or less that comes only from
 rounding is not reported. It reports what a student would write down wrongly —

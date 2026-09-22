@@ -1151,6 +1151,43 @@ def run_verification(question_text, files, answer_html, model):
     return verdict.strip(), v_in, v_out, v_cached, checker
 
 
+# The word may be glued to whatever came before it — "50,000VERIFIED" — so
+# there is no word boundary to open on.
+_MISMATCH = re.compile(r"mismatch\b", re.I)
+_VERIFIED = re.compile(r"verified\b", re.I)
+# A verdict denied within the two words before it is not that verdict:
+# "no mismatch", "could not be verified", "unverified".
+_DENIED = re.compile(r"\b(no|not|n't|cannot|unable|without|any|fail\w*)\b"
+                     r"\s*(?:\w+\s+){0,2}$", re.I)
+
+
+def _asserted(pattern, text):
+    """True if the word is stated, rather than denied or part of another word."""
+    for found in pattern.finditer(text):
+        before = text[max(0, found.start() - 40):found.start()]
+        if before[-2:].lower() == "un" or _DENIED.search(before):
+            continue
+        return True
+    return False
+
+
+def verdict_kind(verdict):
+    """'bad', 'ok' or 'unclear' — read from the whole verdict, not its first word.
+
+    The checker is told to answer with MISMATCH or VERIFIED alone, and a small
+    model does not: it writes a paragraph first and puts the word in the middle,
+    even glued to a figure — "Present Value: 50,000VERIFIED". Reading only the
+    first word called every one of those a pass, so a genuine mismatch would
+    have been reported in green as verified. A mismatch anywhere wins.
+    """
+    text = verdict or ""
+    if _asserted(_MISMATCH, text):
+        return "bad"
+    if _asserted(_VERIFIED, text):
+        return "ok"
+    return "unclear"
+
+
 def finish(answer, in_tok, out_tok, cached_tok, elapsed, model, verdict, v_cost=None):
     global busy, last_response_text, last_body, last_full_html, verify_report
     busy = False
@@ -1182,12 +1219,16 @@ def finish(answer, in_tok, out_tok, cached_tok, elapsed, model, verdict, v_cost=
 
     verify_report = verdict or ""
     if verdict:
-        if verdict.upper().startswith("MISMATCH"):
+        kind = verdict_kind(verdict)
+        if kind == "bad":
             say(verdict, "bad")
             set_status("Verification found a mismatch — see the chat.", RED)
-        else:
+        elif kind == "ok":
             say(verdict, "ok")
             set_status("Verified.", GREEN)
+        else:
+            say(verdict, "note")
+            set_status("Verification unclear — read it yourself.", ACCENT)
 
     if active_mode_key() == "general":
         save_current(conversation=strip_binary(conversation_history))
