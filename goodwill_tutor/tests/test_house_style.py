@@ -80,6 +80,27 @@ for name, src in [
 out, _ = hs.repair_markup("<span>P = F \u00f7 (1 + r)\u207f</span>")
 r.check("a superscript glyph becomes the house <sup>", "<sup>n</sup>" in out)
 
+# ── a sentence is not a formula ─────────────────────────────────────────
+KEY = "<span>Step 2: Press the division key \u00f7 twice.</span>"
+r.check("a sentence about the ÷ key is left as a sentence",
+        'class="frac"' in hs.repair_markup(KEY)[0], False)
+r.check("and is not reported as an error", hs.validate_html(hs.wrap_document(
+    [f'<div class="page-block"><div class="q">{KEY}</div></div>']))[0], [])
+r.check("nor a spaced slash between lowercase words",
+        'class="frac"' in hs.repair_markup("<span>press the key / twice</span>")[0], False)
+out, _ = hs.repair_markup("<span>Cost of Goods Sold \u00f7 Average Stock</span>")
+r.check("a capitalised name with 'of' is taken whole",
+        frac("Cost of Goods Sold", "Average Stock") in out)
+
+# ── the final answer stays with its working ─────────────────────────────
+css = hs.GOODWILL_CSS
+r.check("the final answer is kept with the line above",
+        ".final-ans {\n  break-before:      avoid;" in css)
+r.check("RULE 4 permits it", "break-inside: avoid" not in " ".join(
+    e for e in hs.validate_html(hs.wrap_document(["<div class='page-block'>x</div>"]))[0]))
+r.check("the last block leaves no gap on paper", ".page-block:last-child" in css)
+r.check("fraction lines have room above and below", "margin:          0.3em 0.15em;" in css)
+
 # ── an error that says where it is ──────────────────────────────────────
 page = hs.wrap_document(['<div class="page-block"><table class="wn"><tr>'
                          '<td>Present Value Factor (1 \u00f7 x)</td></tr></table>'

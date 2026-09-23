@@ -84,4 +84,38 @@ r.check("the page is #C8C8C8 throughout", page_colour, (200, 200, 200))
 white = sum(n for n, colour in colours if min(colour) > 245)
 r.check("almost nothing is white", white < image.size[0] * 3)
 
+# ── the final answer never sits alone on a page ─────────────────────────
+# The layout that showed the fault: at 18 to 21 lines of question, the page
+# still had room, yet the final answer was pushed over by itself.
+TAIL = ('<div class="tbl-title">Calculation of Present Value</div>'
+        '<table class="wn"><tr><th>Particulars</th><th>Amount (Rs.)</th></tr>'
+        '<tr><td>Future Value (F)</td><td class="right">66,550</td></tr>'
+        '<tr><td>Discount Rate (r)</td><td class="right">10%</td></tr>'
+        '<tr><td>Time Period (n)</td><td class="right">3 years</td></tr>'
+        '<tr><td>Present Value Factor</td><td class="right">0.7513</td></tr>'
+        '<tr class="total"><td>Present Value (P)</td><td class="right">50,000</td></tr></table>'
+        '<div class="formula-box">'
+        '<span class="line">Present Value = Future Value \u00d7 1 / (1 + r)^n</span>'
+        '<span class="line">Present Value = 66,550 \u00d7 1 / (1 + 0.10)^3</span>'
+        '<span class="line final">Present Value = 50,000</span></div>'
+        '<div class="final-ans">\u2234 The present value of Rs. 66,550 receivable '
+        'after three years is Rs. 50,000.</div>')
+stranded, blank = [], []
+for lines in range(18, 22):
+    filler = "".join(f'<div class="q"><span>Line {i} of the question text.</span></div>'
+                     for i in range(lines))
+    body, _ = hs.repair_markup(f'<div class="page-block">{filler}{TAIL}</div>')
+    path = os.path.join(folder, f"break{lines}.html")
+    with open(path, "w", encoding="utf-8") as fh:
+        fh.write(hs.wrap_document([body]))
+    doc = pdfium.PdfDocument(pdf_export.html_to_pdf(path))
+    texts = [doc[i].get_textpage().get_text_range() for i in range(len(doc))]
+    for number, text in enumerate(texts):
+        if "\u2234" in text and number > 0 and "Present Value = 50,000" not in text:
+            stranded.append(lines)
+        if not text.strip():
+            blank.append(lines)
+r.check("the final answer is never alone on a page", stranded, [])
+r.check("no blank page is left at the end", blank, [])
+
 sys.exit(r.finish())

@@ -277,6 +277,17 @@ size and colour checks.
 Break something on purpose to see it work — change the page colour in
 `house_style.py` and three of the six groups will name it.
 
+### The final answer stays with its working
+
+`.final-ans` is kept on the same page as the line above it (RULE 4 extended
+with the teacher's approval, 23 Sept 2026). When the two will not both fit,
+they move to the next page together. On paper the last block carries no bottom
+margin: nothing follows it, and that gap was enough to push the answer over
+alone with room still left on the page.
+
+Lines holding a stacked fraction get extra space above and below, since a
+fraction is two lines tall inside one. The body stays at line-height 1.5.
+
 ## Page geometry
 
 Fixed, and enforced by the validator:

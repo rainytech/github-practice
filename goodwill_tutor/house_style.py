@@ -105,11 +105,22 @@ body {
   /* RULE 4 : no break-inside on this selector   */
 }
 
-/* RULE 4 — the ONLY break-avoidance rule permitted */
+/* RULE 4 — the ONLY break-avoidance rule permitted.
+   .final-ans added with the teacher's approval, 23 Sept 2026: a final answer
+   printed alone at the top of a new page is cut off from the working it
+   concludes. */
 table.wn tr,
-.formula-box {
+.formula-box,
+.final-ans {
   break-inside:      avoid;
   page-break-inside: avoid;
+}
+
+/* Keep the final answer on the same page as the line above it. When the two
+   will not fit, they move over together rather than leaving it stranded. */
+.final-ans {
+  break-before:      avoid;
+  page-break-before: avoid;
 }
 
 @media screen {
@@ -124,6 +135,12 @@ table.wn tr,
     margin-top:  0;
     border-top:  none;
     padding-top: 0;
+  }
+  /* Nothing follows the last block on paper, and its 30px gap had to fit on
+     the same page as the final answer — enough to push the answer over alone
+     with a third of a page still free. */
+  .page-block:last-child {
+    margin-bottom: 0;
   }
 }
 
@@ -165,7 +182,10 @@ table.wn tr,
   justify-content: center;
   align-items:     center;
   vertical-align:  middle;
-  margin:          0 0.15em;
+  /* Vertical margin too: a stacked fraction is two lines tall inside one, and
+     without room above and below it the line crowds its neighbours. On an
+     inline-flex box the margin counts toward the line's height. */
+  margin:          0.3em 0.15em;
   font-size:       0.85em;
   line-height:     1.1;
 }
@@ -187,7 +207,7 @@ table.wn tr,
   margin:     6px 0;
   background: #EFEFEF !important;
 }
-.formula-box .line  { display: block; margin: 2px 0; }
+.formula-box .line  { display: block; margin: 6px 0; }
 .formula-box .final { font-weight: bold; }
 
 /* ---------- TABLE TITLES & Dr./Cr. ROW ---------- */
@@ -537,7 +557,14 @@ _NUM = r"(?:Rs\.?\s*)?\d[\d,]*(?:\.\d+)?%?"
 # only "(F)" over the line.
 # A single letter counts too: formulas are written "F / (1 + r)^n" and "P = ...".
 # Only the spaced form admits letters, so "Bank A/c", "P/L" and "w/o" are safe.
-_WORDS = r"(?:[A-Za-z][A-Za-z ]{0,28}[A-Za-z]|[A-Za-z])"
+# A name in a formula is written in capitals: "Future Value", "Net Profit",
+# "Cost of Goods Sold", "EBIT". A sentence is not: "press the division key ÷
+# twice" was stacked into a fraction until words had to be capitalised. Small
+# joining words are allowed inside a name, never at either end; a single
+# letter (F, P, r, n) is always a term.
+_JOIN = r"(?:of|and|on|in|to|per|for)"
+_NAME = r"[A-Z][A-Za-z]*"
+_WORDS = rf"(?:{_NAME}(?: {_JOIN})?(?: {_NAME}){{0,4}}|[A-Za-z])"
 _BRACKET = r"\([^()<>]{1,40}\)"
 _TERM = rf"(?:{_WORDS}\s*{_BRACKET}|{_BRACKET}|{_WORDS})"
 
@@ -563,8 +590,11 @@ _CARET = re.compile(r"\^\{?([A-Za-z0-9]{1,4})\}?")
 _UNICODE_POWER = re.compile(f"[{_SUPERSCRIPTS}]{{1,3}}")
 _FROM_SUPERSCRIPT = str.maketrans(_SUPERSCRIPTS, "0123456789n")
 
+# Neither side may start or end inside a word: without these edges the "y" of
+# "key" and the "t" of "twice" were taken as single-letter terms.
 _DIVIDE = re.compile(
-    rf"((?:{_TERM}|{_NUM}){_EXP})\s*(?:\u00f7|&divide;)\s*((?:{_TERM}|{_NUM}){_EXP})")
+    rf"(?<![\w/])((?:{_TERM}|{_NUM}){_EXP})\s*(?:\u00f7|&divide;)\s*"
+    rf"((?:{_TERM}|{_NUM}){_EXP})(?![\w/])")
 
 _TAG = re.compile(r"<[^>]+>")
 # Text inside these is markup we must not touch.
@@ -878,7 +908,7 @@ def validate_html(html):
             errors.append(f"RULE 3 — forced page break found: {label}")
 
     # --- RULE 4 : break-avoidance scope ---
-    allowed = {"table.wn tr", ".formula-box"}
+    allowed = {"table.wn tr", ".formula-box", ".final-ans"}
     for selectors, block in _rules(css):
         if not re.search(r"(?:page-)?break-inside\s*:\s*avoid", block):
             continue
@@ -938,13 +968,27 @@ def validate_html(html):
     visible = re.sub(r"<[^>]+>", "", visible)
     visible = re.sub(r"[ \t]+", " ", visible)
 
+    def around(at, found):
+        """The text either side of a hit, within its own cell or line."""
+        window = visible[max(0, at - 28):at]
+        before = window.split("\n")[-1]
+        after = visible[at + len(found):at + len(found) + 28].split("\n")[0]
+        # Cut mid-line, the window may open inside a word; start on a whole one.
+        if at - 28 > 0 and "\n" not in window and " " in before:
+            before = before[before.index(" ") + 1:]
+        return before.lstrip(), after.rstrip()
+
     def where(at, found):
         """The words around a hit, so it can be found on the page."""
-        before = visible[max(0, at - 28):at].split("\n")[-1].lstrip()
-        after = visible[at + len(found):at + len(found) + 28].split("\n")[0].rstrip()
+        before, after = around(at, found)
         return f"'{before}{found}{after}'"
 
     for sign in re.finditer(r"\u00f7|&divide;", visible):
+        # "Press the division key ÷ twice" names a key on the calculator; it
+        # is not a division, and there is nothing to stack.
+        before, after = around(sign.start(), sign.group(0))
+        if re.search(r"\b(key|button)s?\b", before[-16:] + " " + after[:16], re.I):
+            continue
         errors.append("FRACTIONS — a division sign in "
                       f"{where(sign.start(), sign.group(0))}; it must be a stacked fraction")
         if len(errors) > 8:
