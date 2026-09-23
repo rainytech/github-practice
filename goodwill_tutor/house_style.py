@@ -603,20 +603,20 @@ _SKIP_INSIDE = re.compile(r"<(script|style|span class=\"frac\")", re.I)
 
 def _on_text(html, fn):
     """Apply fn to the text between tags only, never inside a tag or a .frac."""
-    out, pos, depth = [], 0, 0
+    out, pos, spans = [], 0, []      # is_frac for each open <span>
     for tag in _TAG.finditer(html):
         chunk = html[pos:tag.start()]
-        out.append(chunk if depth else fn(chunk))
-        raw = tag.group(0)
-        low = raw.lower()
-        if 'class="frac"' in low:
-            depth += 1
-        elif depth and low.startswith("</span"):
-            depth -= 1
-        out.append(raw)
+        hidden = any(spans)
+        out.append(chunk if hidden else fn(chunk))
+        low = tag.group(0).lower()
+        if low.startswith("<span"):
+            spans.append('class="frac"' in low)
+        elif low.startswith("</span") and spans:
+            spans.pop()
+        out.append(tag.group(0))
         pos = tag.end()
     rest = html[pos:]
-    out.append(rest if depth else fn(rest))
+    out.append(rest if any(spans) else fn(rest))
     return "".join(out)
 
 
@@ -662,6 +662,9 @@ _TRANSPARENT_CLASSES = {"amt", "small", "source", "narration"}
 _CLASS_ATTR = re.compile(r'class\s*=\s*"([^"]*)"', re.I)
 
 
+_TO_SUPERSCRIPT = str.maketrans("0123456789", _SUPERSCRIPTS[:10])
+
+
 def _flatten(html):
     """The visible text, with a map from each character back into the HTML.
 
@@ -671,24 +674,37 @@ def _flatten(html):
     back in the right place. A block boundary and anything already inside a
     .frac become one sentinel character, so nothing is re-read and no two lines
     are joined into one number.
+
+    Text inside <sup> is read as the superscript it is: "1.10<sup>3</sup>" reads
+    "1.10³", a number and its power. Read as plain "1.103" it was taken for a
+    single number, and the factor printed as one point one zero three.
     """
-    text, index, pos, depth = [], [], 0, 0
-    spans = []                       # is each open <span> transparent?
+    text, index, pos = [], [], 0
+    spans = []                       # (transparent, is_frac) for each open <span>
+    in_frac = 0                      # open .frac spans: their contents are hidden
+    in_sup = 0
 
     def sentinel(at):
         if text and text[-1] != "\x01":
             text.append("\x01")
             index.append(at)
 
+    def visible(chunk, at):
+        for k, ch in enumerate(chunk):
+            if in_sup:
+                ch = ch.translate(_TO_SUPERSCRIPT)
+                if ch.isalpha():
+                    ch = "\u207f"          # any letter as a power reads as one
+            text.append(ch)
+            index.append(at + k)
+
     for tag in _TAG.finditer(html):
         chunk = html[pos:tag.start()]
-        if depth:
+        if in_frac:
             if chunk:
                 sentinel(pos)
         else:
-            for k, ch in enumerate(chunk):
-                text.append(ch)
-                index.append(pos + k)
+            visible(chunk, pos)
 
         raw = tag.group(0)
         low = raw.lower()
@@ -696,32 +712,31 @@ def _flatten(html):
         name = name.group(1) if name else ""
         closing = low.startswith("</")
 
+        if name == "sup":
+            in_sup = max(0, in_sup + (-1 if closing else 1))
         if name in _TRANSPARENT_TAGS:
             transparent = True
         elif name == "span":
             if closing:
-                transparent = spans.pop() if spans else False
+                transparent, was_frac = spans.pop() if spans else (False, False)
+                if was_frac:
+                    in_frac = max(0, in_frac - 1)
             else:
                 classes = _CLASS_ATTR.search(raw)
-                transparent = bool(
-                    set((classes.group(1) if classes else "").split())
-                    & _TRANSPARENT_CLASSES)
-                spans.append(transparent)
+                names = set((classes.group(1) if classes else "").split())
+                transparent = bool(names & _TRANSPARENT_CLASSES)
+                is_frac = "frac" in names
+                spans.append((transparent, is_frac))
+                if is_frac:
+                    in_frac += 1
         else:
             transparent = False
         if not transparent:
             sentinel(tag.start())
-
-        if 'class="frac"' in low:
-            depth += 1
-        elif depth and closing and name == "span":
-            depth -= 1
         pos = tag.end()
 
-    if not depth:
-        for k, ch in enumerate(html[pos:]):
-            text.append(ch)
-            index.append(pos + k)
+    if not in_frac:
+        visible(html[pos:], pos)
     return "".join(text), index
 
 
@@ -776,16 +791,26 @@ def _apply_fractions(html, pattern, counts, powers):
         if not m:
             return html
 
-        def piece(group):
-            raw = html[index[m.start(group)]:index[m.end(group) - 1] + 1]
+        def bounds(group):
+            """The HTML for one side, closing any tag it ends inside —
+            "1.10<sup>3" takes its "</sup>" rather than losing the power."""
+            a, b = index[m.start(group)], index[m.end(group) - 1] + 1
+            while not _balanced(html[a:b]) and html.startswith("</", b):
+                b = html.index(">", b) + 1
+            return a, b
+
+        def piece(a, b):
+            raw = html[a:b]
             if not _balanced(raw):
                 raw = _TAG.sub("", raw)
             return _on_text(raw, powers).strip()
 
+        num_a, num_b = bounds(1)
+        den_a, den_b = bounds(2)
         counts["fraction"] += 1
-        start, stop = index[m.start()], index[m.end() - 1] + 1
+        start, stop = index[m.start()], max(index[m.end() - 1] + 1, den_b)
         html = (html[:start]
-                + _FRAC.format(n=piece(1), d=piece(2))
+                + _FRAC.format(n=piece(num_a, num_b), d=piece(den_a, den_b))
                 + _mend(html[start:stop])
                 + html[stop:])
 
@@ -928,6 +953,40 @@ def _restore_times(html, counts):
         pos = end
 
 
+def _map_fraction_parts(html, fn):
+    """Apply fn to the inside of the top and bottom of every fraction.
+
+    A fraction the model built itself is hidden from the repair, so that one it
+    has just made is not made again. What is written inside one still needs
+    the same care — "1 over (1 + 10/100)³" has a division in its denominator —
+    so each side is repaired on its own, as a line of its own.
+    """
+    open_tag = '<span class="frac">'
+    out, pos = [], 0
+    while True:
+        start = html.find(open_tag, pos)
+        if start == -1:
+            out.append(html[pos:])
+            return "".join(out)
+        end = _span_end(html, start)
+        if end == -1:
+            out.append(html[pos:])
+            return "".join(out)
+        frac, cursor = html[start:end], 0
+        for side in ("num", "den"):
+            tag = f'<span class="{side}">'
+            at = frac.find(tag, cursor)
+            close = _span_end(frac, at) if at != -1 else -1
+            if close == -1:
+                continue
+            inner = frac[at + len(tag):close - 7]
+            fixed = fn(inner)
+            frac = frac[:at + len(tag)] + fixed + frac[close - 7:]
+            cursor = at + len(tag) + len(fixed) + 7
+        out.append(html[pos:start] + frac)
+        pos = end
+
+
 def repair_markup(html):
     """Fix what a weak model gets wrong, without touching its figures.
 
@@ -949,11 +1008,14 @@ def repair_markup(html):
         counts["exponent"] += 1
         return "<sup>" + m.group(0).translate(_FROM_SUPERSCRIPT) + "</sup>"
 
-    for pattern in (_DIVIDE, _SLASH_NUM, _SLASH_TERM):
-        html = _apply_fractions(html, pattern, counts, powers)
+    def run(part):
+        part = _map_fraction_parts(part, run)      # inside existing fractions first
+        for pattern in (_DIVIDE, _SLASH_NUM, _SLASH_TERM):
+            part = _apply_fractions(part, pattern, counts, powers)
+        return _on_text(part, powers)
 
     fixed = _fit_tables(_restore_times(_fix_fraction_powers(
-        _apply_powers(_on_text(html, powers), counts), counts), counts), counts)
+        _apply_powers(run(html), counts), counts), counts), counts)
     def label(name, n):
         if n == 1:
             return f"1 {name}"

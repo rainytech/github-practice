@@ -135,6 +135,23 @@ r.check("no × in a sentence about the factor",
 r.check("no second × when one is there",
         restored("<span>P = 66,550 \u00d7 " + F.format(n="1", d="1.331", t="") + "</span>"), False)
 
+# ── a power written as a <sup> tag stays a power ────────────────────────
+out, _ = hs.repair_markup("<span>the factor 1/1.10<sup>3</sup> on a calculator</span>")
+r.check("1/1.10³ keeps its power — never 1/1.103",
+        '<span class="den">1.10<sup>3</sup></span>' in out)
+r.check("and leaves no empty <sup> behind", "<sup></sup>" in out, False)
+out, _ = hs.repair_markup("<span>P = 66,550 / (1 + 0.10)<sup>3</sup></span>")
+r.check("a bracket with a <sup> power is stacked whole",
+        '<span class="den">(1 + 0.10)<sup>3</sup></span>' in out)
+
+# ── inside a fraction the model built itself ────────────────────────────
+out, _ = hs.repair_markup("<span>PVF = " + F.format(n="1", d="(1 + 10/100)\u00b3", t="") + "</span>")
+r.check("a division inside a denominator is stacked",
+        '<span class="num">10</span><span class="den">100</span>' in out)
+r.check("and the power inside it is raised", "<sup>3</sup>" in out)
+kept = "<span>" + F.format(n="66,550", d="1.331", t="") + "</span>"
+r.check("a finished fraction is not touched", hs.repair_markup(kept), (kept, []))
+
 # ── an error that says where it is ──────────────────────────────────────
 page = hs.wrap_document(['<div class="page-block"><table class="wn"><tr>'
                          '<td>Present Value Factor (1 \u00f7 x)</td></tr></table>'
