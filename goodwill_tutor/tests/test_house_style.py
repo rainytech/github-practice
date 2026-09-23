@@ -144,6 +144,22 @@ out, _ = hs.repair_markup("<span>P = 66,550 / (1 + 0.10)<sup>3</sup></span>")
 r.check("a bracket with a <sup> power is stacked whole",
         '<span class="den">(1 + 0.10)<sup>3</sup></span>' in out)
 
+# ── a power written in the note class — his 9:08 page, lines 306 and 330 ─
+L306 = ('<span>To calculate the factor <span class="frac"><span class="num">1</span>'
+        '<span class="den"><span class="amt">1.10</span><span class="small">3</span>'
+        '</span></span> on a normal calculator</span>')
+L330 = ('<td>P = F &times; <span class="frac"><span class="num">1</span>'
+        '<span class="den"><span class="amt">(1 + r)</span><span class="small">n</span>'
+        '</span></span></td>')
+r.check("1.10 with a .small 3 becomes 1.10³, never 1.103",
+        '<span class="amt">1.10</span><sup>3</sup>' in hs.repair_markup(L306)[0])
+r.check("(1 + r) with a .small n becomes (1 + r)ⁿ",
+        '<span class="amt">(1 + r)</span><sup>n</sup>' in hs.repair_markup(L330)[0])
+NOTE = '<td>To Revaluation A/c <span class="small">(Profit on revaluation)</span></td>'
+r.check("a real bracketed note stays a note", hs.repair_markup(NOTE), (NOTE, []))
+WORD = '<td>Salary <span class="small">3</span> months</td>'
+r.check("a lone figure after a word is not a power", hs.repair_markup(WORD), (WORD, []))
+
 # ── inside a fraction the model built itself ────────────────────────────
 out, _ = hs.repair_markup("<span>PVF = " + F.format(n="1", d="(1 + 10/100)\u00b3", t="") + "</span>")
 r.check("a division inside a denominator is stacked",

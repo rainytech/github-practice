@@ -987,6 +987,30 @@ def _map_fraction_parts(html, fn):
         pos = end
 
 
+# A power the model set in the note class instead of <sup>: a single figure or
+# letter in .small, straight after a number or a closing bracket.
+_SMALL_POWER = re.compile(
+    r'<span class="small">\s*(\d{1,3}|[A-Za-z])\s*</span>', re.IGNORECASE)
+
+
+def _small_powers(html, counts):
+    """Turn a power written as <span class="small"> into the <sup> it means.
+
+    Flash-Lite wrote 1/1.10³ as 1.10<span class="small">3</span>. .small is the
+    house class for pink bracketed notes, so the 3 printed flat on the line and
+    the factor read as 1.103 — a different number. A note in .small is words in
+    brackets; a lone figure or letter touching a number or a bracket is a power.
+    """
+    def one(m):
+        before = _TAG.sub("", html[max(0, m.start() - 80):m.start()])
+        if before and (before[-1].isdigit() or before[-1] == ")"):
+            counts["power written as a note"] += 1
+            return f"<sup>{m.group(1)}</sup>"
+        return m.group(0)
+
+    return _SMALL_POWER.sub(one, html)
+
+
 def repair_markup(html):
     """Fix what a weak model gets wrong, without touching its figures.
 
@@ -1014,6 +1038,7 @@ def repair_markup(html):
             part = _apply_fractions(part, pattern, counts, powers)
         return _on_text(part, powers)
 
+    html = _small_powers(html, counts)
     fixed = _fit_tables(_restore_times(_fix_fraction_powers(
         _apply_powers(run(html), counts), counts), counts), counts)
     def label(name, n):

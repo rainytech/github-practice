@@ -106,6 +106,12 @@ This applies to profit-sharing ratios, sacrificing and gaining ratios,
 interest and time factors, goodwill formulas, depreciation apportionment,
 ratio analysis — inside .formula-box, inside table cells, inside sentences.
 
+A POWER is always <sup>, written straight after what it raises:
+  1.10<sup>3</sup>        (1 + r)<sup>n</sup>        (1 + 0.10)<sup>3</sup>
+Never a caret (^3), never a superscript character (³), and never
+<span class="small"> — that class is for pink bracketed notes, and a power set
+in it prints flat on the line: 1.10 and 3 read as 1.103.
+
 When a fraction multiplies something, write the multiplication sign between them:
   Present Value = 66,550 &times; <span class="frac">...1 over 1.331...</span>
 Never set a figure and a fraction side by side — "66,550 1/1.331" reads as a
