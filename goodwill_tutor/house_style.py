@@ -371,6 +371,7 @@ def restyle(html):
     """
     if not html or not html.strip():
         return html
+    html = mend_numerals(html)
     if not _STYLE_BLOCK.search(html):
         blocks = re.findall(
             r'<div[^>]*class\s*=\s*"[^"]*page-block[^"]*"[^>]*>.*?</div>\s*(?=<div[^>]*class\s*=\s*"[^"]*page-block|</body>|\Z)',
@@ -380,11 +381,24 @@ def restyle(html):
 
 
 def needs_restyle(html):
-    """True if this document carries a stylesheet other than today's."""
+    """True if this document carries a stylesheet other than today's, or a
+    question or page numeral printed at body size."""
     found = _STYLE_BLOCK.search(html or "")
     if not found:
         return bool((html or "").strip())
-    return GOODWILL_CSS.strip() not in found.group(0)
+    return GOODWILL_CSS.strip() not in found.group(0) or mend_numerals(html) != html
+
+
+def mend_numerals(html):
+    """Set the question and page numerals of a stored document at 20pt — RULE 12.
+
+    Only the body is read, never the stylesheet, and nothing else is changed.
+    """
+    if not html:
+        return html
+    body = re.search(r"<body[^>]*>", html, re.I)
+    start = body.end() if body else 0
+    return html[:start] + _number_sizes(html[start:], collections.Counter())
 
 
 def append_block(existing_html, new_block):
@@ -1013,14 +1027,19 @@ def _small_powers(html, counts):
 
 _NUMERAL = re.compile(r"(?<![\w.])(\d+(?:\.\d+)*[A-Za-z]?)(?![\w])")
 _BIG = '<span class="num">{}</span>'
-_QNO_SPAN = re.compile(r'(<span class="qno"[^>]*>)(.*?)(</span>)', re.I | re.S)
+_QNO_SPAN = re.compile(r'(<(span|div|p|b|strong)\b[^>]*\bclass\s*=\s*["\'][^"\']*\bqno\b'
+                       r'[^"\']*["\'][^>]*>)(.*?)(</\2>)', re.I | re.S)
 _PGREF_SPAN = re.compile(r'(<span class="pgref"[^>]*>)(.*?)(</span>)', re.I | re.S)
 _PG_MARK = re.compile(r"(\b(?:Pg|Page|P)\.?\s*)(\d+(?:\.\d+)*[A-Za-z]?)", re.I)
 _Q_WORD = r"(?:Illustration|Question|Problem|Exercise|Example|Q\.)\s*(?:No\.?\s*)?"
 _Q_BOLD = re.compile(rf'(<div class="q"[^>]*>\s*(?:<span>\s*)?)<(b|strong)>\s*'
                      rf'({_Q_WORD})(\d+[A-Za-z]?)\s*([.:]?)\s*</\2>', re.I)
-_Q_PLAIN = re.compile(rf'(<div class="q"[^>]*>\s*(?:<span>\s*)?(?:<(?:b|strong)>\s*)?)'
-                      rf'({_Q_WORD})(\d+[A-Za-z]?)(?![\w.]\d)((?:\s*[.:])?)', re.I)
+# "Illustration 6." as the first words of any element: a div, a paragraph, a
+# bold run, a span — wherever the model chose to put it.
+_Q_PLAIN = re.compile(rf'(>\s*)({_Q_WORD})(\d+[A-Za-z]?)(?![\w.]\d)((?:\s*[.:])?)', re.I)
+_OPEN_TAG = re.compile(r'<([A-Za-z][\w-]*)\b([^<>]*)>\s*$')
+_SOLUTION = re.compile(r'class\s*=\s*["\'][^"\']*\b(?:sol-label|wn-label|wn-sub|tbl-title|'
+                       r'formula-box|part-heading|final-ans)\b', re.I)
 
 
 def _number_sizes(html, counts):
@@ -1031,11 +1050,11 @@ def _number_sizes(html, counts):
     around it keep their size.
     """
     def qno_span(m):
-        if 'class="num"' in m.group(2):
+        if 'class="num"' in m.group(3):
             return m.group(0)
-        inner, n = _NUMERAL.subn(lambda d: _BIG.format(d.group(1)), m.group(2), count=1)
+        inner, n = _NUMERAL.subn(lambda d: _BIG.format(d.group(1)), m.group(3), count=1)
         counts["numeral set at 20pt"] += n
-        return m.group(1) + inner + m.group(3)
+        return m.group(1) + inner + m.group(4)
 
     def pgref_span(m):
         inner = m.group(2)
@@ -1060,12 +1079,26 @@ def _number_sizes(html, counts):
                              (m.group(2), m.group(3), m.group(4))
         return m.group(1) + f'<span class="qno">{word}{_BIG.format(number)}{stop.strip()}</span>'
 
+    def question(block):
+        """The first "Illustration 6." in the question, before the solution."""
+        if re.search(r'\bqno\b', block):
+            return block
+        block = _Q_BOLD.sub(lambda m: plain(m, bold=True), block, count=1)
+        if 'class="qno"' in block:
+            return block
+        end = _SOLUTION.search(block)
+        end = end.start() if end else len(block)
+        for m in _Q_PLAIN.finditer(block, 0, end):
+            opener = _OPEN_TAG.search(block, 0, m.start() + 1)
+            if opener and re.search(r'\b(?:title|pgref)\b', opener.group(2)):
+                continue                       # the top bar, not the question
+            return block[:m.start()] + plain(m) + block[m.end():]
+        return block
+
     html = _QNO_SPAN.sub(qno_span, html)
     html = _PGREF_SPAN.sub(pgref_span, html)
-    if 'class="qno"' not in html:
-        html = _Q_BOLD.sub(lambda m: plain(m, bold=True), html)
-        html = _Q_PLAIN.sub(plain, html)
-    return html
+    parts = re.split(r'(?=<div class="page-block")', html)
+    return "".join(question(part) for part in parts)
 
 
 def repair_markup(html):

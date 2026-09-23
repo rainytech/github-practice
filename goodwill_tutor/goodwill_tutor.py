@@ -469,6 +469,10 @@ def open_document(chapter_id, doc_id):
         refresh_artifact()
         save_current(html=last_full_html)
     set_status(f"Opened: {data['meta'].get('title', doc_id)}", GREEN)
+    # A PDF older than its page — the page was just repaired, or changed
+    # since — is remade quietly, so Open always shows what the page says.
+    if pdf_is_stale():
+        auto_pdf(keep_status=True)
 
 
 def current_title():

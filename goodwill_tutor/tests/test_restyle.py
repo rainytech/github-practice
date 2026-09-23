@@ -46,7 +46,8 @@ r.check("opening one shows the repaired page", hs.needs_restyle(app.last_full_ht
 r.check("the page is grey now", "background:    #C8C8C8;" in fixed)
 r.check("the white page colour is gone", "background: #FFFFFF" in fixed, False)
 r.check("cells are pinned grey", "background-color: #C8C8C8 !important" in fixed)
-r.check("the question is kept", "Illustration 6" in fixed)
+r.check("the question is kept", "Find the present value" in fixed)
+r.check("its number is at 20pt now", 'Illustration <span class="num">6</span>' in fixed)
 r.check("the table is kept", "Future Value" in fixed)
 r.check("my own note is kept", "a note I typed myself" in fixed)
 r.check("it is saved to disk", "#C8C8C8" in open(
@@ -64,6 +65,14 @@ joined = hs.append_block(app.last_full_html,
                          '<div class="page-block"><div class="q"><span>Two.</span></div></div>')
 r.check("appending brings the stylesheet up to date", "background:    #C8C8C8;" in joined)
 r.check("both questions are there",
-        "Illustration 6" in joined and "Two." in joined)
+        "Find the present value" in joined and "Two." in joined)
+
+# Today's stylesheet, but the numeral printed small — the 9.25 document.
+SMALL_SIX = hs.wrap_document(['<div class="page-block"><div class="q">'
+                              '<div>Illustration 6.</div><span>Suppose.</span></div></div>'])
+r.check("a small question number is spotted", hs.needs_restyle(SMALL_SIX))
+r.check("and set at 20pt", 'Illustration <span class="num">6</span>' in hs.restyle(SMALL_SIX))
+r.check("the stylesheet itself is not touched",
+        hs.restyle(SMALL_SIX).split("</style>")[0] == SMALL_SIX.split("</style>")[0])
 
 sys.exit(r.finish())

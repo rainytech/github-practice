@@ -253,6 +253,16 @@ r.check("the page numeral is enlarged",
 r.check("a correct number is left alone",
         hs.repair_markup('<div class="q">' + BIG6 + '</div>'),
         ('<div class="q">' + BIG6 + '</div>', []))
+r.check("a question number in a div of its own is enlarged",
+        'class="qno">Illustration <span class="num">6</span>.' in
+        hs.repair_markup('<div class="q"><div class="qno">Illustration 6.</div></div>')[0])
+r.check("so is one in a plain paragraph",
+        BIG6 in hs.repair_markup('<div class="q"><p>Illustration 6.</p></div>')[0])
+r.check("the top bar title is not a question number",
+        hs.repair_markup('<span class="title">Illustration 6</span>')[1], [])
+r.check("a number in the working is not a question number",
+        hs.repair_markup('<div class="sol-label">Solution</div>'
+                         '<div class="wn-text"><span>Question 3 said so.</span></div>')[1], [])
 r.check("a figure in the question text is not touched",
         hs.repair_markup('<div class="q"><span>A had 6 partners.</span></div>')[1], [])
 

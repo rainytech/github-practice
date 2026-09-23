@@ -208,8 +208,9 @@ There is nothing to do about it. The stylesheet belongs to the app, not to the
 document, so every stored document is brought up to date when the app starts —
 no menu, no question asked. Only the `<style>` block changes; questions, tables
 and anything you typed by hand stay exactly where they are, and a document that
-is already current is not rewritten at all. Their PDFs then read "out of date"
-until remade.
+is already current is not rewritten at all. A question or page number printed
+at body size is set at 20pt at the same time. Opening such a document remakes
+its PDF by itself.
 
 ### The PDF goes out of date
 
