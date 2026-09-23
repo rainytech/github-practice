@@ -1011,6 +1011,63 @@ def _small_powers(html, counts):
     return _SMALL_POWER.sub(one, html)
 
 
+_NUMERAL = re.compile(r"(?<![\w.])(\d+(?:\.\d+)*[A-Za-z]?)(?![\w])")
+_BIG = '<span class="num">{}</span>'
+_QNO_SPAN = re.compile(r'(<span class="qno"[^>]*>)(.*?)(</span>)', re.I | re.S)
+_PGREF_SPAN = re.compile(r'(<span class="pgref"[^>]*>)(.*?)(</span>)', re.I | re.S)
+_PG_MARK = re.compile(r"(\b(?:Pg|Page|P)\.?\s*)(\d+(?:\.\d+)*[A-Za-z]?)", re.I)
+_Q_WORD = r"(?:Illustration|Question|Problem|Exercise|Example|Q\.)\s*(?:No\.?\s*)?"
+_Q_BOLD = re.compile(rf'(<div class="q"[^>]*>\s*(?:<span>\s*)?)<(b|strong)>\s*'
+                     rf'({_Q_WORD})(\d+[A-Za-z]?)\s*([.:]?)\s*</\2>', re.I)
+_Q_PLAIN = re.compile(rf'(<div class="q"[^>]*>\s*(?:<span>\s*)?(?:<(?:b|strong)>\s*)?)'
+                      rf'({_Q_WORD})(\d+[A-Za-z]?)(?![\w.]\d)((?:\s*[.:])?)', re.I)
+
+
+def _number_sizes(html, counts):
+    """Put the problem and page numerals in their 20pt span — RULE 12.
+
+    A model often writes "Illustration 6." or "Pg. 43" as plain text, and the
+    numeral then prints at body size. Only the numeral is wrapped; the words
+    around it keep their size.
+    """
+    def qno_span(m):
+        if 'class="num"' in m.group(2):
+            return m.group(0)
+        inner, n = _NUMERAL.subn(lambda d: _BIG.format(d.group(1)), m.group(2), count=1)
+        counts["numeral set at 20pt"] += n
+        return m.group(1) + inner + m.group(3)
+
+    def pgref_span(m):
+        inner = m.group(2)
+        if 'class="num"' in inner:
+            return m.group(0)
+        marked = _PG_MARK.search(inner)
+        if marked:
+            inner = (inner[:marked.start(2)] + _BIG.format(marked.group(2))
+                     + inner[marked.end(2):])
+        else:
+            last = list(_NUMERAL.finditer(inner))
+            if not last:
+                return m.group(0)
+            d = last[-1]
+            inner = inner[:d.start()] + _BIG.format(d.group(1)) + inner[d.end():]
+        counts["numeral set at 20pt"] += 1
+        return m.group(1) + inner + m.group(3)
+
+    def plain(m, bold=False):
+        counts["numeral set at 20pt"] += 1
+        word, number, stop = (m.group(3), m.group(4), m.group(5)) if bold else \
+                             (m.group(2), m.group(3), m.group(4))
+        return m.group(1) + f'<span class="qno">{word}{_BIG.format(number)}{stop.strip()}</span>'
+
+    html = _QNO_SPAN.sub(qno_span, html)
+    html = _PGREF_SPAN.sub(pgref_span, html)
+    if 'class="qno"' not in html:
+        html = _Q_BOLD.sub(lambda m: plain(m, bold=True), html)
+        html = _Q_PLAIN.sub(plain, html)
+    return html
+
+
 def repair_markup(html):
     """Fix what a weak model gets wrong, without touching its figures.
 
@@ -1041,6 +1098,7 @@ def repair_markup(html):
     html = _small_powers(html, counts)
     fixed = _fit_tables(_restore_times(_fix_fraction_powers(
         _apply_powers(run(html), counts), counts), counts), counts)
+    fixed = _number_sizes(fixed, counts)
     def label(name, n):
         if n == 1:
             return f"1 {name}"

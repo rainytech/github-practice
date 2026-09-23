@@ -15,6 +15,7 @@ Key:       set GEMINI_API_KEY in the environment.
 """
 
 import base64
+import html as html_lib
 import io
 import json
 import os
@@ -347,9 +348,9 @@ def html_to_chat_text(html):
     # A streamed snapshot can stop in the middle of a tag. Drop the dangling
     # opener so "<div class=\"t" does not appear as text in the chat.
     text = re.sub(r"<[^<>]*$", "", text)
-    text = (text.replace("&amp;", "&").replace("&nbsp;", " ")
-                .replace("&there4;", "therefore").replace("&#9658;", ">")
-                .replace("&lt;", "<").replace("&gt;", ">"))
+    # Every entity, not a chosen few: "&times;" reached the chat as five
+    # letters because it was missing from a hand-kept list.
+    text = html_lib.unescape(text).replace("\u00a0", " ")
     text = re.sub(r"[ \t]+", " ", text)
     text = re.sub(r"\n\s*\n\s*\n+", "\n\n", text)
     return "\n".join(line.strip() for line in text.splitlines()).strip()

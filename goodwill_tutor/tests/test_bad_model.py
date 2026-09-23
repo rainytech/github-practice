@@ -49,7 +49,7 @@ def ask(what):
 # ── a good answer first, so there is something to protect ───────────────
 ask("solve this question")
 kept = app.last_full_html
-r.check("the good answer is saved", "Illustration 6" in kept)
+r.check("the good answer is saved", 'Illustration <span class="num">6</span>' in kept)
 
 # ── 1. the model recites the contract instead of answering ──────────────
 state["reply"] = RECITED

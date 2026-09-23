@@ -236,6 +236,26 @@ JOURNAL = '<div class="page-block"><table class="wn">' + "".join(
 r.check("a long journal is not a loop", hs.is_looping(JOURNAL), False)
 r.check("thousands of words and no document is a loop", hs.is_looping("thinking. " * 1200))
 
+# ── RULE 12: the numeral at 20pt, the words at normal size ──────────────
+BIG6 = '<span class="qno">Illustration <span class="num">6</span>.</span>'
+fixed, notes = hs.repair_markup('<div class="q"><span>Illustration 6. Find the value.</span></div>')
+r.check("a plain question number is enlarged", BIG6 + " Find the value." in fixed)
+r.check("and it is reported", notes, ["1 numeral set at 20pt"])
+r.check("a bold question number is enlarged",
+        hs.repair_markup('<div class="q"><b>Illustration 6.</b><span>x</span></div>')[0],
+        '<div class="q">' + BIG6 + '<span>x</span></div>')
+r.check("a qno span without its numeral span is mended",
+        hs.repair_markup('<div class="q"><span class="qno">Illustration 6.</span></div>')[0],
+        '<div class="q">' + BIG6 + '</div>')
+r.check("the page numeral is enlarged",
+        '| Pg. <span class="num">43</span></span>' in
+        hs.repair_markup('<span class="pgref">Central Concepts | Pg. 43</span>')[0])
+r.check("a correct number is left alone",
+        hs.repair_markup('<div class="q">' + BIG6 + '</div>'),
+        ('<div class="q">' + BIG6 + '</div>', []))
+r.check("a figure in the question text is not touched",
+        hs.repair_markup('<div class="q"><span>A had 6 partners.</span></div>')[1], [])
+
 # ── the document's own name ─────────────────────────────────────────────
 ANSWER = ('<div class="page-block"><div class="top-bar">'
           '<span class="title">DISCOUNTING</span>'
