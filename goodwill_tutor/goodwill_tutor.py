@@ -1627,7 +1627,18 @@ def on_mode_change(_evt=None):
 # ═══════════════════════════════════════════════════════════════
 
 root = tk.Tk()
-root.title("Goodwill Gemini Tutor")
+def installed_version():
+    """The version update.py installed, e.g. "c6a1c5e" — or "" if unknown."""
+    try:
+        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "VERSION"),
+                  encoding="utf-8") as fh:
+            return fh.read().strip()[:12]
+    except OSError:
+        return ""
+
+
+root.title("Goodwill Gemini Tutor" + (f"  —  version {installed_version()}"
+                                       if installed_version() else ""))
 # Size to the screen rather than a fixed guess: leave room for the Windows
 # taskbar and the title bar, so the typing box and attach row are never
 # pushed out of reach on a smaller laptop display.

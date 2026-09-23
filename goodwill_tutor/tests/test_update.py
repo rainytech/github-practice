@@ -45,6 +45,18 @@ def refused(body, name="x.py"):
     finally:
         update.urllib.request.urlopen = real
 
+# ── the latest commit, not a copy GitHub kept for five minutes ──────────
+update.urllib.request.urlopen = lambda url, timeout=60: Reply(
+    b'{"sha": "c6a1c5eb9e60", "commit": {"committer": {"date": "2026-09-23T04:00:57Z"}}}')
+r.check("the newest commit is read", update.latest(), ("c6a1c5eb9e60", "2026-09-23T04:00:57Z"))
+r.check("files are fetched by that commit",
+        update.RAW.format("c6a1c5eb9e60").endswith("/c6a1c5eb9e60/goodwill_tutor/"))
+def offline(url, timeout=60):
+    raise update.urllib.error.URLError("offline")
+update.urllib.request.urlopen = offline
+r.check("no answer from GitHub falls back to the branch", update.latest(), (None, None))
+update.urllib.request.urlopen = real
+
 r.check("a '404: Not Found' page is refused", refused(b"404: Not Found"))
 r.check("an empty file is refused", refused(b""))
 r.check("broken Python is refused", refused(b"def broken(:\n"))

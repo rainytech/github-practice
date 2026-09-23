@@ -1037,6 +1037,12 @@ _Q_BOLD = re.compile(rf'(<div class="q"[^>]*>\s*(?:<span>\s*)?)<(b|strong)>\s*'
 # "Illustration 6." as the first words of any element: a div, a paragraph, a
 # bold run, a span — wherever the model chose to put it.
 _Q_PLAIN = re.compile(rf'(>\s*)({_Q_WORD})(\d+[A-Za-z]?)(?![\w.]\d)((?:\s*[.:])?)', re.I)
+# The last resort: a tag or a non-breaking space between the word and the
+# number — "<b>Illustration</b> 6", "Illustration&nbsp;6". Only the numeral is
+# wrapped, so no tag is ever left unbalanced.
+_GAP = r"(?:\s|&nbsp;|&#160;|<[^<>]*>)*"
+_Q_LOOSE = re.compile(rf"\b(?:Illustration|Question|Problem|Exercise|Example)\b{_GAP}"
+                      rf"(?:No\.{_GAP})?(\d+[A-Za-z]?)(?![\w]|\.\d)", re.I)
 _OPEN_TAG = re.compile(r'<([A-Za-z][\w-]*)\b([^<>]*)>\s*$')
 _SOLUTION = re.compile(r'class\s*=\s*["\'][^"\']*\b(?:sol-label|wn-label|wn-sub|tbl-title|'
                        r'formula-box|part-heading|final-ans)\b', re.I)
@@ -1093,6 +1099,13 @@ def _number_sizes(html, counts):
             if opener and re.search(r'\b(?:title|pgref)\b', opener.group(2)):
                 continue                       # the top bar, not the question
             return block[:m.start()] + plain(m) + block[m.end():]
+        for m in _Q_LOOSE.finditer(block, 0, end):
+            opener = _OPEN_TAG.search(block, 0, m.start())
+            if opener and re.search(r'\b(?:title|pgref)\b', opener.group(2)):
+                continue
+            counts["numeral set at 20pt"] += 1
+            return (block[:m.start(1)] + f'<span class="qno">{_BIG.format(m.group(1))}</span>'
+                    + block[m.end(1):])
         return block
 
     html = _QNO_SPAN.sub(qno_span, html)

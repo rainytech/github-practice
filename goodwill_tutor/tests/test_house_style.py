@@ -258,6 +258,12 @@ r.check("a question number in a div of its own is enlarged",
         hs.repair_markup('<div class="q"><div class="qno">Illustration 6.</div></div>')[0])
 r.check("so is one in a plain paragraph",
         BIG6 in hs.repair_markup('<div class="q"><p>Illustration 6.</p></div>')[0])
+r.check("a tag between the word and the number is no hiding place",
+        '<span class="qno"><span class="num">6</span></span>' in
+        hs.repair_markup('<div class="q"><span><b>Illustration</b> 6.</span></div>')[0])
+r.check("nor is a non-breaking space",
+        '<span class="num">6</span>' in
+        hs.repair_markup('<div class="q"><span>Illustration&nbsp;6.</span></div>')[0])
 r.check("the top bar title is not a question number",
         hs.repair_markup('<span class="title">Illustration 6</span>')[1], [])
 r.check("a number in the working is not a question number",

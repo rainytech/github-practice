@@ -10,6 +10,7 @@ as code.
 Your chapters and documents are not in this folder and are never touched.
 """
 
+import json
 import os
 import subprocess
 import sys
@@ -18,8 +19,14 @@ import urllib.error
 import urllib.request
 
 BRANCH = "claude/trusting-volta-4blgva"
-BASE = ("https://raw.githubusercontent.com/rainytech/github-practice/"
-        f"{BRANCH}/goodwill_tutor/")
+RAW = "https://raw.githubusercontent.com/rainytech/github-practice/{}/goodwill_tutor/"
+API = f"https://api.github.com/repos/rainytech/github-practice/commits/{BRANCH}"
+# Asked for by branch name, GitHub may hand out a copy up to five minutes old:
+# an update run just after a fix was pushed could install yesterday's files
+# and report "up to date". Asked for by commit, a file can only be that
+# commit's. The branch name is the fallback when the commit cannot be looked up.
+BASE = RAW.format(BRANCH)
+VERSION_FILE = "VERSION"
 
 # Every file, in one place, so nothing can be forgotten the way a hand-typed
 # list of curl lines forgot tests/test_restyle.py.
@@ -71,6 +78,18 @@ def fetch(name):
     return data
 
 
+def latest():
+    """The newest commit on the branch, as (sha, date) — or (None, None)."""
+    request = urllib.request.Request(API, headers={
+        "Accept": "application/vnd.github+json", "User-Agent": "goodwill-update"})
+    try:
+        with urllib.request.urlopen(request, timeout=30) as reply:
+            info = json.loads(reply.read())
+        return info["sha"], info["commit"]["committer"]["date"]
+    except Exception:
+        return None, None
+
+
 def install(name, data):
     """Replace the file in one step, so a failure never leaves half of it."""
     target = os.path.join(HERE, *name.split("/"))
@@ -82,7 +101,14 @@ def install(name, data):
 
 
 def main():
+    global BASE
     print("Updating Goodwill Gemini Tutor\n")
+    sha, date = latest()
+    if sha:
+        BASE = RAW.format(sha)
+        print(f"  Latest version: {sha[:7]}, {date.replace('T', ' ').rstrip('Z')} UTC\n")
+    else:
+        print("  Could not ask GitHub for the latest version; using the branch.\n")
     changed, same, failed = [], [], []
     for name in FILES:
         print(f"  {name:<28}", end="", flush=True)
@@ -107,6 +133,10 @@ def main():
         print("\n  Some files did not download. Check the internet connection and run")
         print("  python update.py  again. Nothing was damaged.")
         return 1
+    if sha:
+        # The app shows this in its title bar, so a screenshot says which
+        # version produced it.
+        install(VERSION_FILE, sha[:7].encode())
 
     print("\nChecking everything...\n")
     tests = os.path.join(HERE, "tests", "run_all.py")
