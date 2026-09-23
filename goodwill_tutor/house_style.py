@@ -12,6 +12,7 @@ Nothing here depends on the API or the GUI.
 
 from datetime import date
 import collections
+import difflib
 import re
 
 # ═══════════════════════════════════════════════════════════════
@@ -372,7 +373,7 @@ def restyle(html):
     """
     if not html or not html.strip():
         return html
-    html = mend_numerals(html)
+    html = drop_echoes(mend_numerals(html))
     if not _STYLE_BLOCK.search(html):
         blocks = re.findall(
             r'<div[^>]*class\s*=\s*"[^"]*page-block[^"]*"[^>]*>.*?</div>\s*(?=<div[^>]*class\s*=\s*"[^"]*page-block|</body>|\Z)',
@@ -387,7 +388,8 @@ def needs_restyle(html):
     found = _STYLE_BLOCK.search(html or "")
     if not found:
         return bool((html or "").strip())
-    return GOODWILL_CSS.strip() not in found.group(0) or mend_numerals(html) != html
+    return (GOODWILL_CSS.strip() not in found.group(0)
+            or drop_echoes(mend_numerals(html)) != html)
 
 
 def mend_numerals(html):
@@ -1131,7 +1133,9 @@ def _number_sizes(html, counts):
     html = _WORD_OUTSIDE.sub(r'<span class="qno">\1\2\3</span>', html)
     html = _QNO_SPAN.sub(qno_span, html)
     html = _PGREF_SPAN.sub(pgref_span, html)
-    parts = re.split(r'(?=<div class="page-block")', html)
+    # One block can hold two questions — "add one more question" often comes
+    # back as a single page-block — so each question is looked at on its own.
+    parts = re.split(r'(?=<div class="page-block")|(?=<div class="q"[\s>])', html)
     return "".join(question(part) for part in parts)
 
 
@@ -1174,6 +1178,153 @@ def repair_markup(html):
 
     notes = [label(name, n) for name, n in counts.items() if n]
     return fixed, notes
+
+
+_BLOCK_OPEN = re.compile(r'<div class="page-block"[^>]*>', re.I)
+_Q_START = re.compile(r'<div class="q"[\s>]', re.I)
+_TOPBAR_START = re.compile(r'<div class="top-bar"[^>]*>', re.I)
+_LABEL = re.compile(rf'(Illustration|Question|Problem|Exercise|Example){_SPACE}'
+                    r'(?:<span class="num">)?(\d+[A-Za-z]?)', re.I)
+
+
+def _div_end(html, start):
+    """Index just past the </div> closing the <div> that opens at start."""
+    depth = 0
+    for tag in re.finditer(r"<(/?)div\b[^>]*>", html[start:], re.I):
+        depth += -1 if tag.group(1) else 1
+        if depth == 0:
+            return start + tag.end()
+    return -1
+
+
+def question_parts(html):
+    """(start, end) of each question: its top bar, question and solution.
+
+    Found inside each page-block, so a part never crosses a block's own tags.
+    """
+    return [part for block in _parts_by_block(html) for part in block]
+
+
+def _parts_by_block(html):
+    """question_parts, grouped by the page-block each question sits in."""
+    blocks, after = [], 0
+    for m in _BLOCK_OPEN.finditer(html):
+        if m.start() < after:
+            continue                              # a block inside a block
+        end = _div_end(html, m.start())
+        if end < 0:
+            continue
+        blocks.append((m.end(), html.rfind("</div>", 0, end)))
+        after = end
+    if not blocks:
+        blocks = [(0, len(html))]
+    parts = []
+    for a, b in blocks:
+        cuts = [a]
+        for q in _Q_START.finditer(html, a, b):
+            if q.start() == a or not html[a:q.start()].strip():
+                continue                          # the block's first question
+            cut = q.start()
+            bars = [t for t in _TOPBAR_START.finditer(html, a, cut)]
+            if bars:                              # its own top bar goes with it
+                bar_end = _div_end(html, bars[-1].start())
+                if 0 < bar_end <= cut and not html[bar_end:cut].strip():
+                    cut = bars[-1].start()
+            if cut > cuts[-1]:
+                cuts.append(cut)
+        cuts.append(b)
+        parts.append([(x, y) for x, y in zip(cuts, cuts[1:]) if html[x:y].strip()])
+    return parts
+
+
+def _words(fragment):
+    text = re.sub(r"&[A-Za-z0-9#]+;", " ", _TAG.sub(" ", fragment))
+    return re.sub(r"\s+", " ", text).strip().lower()
+
+
+_FIGURE = re.compile(r"\d[\d,]*(?:\.\d+)?")
+
+
+def _work(fragment):
+    """(words, the question's own figures) — what two questions are compared by.
+
+    Words alone are not enough: "one more question in the same phrasing with
+    other amounts" reads almost word for word like the first. The question
+    number and its amounts tell them apart.
+    """
+    q = _Q_START.search(fragment)
+    end = _div_end(fragment, q.start()) if q else -1
+    figures = _FIGURE.findall(_words(fragment[q.start():end])) if q and end > 0 else None
+    return _words(fragment), figures
+
+
+def _same_work(new, old):
+    """True if two questions, solution and all, are the same work."""
+    (a, a_figures), (b, b_figures) = new, old
+    if a_figures is None or a_figures != b_figures:
+        return False
+    if not a or not b or not 0.8 <= len(a) / len(b) <= 1.25:
+        return False
+    match = difflib.SequenceMatcher(None, a, b, autojunk=False)
+    return match.quick_ratio() >= 0.9 and match.ratio() >= 0.9
+
+
+def drop_repeats(existing_html, body):
+    """Leave out a question this document already holds.
+
+    Asked for "one more question" with "the full merged HTML", a model sends
+    the earlier question back along with the new one, and appended as it is,
+    the document prints the earlier question twice. A part is left out only
+    when it matches a question already in the document almost word for word,
+    and only when something new remains — a question re-solved by another
+    method reads differently and is kept.
+
+    Returns (body, labels of what was left out).
+    """
+    if not (existing_html or "").strip() or not body:
+        return body, []
+    old = [_work(existing_html[a:b]) for a, b in question_parts(existing_html)]
+    old = [w for w in old if len(w[0]) > 20 and w[1]]
+    parts = question_parts(body)
+    if len(parts) < 2 or not old:
+        return body, []
+    repeats = [(a, b) for a, b in parts
+               if _balanced(body[a:b])
+               and any(_same_work(_work(body[a:b]), o) for o in old)]
+    if not repeats or len(repeats) == len(parts):
+        return body, []
+    labels = []
+    for a, b in reversed(repeats):
+        found = _LABEL.search(body, a, b)
+        labels.insert(0, f"{found.group(1).title()} {found.group(2)}" if found
+                      else "an earlier question")
+        body = body[:a] + body[b:]
+    body = re.sub(r'<div class="page-block"[^>]*>\s*</div>\s*', "", body)
+    return body, labels
+
+
+def drop_echoes(html):
+    """Take out an earlier question that came back in one block with a new one.
+
+    What drop_repeats now stops at the door, in documents saved before it: the
+    block holding the new question also holds a copy of an earlier one. Only
+    that copy goes; a block that is all repeats is left alone.
+    """
+    body = re.search(r"<body[^>]*>", html or "", re.I)
+    if not body:
+        return html
+    start = body.end()
+    rest = html[start:]
+    seen, removals = [], []
+    for block in _parts_by_block(rest):
+        works = [_work(rest[a:b]) for a, b in block]
+        repeats = [i for i, w in enumerate(works) if w[1] and any(_same_work(w, o) for o in seen)]
+        if repeats and len(repeats) < len(block):
+            removals += [block[i] for i in repeats if _balanced(rest[block[i][0]:block[i][1]])]
+        seen += [w for w in works if w[1] and len(w[0]) > 20]
+    for a, b in reversed(removals):
+        rest = rest[:a] + rest[b:]
+    return html[:start] + rest
 
 
 _TOPBAR = re.compile(r'class\s*=\s*"[^"]*\btitle\b[^"]*"[^>]*>(.*?)</', re.I | re.S)

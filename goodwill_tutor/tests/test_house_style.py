@@ -288,6 +288,32 @@ r.check("a number in the working is not a question number",
 r.check("a figure in the question text is not touched",
         hs.repair_markup('<div class="q"><span>A had 6 partners.</span></div>')[1], [])
 
+# ── "add one more question": the earlier one must not be printed twice ──
+def _question(n, fv, pv, step2="Step 2: Press the multiplication key, then the equals key twice."):
+    return (f'<div class="q"><span>Illustration <span class="num">{n}</span>.</span>'
+            f'<span>Suppose an investor expects to receive Rs. {fv} after three years.</span>'
+            f'<span>If the required rate of return is 10%, find out the present value.</span></div>'
+            f'<div class="sol-label">Solution:-</div><div class="wn-text"><span>Step 1: Enter 1.10.</span>'
+            f'<span>{step2}</span><span>Step 3: Divide Rs. {fv} by 1.331.</span></div>'
+            f'<div class="final-ans">&there4; The present value of Rs. {fv} is Rs. {pv}.</div>')
+SIX, SEVEN = _question(6, "66,550", "50,000"), _question(7, "1,33,100", "1,00,000")
+HELD = hs.wrap_document(['<div class="page-block">' + SIX + '</div>'])
+body, left_out = hs.drop_repeats(HELD, '<div class="page-block">' + SIX + SEVEN + '</div>')
+r.check("the earlier question sent again is left out", left_out, ["Illustration 6"])
+r.check("and the new one is kept", "1,33,100" in body and "66,550" not in body)
+r.check("what is left is well formed", hs._balanced(body))
+r.check("a new question in the same words, other amounts, is kept",
+        hs.drop_repeats(HELD, '<div class="page-block">' + SEVEN + _question(8, "2,66,200", "2,00,000")
+                        + '</div>')[1], [])
+r.check("a question re-solved another way is kept",
+        hs.drop_repeats(HELD, '<div class="page-block">' + _question(
+            6, "66,550", "50,000", "Step 2: Look up the present value factor table for 10% and three "
+            "years, 0.7513, and multiply the future value by it instead.") + SEVEN + '</div>')[1], [])
+r.check("a repeat on its own is kept — you may have asked for it",
+        hs.drop_repeats(HELD, '<div class="page-block">' + SIX + '</div>')[1], [])
+r.check("both question numbers in one block are set at 20pt",
+        hs.repair_markup('<div class="page-block">' + SIX + SEVEN + '</div>')[1], ["2 numerals set at 20pt"])
+
 # ── the document's own name ─────────────────────────────────────────────
 ANSWER = ('<div class="page-block"><div class="top-bar">'
           '<span class="title">DISCOUNTING</span>'

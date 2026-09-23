@@ -75,4 +75,23 @@ r.check("and set at 20pt", 'Illustration <span class="num">6</span>' in hs.resty
 r.check("the stylesheet itself is not touched",
         hs.restyle(SMALL_SIX).split("</style>")[0] == SMALL_SIX.split("</style>")[0])
 
+# The 9.33 document: Illustration 6, then an answer holding 6 again and 7.
+def _question(n, fv, pv):
+    return (f'<div class="q"><span class="qno">Illustration <span class="num">{n}</span>.</span>'
+            f'<span>Suppose an investor expects to receive Rs. {fv} after three years.</span></div>'
+            f'<div class="sol-label">Solution:-</div>'
+            f'<div class="final-ans">&there4; The present value of Rs. {fv} is Rs. {pv}.</div>')
+SIX, SEVEN = _question(6, "66,550", "50,000"), _question(7, "1,33,100", "1,00,000")
+TWICE = hs.wrap_document(['<div class="page-block">' + SIX + '</div>',
+                          '<div class="page-block">' + SIX + SEVEN + '</div>'])
+r.check("a question printed twice is spotted", hs.needs_restyle(TWICE))
+once = hs.restyle(TWICE)
+r.check("the second copy is taken out", once.count("66,550"), 2)
+r.check("the first copy and the new question stay", "1,33,100" in once and "Illustration" in once)
+r.check("and it stays settled", hs.needs_restyle(once), False)
+ASKED_AGAIN = hs.wrap_document(['<div class="page-block">' + SIX + '</div>',
+                                '<div class="page-block">' + SIX + '</div>'])
+r.check("a question you asked for again on its own is left alone",
+        hs.needs_restyle(ASKED_AGAIN), False)
+
 sys.exit(r.finish())

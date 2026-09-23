@@ -51,6 +51,19 @@ ask("solve this question")
 kept = app.last_full_html
 r.check("the good answer is saved", 'Illustration <span class="num">6</span>' in kept)
 
+# ── 0. asked for one more question, it sends the first one back too ────
+state["reply"] = GOOD.replace("</div></div>", "</div>") + (
+    '<div class="q"><span>Illustration 7.</span>'
+    '<span>Find the present value of Rs. 1,33,100.</span></div></div>')
+ask("add 1 new question and display the full merged HTML with 2 questions")
+page = app.last_full_html
+r.check("Illustration 6 is printed once, not twice", page.count("66,550"), 1)
+r.check("Illustration 7 is added", "1,33,100" in page)
+r.check("the chat says why", "already has it" in app.chat.get("1.0", "end"))
+app.doc_blocks.pop()
+app.last_full_html = kept
+state["reply"] = GOOD
+
 # ── 1. the model recites the contract instead of answering ──────────────
 state["reply"] = RECITED
 ask("solve it again")

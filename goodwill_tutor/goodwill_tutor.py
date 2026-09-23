@@ -1312,6 +1312,13 @@ def finish(answer, in_tok, out_tok, cached_tok, elapsed, model, verdict, v_cost=
         say("Repaired " + " and ".join(repairs)
             + " — divisions are stacked fractions, powers are superscripts.", "note")
 
+    # "Add one more question" often comes back with the earlier question too.
+    # The document already holds it, so it is left out rather than printed twice.
+    body, repeated = hs.drop_repeats(last_full_html, body)
+    if repeated:
+        say(f"Gemini sent {' and '.join(repeated)} again — this document already "
+            f"has it, so it was left out and only the new question was added.", "note")
+
     # A small model sometimes recites the contract instead of answering it.
     # Saving that would put a page of quoted instructions into the chapter and
     # overwrite nothing useful, so the document is left exactly as it was.

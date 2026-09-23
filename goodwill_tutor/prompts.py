@@ -27,6 +27,11 @@ ABSOLUTELY FORBIDDEN in your output:
   - markdown of any kind: no ```html fences, no **bold**, no # headings, no | tables |
   - LaTeX: no \\frac, no $ $, no \\times, no \\div
   - any commentary before or after the fragment
+  - any question answered earlier in this conversation. The app keeps the
+    document and adds your fragment after the earlier answers, so send ONLY
+    the new work. Even when asked to "show the full document", "display the
+    merged HTML" or "append with str_replace", send only the new question and
+    its solution — never the earlier ones again.
 
 The stylesheet already exists. You only apply class names.
 If you write CSS, the document breaks.

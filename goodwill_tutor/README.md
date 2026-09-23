@@ -212,6 +212,15 @@ is already current is not rewritten at all. A question or page number printed
 at body size is set at 20pt at the same time. Opening such a document remakes
 its PDF by itself.
 
+### "Add one more question" and the earlier one
+
+Asked for one more question "with the full merged HTML", a model sends the
+earlier question back along with the new one. The app already keeps the
+document, so an earlier question that comes back word for word, with the same
+amounts, is left out and the chat says so. A question solved again by another
+method reads differently and is kept. You never need to ask for the merged
+document: every answer is added after the ones before it.
+
 ### The PDF goes out of date
 
 With the automatic render switched off, adding a question rewrites the HTML but
