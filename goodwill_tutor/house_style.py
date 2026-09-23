@@ -1047,6 +1047,12 @@ _Q_LOOSE = re.compile(rf"\b(?:Illustration|Question|Problem|Exercise|Example)\b{
                       rf"(?:No\.{_GAP})?(\d+[A-Za-z]?)(?![\w]|\.\d)", re.I)
 _WORD_OUTSIDE = re.compile(rf'({_Q_WORD})<span class="qno">(<span class="num">[^<]*</span>)'
                            rf'</span>([.:]?)', re.I)
+# Gemini writes the numeral's own span but leaves out the qno round the label —
+# "Illustration <span class="num">6</span>." — and the 20pt rule is ".qno .num".
+_NUM_NO_QNO = re.compile(rf'({_Q_WORD})(<span class="num">[^<]*</span>)((?:\s*[.:])?)', re.I)
+# What version 036b3c5 made of that: a second numeral span inside the first.
+_NESTED_NUM = re.compile(r'<span class="num"><span class="qno">(<span class="num">[^<]*</span>)'
+                         r'</span></span>', re.I)
 _OPEN_TAG = re.compile(r'<([A-Za-z][\w-]*)\b([^<>]*)>\s*$')
 _SOLUTION = re.compile(r'class\s*=\s*["\'][^"\']*\b(?:sol-label|wn-label|wn-sub|tbl-title|'
                        r'formula-box|part-heading|final-ans)\b', re.I)
@@ -1093,6 +1099,13 @@ def _number_sizes(html, counts):
         """The first "Illustration 6." in the question, before the solution."""
         if re.search(r'\bqno\b', block):
             return block
+        end = _SOLUTION.search(block)
+        end = end.start() if end else len(block)
+        m = _NUM_NO_QNO.search(block, 0, end)
+        if m:
+            counts["numeral set at 20pt"] += 1
+            return (block[:m.start()] + f'<span class="qno">{m.group(1)}{m.group(2)}'
+                    f'{m.group(3).strip()}</span>' + block[m.end():])
         block = _Q_BOLD.sub(lambda m: plain(m, bold=True), block, count=1)
         if 'class="qno"' in block:
             return block
@@ -1114,6 +1127,7 @@ def _number_sizes(html, counts):
 
     # An earlier version wrapped the numeral alone, leaving "Illustration"
     # outside and not bold. Bring the word in beside its number.
+    html = _NESTED_NUM.sub(r"\1", html)
     html = _WORD_OUTSIDE.sub(r'<span class="qno">\1\2\3</span>', html)
     html = _QNO_SPAN.sub(qno_span, html)
     html = _PGREF_SPAN.sub(pgref_span, html)

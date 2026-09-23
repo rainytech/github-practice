@@ -269,6 +269,16 @@ r.check("a numeral wrapped alone by an older version gets its word back",
                          '<span class="num">6</span></span>.</span></div>')[0],
         '<div class="q"><span><span class="qno">Illustration&nbsp;<span class="num">6</span>.'
         '</span></span></div>')
+# His 9.33 document, line 299, exactly — and the answer Gemini sent for it.
+LINE_299 = ('<div class="q">\n    <span>Illustration <span class="num"><span class="qno">'
+            '<span class="num">6</span></span></span>.</span></div>')
+RIGHT_299 = ('<div class="q">\n    <span><span class="qno">Illustration '
+             '<span class="num">6</span>.</span></span></div>')
+r.check("line 299 of the 9.33 document is put right", hs.repair_markup(LINE_299)[0], RIGHT_299)
+r.check("a numeral span with no qno round it gets one",
+        hs.repair_markup('<div class="q">\n    <span>Illustration <span class="num">6</span>.'
+                         '</span></div>')[0], RIGHT_299)
+r.check("and the result is left alone the next time", hs.repair_markup(RIGHT_299), (RIGHT_299, []))
 r.check("the words of the question number are bold", ".qno      { font-weight: bold; }" in hs.GOODWILL_CSS)
 r.check("the top bar title is not a question number",
         hs.repair_markup('<span class="title">Illustration 6</span>')[1], [])
