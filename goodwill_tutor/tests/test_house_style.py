@@ -65,6 +65,31 @@ r.check("the markup is still sound", hs._balanced(fixed))
 r.check("a single letter divides too",
         frac("F", "(1 + r)<sup>n</sup>") in hs.repair_markup(
             "<span>P = F / (1 + r)^n</span>")[0])
+# ── the division sign, in every form Flash-Lite has used ────────────────
+for name, src in [
+        ("F ÷ (1 + r)ⁿ", "<span>P = F \u00f7 (1 + r)\u207f</span>"),
+        ("1 ÷ (1.10)³", "<span>PV Factor = 1 \u00f7 (1.10)\u00b3</span>"),
+        ("words ÷ bracket^n", "<span>Future Value \u00f7 (1 + r)^n</span>"),
+        ("no spaces", "<span>Profit\u00f7Sales</span>"),
+        ("a slash with ³", "<span>P = 66,550 / (1 + 0.10)\u00b3</span>"),
+]:
+    out, _ = hs.repair_markup(src)
+    flat = text_of(out)
+    r.check(f"stacked — {name}", "\u00f7" in flat or "/" in flat, False)
+
+out, _ = hs.repair_markup("<span>P = F \u00f7 (1 + r)\u207f</span>")
+r.check("a superscript glyph becomes the house <sup>", "<sup>n</sup>" in out)
+
+# ── an error that says where it is ──────────────────────────────────────
+page = hs.wrap_document(['<div class="page-block"><table class="wn"><tr>'
+                         '<td>Present Value Factor (1 \u00f7 x)</td></tr></table>'
+                         '<div class="q"><span>Share is 3/5 of it.</span></div></div>'])
+errors, warnings = hs.validate_html(page)
+r.check("the error quotes the cell it is in",
+        any("'Present Value Factor (1 \u00f7 x)'" in e for e in errors))
+r.check("the warning quotes its own line only",
+        any("'Share is 3/5 of it.'" in w for w in warnings))
+
 # A power the model left flat: "(1 + 0.10)3" reads as a multiplication.
 raised, notes = hs.repair_markup('<span>P = 66,550 (1 + 0.10)3</span>')
 r.check("a flat exponent is raised", "<sup>3</sup>" in raised)

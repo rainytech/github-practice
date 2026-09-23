@@ -543,7 +543,10 @@ _TERM = rf"(?:{_WORDS}\s*{_BRACKET}|{_BRACKET}|{_WORDS})"
 
 # An operand may carry its own power: (1 + 0.10)^3 belongs under the line, not
 # beside it. The exponent is converted inside the fraction, never left outside.
-_EXP = r"(?:\^\{?[A-Za-z0-9]{1,4}\}?)?"
+# Written either way: a caret the model typed, "^3", or the superscript
+# character itself, "³" — which is how Flash-Lite writes it.
+_SUPERSCRIPTS = "\u2070\u00b9\u00b2\u00b3\u2074\u2075\u2076\u2077\u2078\u2079\u207f"
+_EXP = rf"(?:\^\{{?[A-Za-z0-9]{{1,4}}\}}?|[{_SUPERSCRIPTS}]{{1,3}})?"
 
 # Digits either side, spaces optional: 66,550/1.331. Not a date, not 24/7/365.
 _SLASH_NUM = re.compile(rf"(?<![\w/.])({_NUM}{_EXP})\s*/\s*({_NUM}{_EXP})(?![\w/])")
@@ -553,7 +556,15 @@ _SLASH_TERM = re.compile(
     rf"(?<![\w/])((?:{_TERM}|{_NUM}){_EXP})\s+/\s+((?:{_TERM}|{_NUM}){_EXP})(?![\w/])")
 # 10^3, (1 + r)^n, x^{12}
 _CARET = re.compile(r"\^\{?([A-Za-z0-9]{1,4})\}?")
-_DIVIDE = re.compile(rf"({_NUM})\s*(?:\u00f7|&divide;)\s*({_NUM})")
+# A division sign is never anything but a division, so unlike the slash it
+# takes any operand, spaced or not: "F ÷ (1 + r)ⁿ", "1 ÷ (1.10)³", "a÷b".
+# "³" printed as a glyph is smaller than the house style's <sup>, and inside a
+# fraction it shrinks again; turn it into the same <sup> everything else uses.
+_UNICODE_POWER = re.compile(f"[{_SUPERSCRIPTS}]{{1,3}}")
+_FROM_SUPERSCRIPT = str.maketrans(_SUPERSCRIPTS, "0123456789n")
+
+_DIVIDE = re.compile(
+    rf"((?:{_TERM}|{_NUM}){_EXP})\s*(?:\u00f7|&divide;)\s*((?:{_TERM}|{_NUM}){_EXP})")
 
 _TAG = re.compile(r"<[^>]+>")
 # Text inside these is markup we must not touch.
@@ -791,7 +802,12 @@ def repair_markup(html):
         return f"<sup>{m.group(1)}</sup>"
 
     def powers(text):
-        return _CARET.sub(sup, text)
+        text = _CARET.sub(sup, text)
+        return _UNICODE_POWER.sub(unicode_sup, text)
+
+    def unicode_sup(m):
+        counts["exponent"] += 1
+        return "<sup>" + m.group(0).translate(_FROM_SUPERSCRIPT) + "</sup>"
 
     for pattern in (_DIVIDE, _SLASH_NUM, _SLASH_TERM):
         html = _apply_fractions(html, pattern, counts, powers)
@@ -915,17 +931,30 @@ def validate_html(html):
     # --- FRACTIONS : no division sign, no slash fractions ---
     visible = re.sub(r"<(style|script)[^>]*>.*?</\1>", " ", clean,
                      flags=re.DOTALL | re.IGNORECASE)
-    visible = re.sub(r"<[^>]+>", " ", visible)
+    # A cell, a row or a line ends a quotation; an amount's own tag does not.
+    visible = re.sub(r"</?(?:div|td|th|tr|table|p|li|br|h\d)\b[^>]*>", "\n",
+                     visible, flags=re.IGNORECASE)
+    visible = re.sub(r"<span[^>]*class=\"[^\"]*\bline\b[^>]*>", "\n", visible)
+    visible = re.sub(r"<[^>]+>", "", visible)
+    visible = re.sub(r"[ \t]+", " ", visible)
 
-    if "\u00f7" in visible or "&divide;" in visible:
-        errors.append("FRACTIONS — a division sign was found; every division must be a stacked .frac")
+    def where(at, found):
+        """The words around a hit, so it can be found on the page."""
+        before = visible[max(0, at - 28):at].split("\n")[-1].lstrip()
+        after = visible[at + len(found):at + len(found) + 28].split("\n")[0].rstrip()
+        return f"'{before}{found}{after}'"
 
-    scrubbed = _SLASH_SAFE.sub(" ", visible)
-    slash_hits = re.findall(r"(?<![\w/])\d+\s*/\s*\d+(?![\w/])", scrubbed)
-    if slash_hits:
-        warnings.append(
-            f"FRACTIONS — possible slash fraction(s): {', '.join(sorted(set(slash_hits))[:6])}"
-        )
+    for sign in re.finditer(r"\u00f7|&divide;", visible):
+        errors.append("FRACTIONS — a division sign in "
+                      f"{where(sign.start(), sign.group(0))}; it must be a stacked fraction")
+        if len(errors) > 8:
+            break
+
+    scrubbed = _SLASH_SAFE.sub(lambda m: " " * len(m.group(0)), visible)
+    for slash in list(re.finditer(r"(?<![\w/])\d[\d,.]*\s*/\s*\d[\d,.]*(?![\w/])",
+                                  scrubbed))[:6]:
+        warnings.append("FRACTIONS — a slash fraction in "
+                        f"{where(slash.start(), slash.group(0))}")
 
     # --- TABLES ---
     if re.search(r"<table(?![^>]*class=)", clean, flags=re.IGNORECASE):
