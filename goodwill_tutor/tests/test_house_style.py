@@ -118,6 +118,23 @@ r.check("the note reads well for two",
                          + F.format(n="1", d="b", t="\u00b3") + "</span>")[1][-1],
         "2 powers moved into their denominator")
 
+# ── the "×" a model left out, and the mixed numbers that must not get one ─
+def restored(src):
+    return "multiplication sign restored" in " ".join(hs.repair_markup(src)[1])
+
+r.check("× restored: 66,550 then 1/1.331",
+        restored("<span>P = <span class=\"amt\">66,550</span> " + F.format(n="1", d="1.331", t="") + "</span>"))
+r.check("× restored: Future Value then 1/(1 + r)ⁿ",
+        restored("<span>PV = Future Value " + F.format(n="1", d="(1 + r)<sup>n</sup>", t="") + "</span>"))
+r.check("no × in a mixed number, 2 ½ years",
+        restored("<span>Goodwill at 2 " + F.format(n="1", d="2", t="") + " years</span>"), False)
+r.check("no × in a mixed number, 7 ½ %",
+        restored("<span>Interest @ 7 " + F.format(n="1", d="2", t="") + "%</span>"), False)
+r.check("no × in a sentence about the factor",
+        restored("<span>To calculate the factor " + F.format(n="1", d="1.10<sup>3</sup>", t="") + " here</span>"), False)
+r.check("no second × when one is there",
+        restored("<span>P = 66,550 \u00d7 " + F.format(n="1", d="1.331", t="") + "</span>"), False)
+
 # ── an error that says where it is ──────────────────────────────────────
 page = hs.wrap_document(['<div class="page-block"><table class="wn"><tr>'
                          '<td>Present Value Factor (1 \u00f7 x)</td></tr></table>'

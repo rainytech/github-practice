@@ -106,6 +106,11 @@ This applies to profit-sharing ratios, sacrificing and gaining ratios,
 interest and time factors, goodwill formulas, depreciation apportionment,
 ratio analysis — inside .formula-box, inside table cells, inside sentences.
 
+When a fraction multiplies something, write the multiplication sign between them:
+  Present Value = 66,550 &times; <span class="frac">...1 over 1.331...</span>
+Never set a figure and a fraction side by side — "66,550 1/1.331" reads as a
+mixed number, sixty-six thousand five hundred and fifty and a fraction.
+
 Correct, a time factor of six months:
   <span class="frac"><span class="num">6</span><span class="den">12</span></span>
 

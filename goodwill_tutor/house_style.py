@@ -883,6 +883,51 @@ def _fix_fraction_powers(html, counts):
         html, pos = rest, 0
 
 
+# What may stand right before a fraction it multiplies, with the "×" missing.
+_QUANTITY_BEFORE = re.compile(r"(?:Rs\.?\s*)?\d[\d,]*(?:\.\d+)?\s+$")
+_NAME_BEFORE = re.compile(
+    r"=[^=]*?\b[A-Z][A-Za-z]*(?: [A-Z][A-Za-z]*){0,4}(?:\s*\([A-Za-z]\))?\s+$")
+_ALREADY_TIMES = re.compile(r"(?:\u00d7|&times;|\*|\bx)\s*$")
+
+
+def _restore_times(html, counts):
+    """Put back the "×" between a quantity and the fraction it multiplies.
+
+    "66,550 1/1.331" reads to a student as a mixed number — sixty-six thousand
+    and a fraction — the way "2 ½" means two and a half. It is added only where
+    that reading is impossible: after a figure when the denominator has a
+    decimal point, a bracket or a power (a mixed number's never does), or after
+    a capitalised name that follows "=", as in Present Value = Future Value × ….
+    "7 ½%" and "2 ½ years" are left exactly as written.
+    """
+    open_tag = '<span class="frac">'
+    pos, out = 0, []
+    while True:
+        start = html.find(open_tag, pos)
+        if start == -1:
+            out.append(html[pos:])
+            return "".join(out)
+        end = _span_end(html, start)
+        if end == -1:
+            out.append(html[pos:])
+            return "".join(out)
+        text, _ = _flatten(html[:start])
+        line = text.rsplit("\x01", 1)[-1]
+        frac = html[start:end]
+        den = frac.split('<span class="den">', 1)[-1]
+        den_text = _TAG.sub("", den)
+        not_mixed = bool(re.search(r"[.(A-Za-z]", den_text)) or "<sup>" in den
+        wanted = not _ALREADY_TIMES.search(line) and (
+            (_QUANTITY_BEFORE.search(line) and not_mixed)
+            or _NAME_BEFORE.search(line))
+        out.append(html[pos:start])
+        if wanted:
+            counts["multiplication sign restored"] += 1
+            out.append("\u00d7 ")
+        out.append(frac)
+        pos = end
+
+
 def repair_markup(html):
     """Fix what a weak model gets wrong, without touching its figures.
 
@@ -907,8 +952,8 @@ def repair_markup(html):
     for pattern in (_DIVIDE, _SLASH_NUM, _SLASH_TERM):
         html = _apply_fractions(html, pattern, counts, powers)
 
-    fixed = _fit_tables(_fix_fraction_powers(
-        _apply_powers(_on_text(html, powers), counts), counts), counts)
+    fixed = _fit_tables(_restore_times(_fix_fraction_powers(
+        _apply_powers(_on_text(html, powers), counts), counts), counts), counts)
     def label(name, n):
         if n == 1:
             return f"1 {name}"
