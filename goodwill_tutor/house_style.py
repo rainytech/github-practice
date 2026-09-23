@@ -818,6 +818,71 @@ def _apply_powers(html, counts):
         html = html[:start] + f"<sup>{raw}</sup>" + _mend(html[start:stop]) + html[stop:]
 
 
+_POWER_BIT = rf"(?:<sup>[^<]{{1,6}}</sup>|[{_SUPERSCRIPTS}]{{1,3}})"
+_TRAILING_POWER = re.compile(rf"^\s*({_POWER_BIT})\s*$")
+_POWER_AFTER = re.compile(rf"^(\s*)({_POWER_BIT})")
+
+
+def _span_end(html, start):
+    """Index just past the </span> closing the <span> that opens at start."""
+    depth = 0
+    for tag in re.finditer(r"<(/?)span\b[^>]*>", html[start:]):
+        depth += -1 if tag.group(1) else 1
+        if depth == 0:
+            return start + tag.end()
+    return -1
+
+
+def _as_sup(power):
+    """"ⁿ" or "<sup>n</sup>" -> "<sup>n</sup>"."""
+    if power.startswith("<sup>"):
+        return power
+    return "<sup>" + power.translate(_FROM_SUPERSCRIPT) + "</sup>"
+
+
+def _fix_fraction_powers(html, counts):
+    """Put a power the model left beside a fraction into its denominator.
+
+    Flash-Lite writes 1/(1 + r)ⁿ with the ⁿ inside the fraction but after the
+    denominator — a stacked fraction is a column, so it printed as a third row
+    under the line — or with the ³ after the fraction, beside it. A power after
+    the denominator is the denominator's. One after the whole fraction is moved
+    in only when the numerator is 1, where (1 ÷ x)³ and 1 ÷ x³ are the same
+    number; any other fraction is left as written.
+    """
+    open_tag = '<span class="frac">'
+    out, pos = [], 0
+    while True:
+        start = html.find(open_tag, pos)
+        if start == -1:
+            out.append(html[pos:])
+            return "".join(out)
+        end = _span_end(html, start)
+        if end == -1:
+            out.append(html[pos:])
+            return "".join(out)
+        inner = _fix_fraction_powers(html[start + len(open_tag):end - 7], counts)
+        num_end = _span_end(inner, 0) if inner.startswith('<span class="num">') else -1
+        den_start = inner.find('<span class="den">', max(num_end, 0))
+        den_end = _span_end(inner, den_start) if num_end != -1 and den_start != -1 else -1
+        rest = html[end:]
+        if den_end != -1:
+            numerator = _TAG.sub("", inner[:num_end]).strip()
+            trailing = _TRAILING_POWER.match(inner[den_end:])
+            after = _POWER_AFTER.match(rest)
+            power = None
+            if trailing:
+                power = trailing.group(1)
+            elif after and numerator == "1":
+                power = after.group(2)
+                rest = rest[after.end():]
+            if power:
+                counts["power moved into its denominator"] += 1
+                inner = (inner[:den_end - 7] + _as_sup(power) + "</span>")
+        out.append(html[pos:start] + open_tag + inner + "</span>")
+        html, pos = rest, 0
+
+
 def repair_markup(html):
     """Fix what a weak model gets wrong, without touching its figures.
 
@@ -842,9 +907,15 @@ def repair_markup(html):
     for pattern in (_DIVIDE, _SLASH_NUM, _SLASH_TERM):
         html = _apply_fractions(html, pattern, counts, powers)
 
-    fixed = _fit_tables(_apply_powers(_on_text(html, powers), counts), counts)
-    notes = [f"{n} {name}{'s' if n > 1 and not name.endswith('contents') else ''}"
-             for name, n in counts.items() if n]
+    fixed = _fit_tables(_fix_fraction_powers(
+        _apply_powers(_on_text(html, powers), counts), counts), counts)
+    def label(name, n):
+        if n == 1:
+            return f"1 {name}"
+        first, _, rest = name.partition(" ")
+        return f"{n} {first}s{' ' + rest if rest else ''}".replace("its", "their")
+
+    notes = [label(name, n) for name, n in counts.items() if n]
     return fixed, notes
 
 

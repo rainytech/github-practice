@@ -101,6 +101,23 @@ r.check("RULE 4 permits it", "break-inside: avoid" not in " ".join(
 r.check("the last block leaves no gap on paper", ".page-block:last-child" in css)
 r.check("fraction lines have room above and below", "margin:          0.3em 0.15em;" in css)
 
+# ── a power left beside a fraction goes into its denominator ────────────
+F = '<span class="frac"><span class="num">{n}</span><span class="den">{d}</span>{t}</span>'
+out, notes = hs.repair_markup("<span>" + F.format(n="1", d="(1 + r)", t="\u207f") + "</span>")
+r.check("a power after the denominator is put inside it",
+        '<span class="den">(1 + r)<sup>n</sup></span></span>' in out)
+out, _ = hs.repair_markup("<span>66,550 \u00d7 " + F.format(n="1", d="1.10", t="") + "\u00b3</span>")
+r.check("a power after 1 over x goes under the line",
+        '<span class="den">1.10<sup>3</sup></span></span>' in out)
+r.check("and nothing is left beside the fraction", out.endswith("</span></span></span>"))
+two = "<span>" + F.format(n="2", d="3", t="") + "<sup>2</sup></span>"
+r.check("a power after any other fraction is left alone",
+        hs.repair_markup(two)[0].endswith("</span></span><sup>2</sup></span>"))
+r.check("the note reads well for two",
+        hs.repair_markup("<span>" + F.format(n="1", d="a", t="\u00b2") + " and "
+                         + F.format(n="1", d="b", t="\u00b3") + "</span>")[1][-1],
+        "2 powers moved into their denominator")
+
 # ── an error that says where it is ──────────────────────────────────────
 page = hs.wrap_document(['<div class="page-block"><table class="wn"><tr>'
                          '<td>Present Value Factor (1 \u00f7 x)</td></tr></table>'

@@ -189,6 +189,19 @@ Depending on the question, that may be:
   9. .rule-note              — the accounting rule, where it helps the student
  10. .final-ans              — the final answer
 
+=== WHEN THE TEACHER ASKS FOR A NORMAL (NON-SCIENTIFIC) CALCULATOR ===
+
+Show the method that gives the same display on EVERY basic calculator: build
+the factor by repeated multiplication, then make one division.
+  1.10 x 1.10 = 1.21;  then 1.21 x 1.10 = 1.331;
+  then the present value is 66,550 over 1.331 = 50,000, written as a stacked .frac.
+Do NOT teach the "press the division key twice, then the equals key" constant
+trick. Calculators differ: on some the first equals gives 1 and a fourth press
+is needed, so a student with a different make reads off the wrong factor.
+Name a key as a key — "the division key", "the equals key" — but the division
+itself is still a stacked .frac: never "divided by" in words, never a slash,
+never the bare division sign.
+
 === VERIFY BEFORE YOU ANSWER ===
 
 Work silently, then check every one of these before writing the final answer:
@@ -299,6 +312,12 @@ ROUNDING — these are NOT errors. Do not report them:
   - Any difference of Re. 1 or less that comes only from rounding a factor, a
     rate, or paise. The same for a difference of one paise in a total.
   - A figure rounded to the nearest rupee where the question shows paise.
+  - A value written as a calculator shows it. An 8-digit display reads
+    0.7513148 for 1 / 1.331; that is the display, not a truncation error.
+CALCULATOR KEY SEQUENCES differ between makes of calculator. Do not call a
+sequence wrong because it would not work on the calculator you imagine. Report
+it only if the figure it is said to produce is itself wrong.
+
 Report a difference only when a student would write down a different figure:
 the wrong factor, the wrong period, the wrong rate, a wrong treatment, or a
 genuine slip in the working.
