@@ -56,6 +56,9 @@ r.check("the page passes the house rules", (errors, warnings), ([], []))
 
 chat = app.html_to_chat_text('<span class="line">FV &times; PVF &divide; 1 &rarr; &there4; x</span>')
 r.check("the chat shows signs, not their HTML names", chat, "FV × PVF ÷ 1 → ∴ x")
+r.check("a bracketed fraction gets one pair of brackets in the chat",
+        app.html_to_chat_text('Factor (<span class="frac"><span class="num">1</span>'
+                              '<span class="den">1.331</span></span>)'), "Factor (1 over 1.331)")
 
 # A second question appends, keeping the first.
 app.entry.insert("1.0", "and the PVF method")

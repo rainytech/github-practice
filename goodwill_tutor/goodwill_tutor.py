@@ -335,6 +335,10 @@ TAG_RE = re.compile(r"</?[A-Za-z][^<>]*>|<!--.*?-->", re.DOTALL)
 def html_to_chat_text(html):
     """Flatten an HTML fragment into readable lines for the chat pane."""
     text = re.sub(r"<(style|script).*?</\1>", "", html, flags=re.DOTALL | re.IGNORECASE)
+    # A fraction the model already bracketed keeps its own brackets, so the
+    # chat reads "(1 over 1.331)", not "((1 over 1.331))".
+    text = re.sub(r'\(\s*<span class="frac"><span class="num">(.*?)</span>'
+                  r'<span class="den">(.*?)</span></span>\s*\)', r"(\1 over \2)", text)
     text = re.sub(r'<span class="frac"><span class="num">(.*?)</span>'
                   r'<span class="den">(.*?)</span></span>', r"(\1 over \2)", text)
     # Powers and subscripts lose their meaning when the tags are simply dropped:

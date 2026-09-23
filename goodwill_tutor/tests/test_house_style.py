@@ -262,8 +262,14 @@ r.check("a tag between the word and the number is no hiding place",
         '<span class="qno"><span class="num">6</span></span>' in
         hs.repair_markup('<div class="q"><span><b>Illustration</b> 6.</span></div>')[0])
 r.check("nor is a non-breaking space",
-        '<span class="num">6</span>' in
+        '<span class="qno">Illustration&nbsp;<span class="num">6</span>.</span>' in
         hs.repair_markup('<div class="q"><span>Illustration&nbsp;6.</span></div>')[0])
+r.check("a numeral wrapped alone by an older version gets its word back",
+        hs.repair_markup('<div class="q"><span>Illustration&nbsp;<span class="qno">'
+                         '<span class="num">6</span></span>.</span></div>')[0],
+        '<div class="q"><span><span class="qno">Illustration&nbsp;<span class="num">6</span>.'
+        '</span></span></div>')
+r.check("the words of the question number are bold", ".qno      { font-weight: bold; }" in hs.GOODWILL_CSS)
 r.check("the top bar title is not a question number",
         hs.repair_markup('<span class="title">Illustration 6</span>')[1], [])
 r.check("a number in the working is not a question number",

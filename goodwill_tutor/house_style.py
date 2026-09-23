@@ -150,6 +150,7 @@ table.wn tr,
 .adj     > span,
 .wn-text > span { display: block; }
 
+.qno      { font-weight: bold; }                     /* problem no. words: bold */
 .qno .num { font-size: 20pt; font-weight: bold; }   /* RULE 12 */
 
 .sub { margin-left: 40px; }
@@ -1031,7 +1032,8 @@ _QNO_SPAN = re.compile(r'(<(span|div|p|b|strong)\b[^>]*\bclass\s*=\s*["\'][^"\']
                        r'[^"\']*["\'][^>]*>)(.*?)(</\2>)', re.I | re.S)
 _PGREF_SPAN = re.compile(r'(<span class="pgref"[^>]*>)(.*?)(</span>)', re.I | re.S)
 _PG_MARK = re.compile(r"(\b(?:Pg|Page|P)\.?\s*)(\d+(?:\.\d+)*[A-Za-z]?)", re.I)
-_Q_WORD = r"(?:Illustration|Question|Problem|Exercise|Example|Q\.)\s*(?:No\.?\s*)?"
+_SPACE = r"(?:\s|&nbsp;|&#160;)*"
+_Q_WORD = rf"(?:Illustration|Question|Problem|Exercise|Example|Q\.){_SPACE}(?:No\.?{_SPACE})?"
 _Q_BOLD = re.compile(rf'(<div class="q"[^>]*>\s*(?:<span>\s*)?)<(b|strong)>\s*'
                      rf'({_Q_WORD})(\d+[A-Za-z]?)\s*([.:]?)\s*</\2>', re.I)
 # "Illustration 6." as the first words of any element: a div, a paragraph, a
@@ -1043,6 +1045,8 @@ _Q_PLAIN = re.compile(rf'(>\s*)({_Q_WORD})(\d+[A-Za-z]?)(?![\w.]\d)((?:\s*[.:])?
 _GAP = r"(?:\s|&nbsp;|&#160;|<[^<>]*>)*"
 _Q_LOOSE = re.compile(rf"\b(?:Illustration|Question|Problem|Exercise|Example)\b{_GAP}"
                       rf"(?:No\.{_GAP})?(\d+[A-Za-z]?)(?![\w]|\.\d)", re.I)
+_WORD_OUTSIDE = re.compile(rf'({_Q_WORD})<span class="qno">(<span class="num">[^<]*</span>)'
+                           rf'</span>([.:]?)', re.I)
 _OPEN_TAG = re.compile(r'<([A-Za-z][\w-]*)\b([^<>]*)>\s*$')
 _SOLUTION = re.compile(r'class\s*=\s*["\'][^"\']*\b(?:sol-label|wn-label|wn-sub|tbl-title|'
                        r'formula-box|part-heading|final-ans)\b', re.I)
@@ -1108,6 +1112,9 @@ def _number_sizes(html, counts):
                     + block[m.end(1):])
         return block
 
+    # An earlier version wrapped the numeral alone, leaving "Illustration"
+    # outside and not bold. Bring the word in beside its number.
+    html = _WORD_OUTSIDE.sub(r'<span class="qno">\1\2\3</span>', html)
     html = _QNO_SPAN.sub(qno_span, html)
     html = _PGREF_SPAN.sub(pgref_span, html)
     parts = re.split(r'(?=<div class="page-block")', html)
