@@ -10,6 +10,13 @@ import tempfile
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+# On Windows a captured pipe uses the old cp1252 encoding, which has no ⁿ, ∴ or
+# ³, and a test named after the formula it checks crashed while printing its
+# own name. Print UTF-8, and never let a character stop a report.
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8", errors="replace")
+
 
 def sandbox():
     """A throwaway home folder, so the real ~/.goodwill_tutor is never opened."""

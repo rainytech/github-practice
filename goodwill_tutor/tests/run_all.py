@@ -14,6 +14,10 @@ import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8", errors="replace")
+
 FILES = [
     ("test_house_style.py", "the document rules"),
     ("test_library.py", "chapters and documents"),
@@ -22,6 +26,7 @@ FILES = [
     ("test_restyle.py", "an older document"),
     ("test_window.py", "the window"),
     ("test_pdf.py", "the printed page"),
+    ("test_update.py", "the updater"),
 ]
 
 
@@ -36,8 +41,12 @@ def main():
             failed.append(name)
             continue
         print(f"  running  {what:<26}", end="", flush=True)
-        run = subprocess.run([sys.executable, path], cwd=HERE,
-                             capture_output=True, text=True)
+        # Each test writes UTF-8 and is read back as UTF-8, whatever the
+        # Windows code page is.
+        env = dict(os.environ, PYTHONIOENCODING="utf-8")
+        run = subprocess.run([sys.executable, path], cwd=HERE, env=env,
+                             capture_output=True, text=True,
+                             encoding="utf-8", errors="replace")
         passed = "ok" if run.returncode == 0 else "FAILED"
         print(passed)
         if run.returncode != 0:

@@ -250,6 +250,17 @@ The exception is a two-sided ledger account, where both halves must match:
 `<table class="wn full">` with a `<colgroup>` spans the page. Gemini is told
 which to use.
 
+## Updating
+
+```
+python update.py
+```
+
+Fetches every file the app and its tests need, checks each one before it
+replaces your copy, then runs the tests. A download that fails keeps the file
+you had, so an update can never leave the app half-installed. Your chapters
+and documents live elsewhere and are never touched.
+
 ## Checking that it still works
 
 ```
@@ -268,7 +279,8 @@ so it can be run as often as you like — after any change, before any class.
 | a weak model | reciting, looping and chatty verdicts all handled |
 | an older document | old stylesheet spotted, swapped, questions kept |
 | the window | every control reachable, cards honest, no white |
-| the printed page | A4, selectable text, `#C8C8C8` throughout |
+| the printed page | A4, selectable text, `#C8C8C8` throughout, answer never stranded |
+| the updater | every file listed; a bad download never replaces a good one |
 
 The last group runs Chromium and takes a few seconds; it says SKIP instead of
 failing if Playwright is not installed. `pip install pypdfium2` adds the page
