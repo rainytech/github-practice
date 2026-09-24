@@ -2670,6 +2670,9 @@ chat.tag_config("card_ok", background=SIDEBAR, foreground=GREEN, font=("Arial", 
 chat.tag_config("card_bad", background=SIDEBAR, foreground=RED, font=("Arial", 10, "bold"))
 chat.tag_config("card_sub", background=SIDEBAR, foreground=MUTED, font=("Arial", 9),
                 lmargin1=10)
+# The message shading is drawn over the selection unless the selection is
+# raised above it: the text turned white on a pale bubble and looked unselected.
+chat.tag_raise("sel")
 chat.tag_bind("card_link", "<Button-1>", lambda _e: show_tab("preview"))
 chat.tag_bind("card_link", "<Enter>", lambda _e: chat.config(cursor="hand2"))
 chat.tag_bind("card_link", "<Leave>", lambda _e: chat.config(cursor=""))

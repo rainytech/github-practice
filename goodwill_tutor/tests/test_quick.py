@@ -126,6 +126,8 @@ app.refresh_intent()
 at = app.chat.search("make the pdf", "1.0", "end")
 app.chat.tag_add("sel", at, f"{at}+12c")
 app.copy_chat()
+r.check("the selection is drawn above the message shading",
+        app.chat.tag_names()[-1] == "sel" or app.chat.tag_names().index("sel") > app.chat.tag_names().index("note_msg"))
 r.check("Ctrl+C copies the selection", app.root.clipboard_get(), "make the pdf")
 app.chat_to_message()
 r.check("'Put in my message' fills the typing box", app.entry.get("1.0", "end").strip(), "make the pdf")
