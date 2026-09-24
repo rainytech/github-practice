@@ -184,7 +184,7 @@ Click the line to switch Add and Edit for that one message.
 
 "Remove Illustration 7", "remove the last question", "remove the book name
 and page from the top bar", "change the book name to P.K. Lazar, Pg. 43" and
-"set the page to 43" and "number it Illustration 6" are done by the app itself — free, instant, and they
+"set the page to 43", "number it Illustration 6" and "rename it illus 8" are done by the app itself — free, instant, and they
 cannot touch anything else. Sent to Gemini, the top-bar one cost 23 paise.
 
 An edit is verified again only when it changes a figure. Rewording a sentence

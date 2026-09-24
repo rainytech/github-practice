@@ -1490,13 +1490,19 @@ def retry_last():
 
 
 def number_question(text, number):
-    """Give the unnumbered question its number, without asking the model."""
+    """Number or renumber a question, without asking the model.
+
+    An unnumbered question is numbered first; otherwise, the last question.
+    """
     global last_full_html, doc_blocks, last_turn
-    spans = [(a, b) for a, b in hs.block_spans(last_full_html)
-             if not hs.question_label(last_full_html[a:b])]
+    spans = hs.block_spans(last_full_html)
+    bare = [s for s in spans if not hs.question_label(last_full_html[s[0]:s[1]])]
     if not spans:
         return submit(text, [], "edit", local=False)
-    a, b = spans[-1]                     # the latest question without one
+    a, b = (bare or spans)[-1]
+    if number[0] is None:                # keep the word the question already uses
+        current = hs.question_label(last_full_html[a:b])
+        number = (current.split(" ")[0] if current else "Illustration", number[1])
     before = last_full_html
     block = hs.set_qno(last_full_html[a:b], *number)
     if block == last_full_html[a:b]:

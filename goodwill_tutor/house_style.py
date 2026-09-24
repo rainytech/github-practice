@@ -1389,17 +1389,23 @@ def teacher_pgref(block, instruction):
 _Q_OPEN = re.compile(r'<div\b[^>]*class\s*=\s*"q"[^>]*>', re.I)
 
 
-def set_qno(block, word, number):
-    """Put "Illustration 6." at the head of a question that has no number.
+_QNO_OPEN = re.compile(r'<span\b[^>]*class\s*=\s*"qno"[^>]*>', re.I)
 
-    Returns the block unchanged if it already has one or has no question.
+
+def set_qno(block, word, number):
+    """Put "Illustration 6." at the head of the question, or replace its number.
+
+    Returns the block unchanged if it has no question.
     """
-    if question_label(block) or 'class="qno"' in block:
-        return block
+    qno = f'<span class="qno">{html_lib.escape(word)} <span class="num">{html_lib.escape(number)}</span>.</span>'
+    old = _QNO_OPEN.search(block or "")
+    if old:
+        end = _span_close(block, old.start())
+        if end > 0:
+            return block[:old.start()] + qno + block[end:]
     q = _Q_OPEN.search(block or "")
     if not q:
         return block
-    qno = f'<span class="qno">{html_lib.escape(word)} <span class="num">{html_lib.escape(number)}</span>.</span>'
     return block[:q.end()] + qno + block[q.end():]
 
 

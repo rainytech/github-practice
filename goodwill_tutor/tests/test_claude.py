@@ -193,6 +193,10 @@ r.check("the missing number is pointed out", "left out the question number" in c
 ask("number it Illustration 8")
 r.check("the number is put in", 'Illustration <span class="num">8</span>.' in app.last_full_html)
 r.check("only one call — the solve, not the numbering", state["calls"], calls + 1)
+ask("rename it illus 9")
+r.check("renumbered to Illustration 9", 'Illustration <span class="num">9</span>.' in app.last_full_html)
+r.check("the old number is gone", 'Illustration <span class="num">8</span>.' in app.last_full_html, False)
+r.check("still no call", state["calls"], calls + 1)
 
 # ── 10. reopening the document shows cards, not the whole answers ───────
 app.open_document(app.current_chapter, app.current_doc)

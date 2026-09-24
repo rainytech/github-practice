@@ -533,15 +533,24 @@ def top_bar_request(text):
 
 
 _NUMBER_IT = _re.compile(
-    r"^\s*(?:please\s+)?(?:number\s+it|add\s+(?:the\s+)?(?:question\s+)?number|"
-    r"put\s+(?:the\s+)?(?:question\s+)?number|it\s+is|call\s+it)\s*(?:as|:)?\s*"
-    r"(illustration|question|problem|exercise|example)\s*(?:no\.?\s*)?(\d+[a-z]?)\s*\.?\s*$", _re.I)
+    r"^\s*(?:please\s+)?(?:(?:re)?number\s+it|rename\s+it|renumber\s+it|call\s+it|it\s+is|make\s+it|"
+    r"(?:add|put|change|set)\s+(?:the\s+)?(?:question\s+)?number(?:\s+to)?)\s*(?:as|to|:)?\s*"
+    r"(illustrations?|illus\.?|ill\.?|questions?|q\.?|problems?|exercises?|examples?|ex\.?)?"
+    r"\s*(?:no\.?\s*)?(\d+[a-z]?)\s*\.?\s*$", _re.I)
+_WORD_OF = {"illus": "Illustration", "ill": "Illustration", "q": "Question", "ex": "Exercise"}
 
 
 def number_request(text):
-    """("Illustration", "6") for "number it Illustration 6", else None."""
+    """("Illustration", "8") for "number it Illustration 8" / "rename it illus 8"."""
     found = _NUMBER_IT.match(text or "")
-    return (found.group(1).title(), found.group(2)) if found else None
+    if not found:
+        return None
+    if not found.group(1):
+        return (None, found.group(2))    # "change the number to 7": keep the word
+    word = found.group(1).rstrip(".").lower()
+    if word not in _WORD_OF:
+        word = word.rstrip("s")
+    return (_WORD_OF.get(word, word.title()), found.group(2))
 
 
 def removal_target(text):
