@@ -187,6 +187,11 @@ and page from the top bar", "change the book name to P.K. Lazar, Pg. 43" and
 "set the page to 43", "number it Illustration 6", "rename it illus 8" and "change the date to 25th sept" are done by the app itself — free, instant, and they
 cannot touch anything else. Sent to Gemini, the top-bar one cost 23 paise.
 
+A colour, font, border or background request ("change the background of the
+table to c8c8c8") is answered by the app, not sent: the look comes from
+`house_style.py`, and Gemini may not write CSS. Asked to, a small model argues
+with that rule until it is stopped.
+
 An edit is verified again only when it changes a figure. Rewording a sentence
 or fixing a title costs the edit alone, not the edit and a second check.
 

@@ -211,6 +211,18 @@ r.check("'25/9/2026' is 25 September", d("set the date to 25/9/2026", today), da
 r.check("'tomorrow' is read", d("change the date to tomorrow", today), datetime.date(2026, 9, 25))
 r.check("'sept 25 2027' is read", d("change the date to sept 25, 2027", today), datetime.date(2027, 9, 25))
 
+# ── 9g. a colour or font request is answered here, not sent ────────────
+calls = state["calls"]
+kept = app.last_full_html
+r.check("a colour request reads as Will edit",
+        app.prompts.read_request("change the background of the table to c8c8c8 color", True), "edit")
+ask("change the background of the table to c8c8c8 color")
+r.check("nothing sent for a colour", state["calls"], calls)
+r.check("the page is untouched", app.last_full_html, kept)
+r.check("the chat explains the house style", "set by the house style" in chat_text())
+r.check("a wording fix still goes to Gemini",
+        app.prompts.style_request("fix the amount in the answer to Rs. 60,000"), False)
+
 # ── 10. reopening the document shows cards, not the whole answers ───────
 app.open_document(app.current_chapter, app.current_doc)
 text = chat_text()

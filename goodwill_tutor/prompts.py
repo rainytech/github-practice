@@ -464,7 +464,7 @@ def read_request(text, has_document, has_files=False):
     if not has_document:
         return "add"
     if (top_bar_request(text) or number_request(text) or removal_target(text)
-            or _DATE_ASK.match(text)):
+            or _DATE_ASK.match(text) or (_EDIT.search(text) and style_request(text))):
         return "edit"                     # done by the app itself, free
     if _ADD.search(text):
         return "add"
@@ -602,6 +602,23 @@ def date_request(text, today):
         return datetime.date(year, month, day)
     except ValueError:
         return None
+
+
+_STYLE_ASK = _re.compile(
+    r"\b(?:colou?rs?|background|bg|font|fonts|font.?size|bold|italic|underline|border|"
+    r"css|style|shade|grey|gray|white|black|red|blue|green|purple|pink|"
+    r"#?[0-9a-f]{6}\b|#[0-9a-f]{3}\b|\d+\s*pt\b)", _re.I)
+_CONTENT_WORDS = _re.compile(r"\b(?:figure|amount|rs\.?|₹|total|answer\s+is|wording|sentence)\b", _re.I)
+
+
+def style_request(text):
+    """True for "change the background of the table to c8c8c8" — a look, not content.
+
+    Colours, fonts and borders come from house_style.py, and Gemini is told it
+    may not write CSS; asked to, a small model argues with that rule until the
+    app stops it. The app answers these itself instead.
+    """
+    return bool(_STYLE_ASK.search(text or "")) and not _CONTENT_WORDS.search(text or "")
 
 
 def removal_target(text):

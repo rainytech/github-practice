@@ -1274,6 +1274,8 @@ def submit(text, files, intent, local=True):
             return number_question(text, number)
         if prompts._DATE_ASK.match(text):
             return change_date(text)
+        if prompts.style_request(text):
+            return explain_style(text)
 
     model = selected_model()
     if not model:
@@ -1391,7 +1393,7 @@ def submit(text, files, intent, local=True):
 
             elapsed = (datetime.now() - started).total_seconds()
             if looped[0]:
-                post(lambda n=len(answer.split()): loop_stopped(n))
+                post(lambda n=len(answer.split()): loop_stopped(n, intent))
                 return
             post(lambda: finish(answer, in_tok, out_tok, cached_tok,
                                 elapsed, model, verdict, v_cost, intent))
@@ -1505,6 +1507,19 @@ def _local_turn(text):
     last_turn = {"text": text, "files": [], "intent": "edit",
                  "history": len(conversation_history), "html": last_full_html,
                  "blocks": list(doc_blocks), "version": version_at}
+
+
+def explain_style(text):
+    """Colours and fonts belong to the house style; say so instead of asking Gemini."""
+    _local_turn(text)
+    put_card("Nothing changed", verdict_note="colours and fonts come from the house style")
+    say("Colours, fonts, borders and backgrounds are set by the house style "
+        "(house_style.py), not by Gemini — so every page looks the same and the "
+        "look cannot drift. Table cells are already #C8C8C8, the page colour; a "
+        "table's header row is #BDBDBD.\n\nTo change the look of every page, ask "
+        "Claude to change the house style. Nothing was sent to Gemini.", "note")
+    set_status("Style question answered — nothing sent.", TEXT)
+    return True
 
 
 def change_date(text):
@@ -1923,13 +1938,13 @@ def name_document_from(block):
     auto_titles[current_doc] = title
 
 
-def loop_stopped(words):
+def loop_stopped(words, intent="add"):
     """The model went round in circles and was cut off."""
     global busy
     busy = False
     send_btn.config(state=tk.NORMAL)
     stop_btn.config(state=tk.DISABLED, bg=BORDER)
-    put_card("Nothing added")
+    put_card("Nothing changed" if intent == "edit" else "Nothing added")
     say(f"The model kept repeating itself — {words} words and no document — so "
         "it was stopped. Nothing was added. Press Retry, or choose "
         "a model that follows instructions; Gemini 3.1 Flash-Lite is about 10 "
