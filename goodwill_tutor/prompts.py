@@ -8,6 +8,8 @@ Edit the text in this file to change how Gemini solves or writes.
 Nothing here depends on the API or the GUI.
 """
 
+import re as _re
+
 # ═══════════════════════════════════════════════════════════════
 #  SHARED — the house markup contract
 # ═══════════════════════════════════════════════════════════════
@@ -382,3 +384,107 @@ MODES = {
 }
 
 DEFAULT_MODE = "solve"
+
+
+# ═══════════════════════════════════════════════════════════════
+#  EDIT — change the page in place instead of adding to it
+# ═══════════════════════════════════════════════════════════════
+
+EDIT_CONTRACT = """
+
+=== THIS TIME: EDIT THE PAGE IN PLACE ===
+
+The teacher is not adding a question. He wants a change made to the document
+that already exists. It follows his instruction, each page-block numbered with
+a comment such as <!-- block 2 -->.
+
+Send back ONLY the page-blocks you changed, each after its own number:
+  <!-- block 2 -->
+  <div class="page-block"> ...the whole block, with the change made... </div>
+To delete a whole block, send only:
+  <!-- remove block 3 -->
+
+Change nothing he did not ask for. Every figure, sentence and class he did not
+mention stays exactly as it is. A block you did not change is not sent.
+"str_replace", "edit the artifact" and "update the canvas" all mean this."""
+
+EDIT_REQUEST = """{instruction}
+
+THE DOCUMENT AS IT STANDS:
+
+{body}"""
+
+
+# ═══════════════════════════════════════════════════════════════
+#  READING THE TEACHER'S REQUEST — add, edit, or show
+# ═══════════════════════════════════════════════════════════════
+# The teacher learned his phrasing on Claude.ai: "append to the same artifact",
+# "use str_replace", "display the full merged HTML". Those words decide what
+# the app does with the answer, so they are read here, not left to the model.
+
+_THING = r"(?:questions?|illustrations?|problems?|exercises?|examples?|sums?)"
+_ADD = _re.compile(
+    rf"\b(?:add|append|include|solve|do)\b\s+(?:(?:a|an|one|1|two|2|this|that|the|"
+    rf"another|new|next|more|following|same|attached)\s+){{0,3}}{_THING}\b"
+    rf"|\b(?:one more|another|next|new|second|third)\s+{_THING}"
+    r"|\bappend\b|\bsame artifact\b|\bsame canvas\b|\bsame document\b", _re.I)
+_EDIT = _re.compile(
+    r"\b(?:change|fix|correct|remove|delete|replace|rename|update|modify|edit|"
+    r"rewrite|reformat|move|swap|shorten|split|merge|drop|undo|str_replace|"
+    r"instead|wrong|mistake|in place)\b|\bmake (?:it|the|this|that|all)\b", _re.I)
+_ADD_WORD = _re.compile(r"\b(?:add|put|insert|include|show)\b", _re.I)
+_TARGET = _re.compile(
+    r"\b(?:to|in|of|on|under|below|above|into)\s+(?:the\s+)?(?:illustration|"
+    r"question|problem|wn|working notes?|table|answer|solution|top.?bar|header|"
+    r"page|block|formula|journal|account)\b", _re.I)
+_SHOW = _re.compile(
+    r"\b(?:display|show|give|output|print|send)\b.{0,25}\b(?:full|merged|complete|"
+    r"whole|entire|final)\b.{0,25}\b(?:html|artifact|document|file|code|canvas)\b", _re.I)
+
+
+def read_request(text, has_document, has_files=False):
+    """"add", "edit" or "show" — what this message wants done with the document.
+
+    add   a new question goes at the end of the document
+    edit  the page as it stands is changed in place
+    show  only the full HTML is wanted; nothing is sent to the model
+    """
+    text = text or ""
+    if not has_document:
+        return "add"
+    if _ADD.search(text):
+        return "add"
+    if _EDIT.search(text):
+        return "edit"
+    if _ADD_WORD.search(text) and _TARGET.search(text):
+        return "edit"                     # "add a hint to Illustration 6"
+    if _SHOW.search(text) and not has_files:
+        return "show"
+    return "add"
+
+
+def wants_code(text):
+    """True when the teacher asked to see the whole HTML, as he did on Claude.ai."""
+    return bool(_SHOW.search(text or ""))
+
+
+_REMOVE_LAST = _re.compile(
+    r"^\s*(?:please\s+)?(?:remove|delete|drop)\s+(?:the\s+)?(?:last|final)\s+"
+    rf"(?:{_THING}|block|page)\s*\.?\s*$", _re.I)
+_REMOVE_ONE = _re.compile(
+    r"^\s*(?:please\s+)?(?:remove|delete|drop)\s+(?:the\s+)?(illustration|question|"
+    r"problem|exercise|example)\s*(?:no\.?\s*)?(\d+[a-z]?)\s*\.?\s*$", _re.I)
+
+
+def removal_target(text):
+    """"last", ("Illustration", "7"), or None — a removal the app can do itself.
+
+    Taking a question out needs no model: it costs nothing and cannot go wrong.
+    Only a bare instruction qualifies; anything more goes to the model.
+    """
+    if _REMOVE_LAST.match(text or ""):
+        return "last"
+    found = _REMOVE_ONE.match(text or "")
+    if found:
+        return (found.group(1).title(), found.group(2))
+    return None

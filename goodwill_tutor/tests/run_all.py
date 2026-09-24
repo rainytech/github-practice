@@ -25,6 +25,7 @@ FILES = [
     ("test_bad_model.py", "a weak model"),
     ("test_restyle.py", "an older document"),
     ("test_window.py", "the window"),
+    ("test_claude.py", "like Claude.ai"),
     ("test_pdf.py", "the printed page"),
     ("test_update.py", "the updater"),
 ]

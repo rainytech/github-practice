@@ -48,6 +48,7 @@ FILES = [
     "tests/test_bad_model.py",
     "tests/test_restyle.py",
     "tests/test_window.py",
+    "tests/test_claude.py",
     "tests/test_pdf.py",
     "tests/test_update.py",
 ]

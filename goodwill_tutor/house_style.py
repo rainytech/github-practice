@@ -1303,6 +1303,100 @@ def drop_repeats(existing_html, body):
     return body, labels
 
 
+def block_spans(html):
+    """(start, end) of each top-level .page-block, in document order."""
+    spans, after = [], 0
+    for m in _BLOCK_START.finditer(html or ""):
+        if m.start() < after:
+            continue                              # a block inside a block
+        end = _div_end(html, m.start())
+        if end < 0:
+            continue
+        spans.append((m.start(), end))
+        after = end
+    return spans
+
+
+def blocks_of(html):
+    """The .page-block fragments of a document, in order."""
+    return [html[a:b] for a, b in block_spans(html)]
+
+
+def question_label(fragment):
+    """"Illustration 7" — what the chat calls a block. "" when it has no number."""
+    found = _LABEL.search(fragment or "")
+    return f"{found.group(1).title()} {found.group(2)}" if found else ""
+
+
+def numbered_body(html):
+    """The document's blocks, each after a <!-- block N --> comment.
+
+    This is what the model is shown when asked to change the page in place, so
+    it can say which block it changed without sending the rest back.
+    """
+    return "\n\n".join(f"<!-- block {i} -->\n{b}" for i, b in enumerate(blocks_of(html), 1))
+
+
+_EDIT_MARK = re.compile(r"<!--\s*(remove\s+)?block\s+(\d+)\s*-->", re.I)
+
+
+class EditError(ValueError):
+    """An edit answer that cannot be applied; the message is fit for the chat."""
+
+
+def apply_edits(html, answer):
+    """Apply a changed-blocks answer to the document, in place.
+
+    The answer holds "<!-- block N -->" followed by the whole new block N, or
+    "<!-- remove block N -->". Blocks it does not mention are left exactly as
+    they are, hand edits included.
+
+    Returns (html, changed numbers, removed numbers). Raises EditError.
+    """
+    spans = block_spans(html)
+    if not spans:
+        raise EditError("There is no page to edit yet.")
+    marks = list(_EDIT_MARK.finditer(answer or ""))
+    changes, removed = {}, set()
+    if marks:
+        for i, mark in enumerate(marks):
+            n = int(mark.group(2))
+            if not 1 <= n <= len(spans):
+                raise EditError(f"Gemini named block {n}, but the page has "
+                                f"{len(spans)}. Nothing was changed.")
+            if mark.group(1):
+                removed.add(n)
+                continue
+            stop = marks[i + 1].start() if i + 1 < len(marks) else len(answer)
+            segment = answer[mark.end():stop]
+            found = block_spans(segment)
+            new = segment[found[0][0]:found[0][1]] if found else segment.strip()
+            if not looks_like_document(new):
+                raise EditError(f"Gemini's new block {n} is not a page. Nothing was changed.")
+            if not found:
+                new = f'<div class="page-block">\n{new}\n</div>'
+            changes[n] = new
+    else:
+        found = block_spans(answer or "")
+        if not found or len(found) != len(spans):
+            raise EditError("Gemini did not say which question it changed, so nothing "
+                            "was edited. Press Retry, or name the question.")
+        for n, (a, b) in enumerate(found, 1):
+            if answer[a:b].strip() != html[spans[n - 1][0]:spans[n - 1][1]].strip():
+                changes[n] = answer[a:b]
+    if len(removed) == len(spans) and not changes:
+        raise EditError("That would remove every question. Nothing was changed.")
+    for n in sorted(set(changes) | removed, reverse=True):
+        a, b = spans[n - 1]
+        if n in removed:
+            while b < len(html) and html[b] in " \t\r\n":
+                b += 1
+            html = html[:a] + html[b:]
+        else:
+            html = html[:a] + changes[n].strip() + html[b:]
+    return html, sorted(set(changes) - removed), sorted(removed)
+
+
 def drop_echoes(html):
     """Take out an earlier question that came back in one block with a new one.
 

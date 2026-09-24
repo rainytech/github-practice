@@ -16,6 +16,7 @@ or found again.
             document.html
             document.pdf            once generated
             conversation.json
+            versions/               v1.html, v2.html ... and versions.json
 
 Pure storage: no Tkinter, no network.
 """
@@ -36,6 +37,8 @@ DOC_META = "document.json"
 DOC_HTML = "document.html"
 DOC_PDF = "document.pdf"
 DOC_CHAT = "conversation.json"
+VERSIONS_DIR = "versions"
+VERSIONS_INDEX = "versions.json"
 
 MIGRATION_CHAPTER = "Before chapters"
 
@@ -347,6 +350,41 @@ class Library:
 
     def html_path(self, chapter_id, doc_id):
         return os.path.join(self.document_path(chapter_id, doc_id), DOC_HTML)
+
+    # ── versions ─────────────────────────────────────────────────────
+    # Every answer keeps the page as it stood after it, so an answer that
+    # spoils the page is one click from undone. Nothing is ever overwritten.
+
+    def _versions_dir(self, chapter_id, doc_id):
+        return os.path.join(self.document_path(chapter_id, doc_id), VERSIONS_DIR)
+
+    def list_versions(self, chapter_id, doc_id):
+        """[{"n", "label", "when"}], oldest first."""
+        index = os.path.join(self._versions_dir(chapter_id, doc_id), VERSIONS_INDEX)
+        return list(_read_json(index, []) or [])
+
+    def save_version(self, chapter_id, doc_id, html, label=""):
+        """Keep this page as the next version. Returns its number."""
+        folder = self._versions_dir(chapter_id, doc_id)
+        versions = self.list_versions(chapter_id, doc_id)
+        n = (versions[-1]["n"] if versions else 0) + 1
+        try:
+            os.makedirs(folder, exist_ok=True)
+            with open(os.path.join(folder, f"v{n}.html"), "w", encoding="utf-8") as fh:
+                fh.write(html or "")
+        except OSError as exc:
+            raise LibraryError(f"Could not keep this version: {exc}")
+        versions.append({"n": n, "label": (label or "").strip(), "when": _now()})
+        _write_json(os.path.join(folder, VERSIONS_INDEX), versions)
+        return n
+
+    def read_version(self, chapter_id, doc_id, n):
+        path = os.path.join(self._versions_dir(chapter_id, doc_id), f"v{int(n)}.html")
+        try:
+            with open(path, "r", encoding="utf-8") as fh:
+                return fh.read()
+        except OSError as exc:
+            raise LibraryError(f"Version {n} could not be read: {exc}")
 
     # ── migration ────────────────────────────────────────────────────
 

@@ -198,8 +198,12 @@ current_doc = None        # the open document's id
 # the teacher renames it; after that his name stands.
 auto_titles = {}
 model_ids = []            # [(id, display)] fetched from the API
-preview_window = None     # the open preview Toplevel, if any
 preview_image = None      # live PhotoImage; Tk discards it without a reference
+version_at = None         # the version number the right side is showing
+intent_override = None    # "add" / "edit" when the teacher clicked the label
+last_turn = None          # what the last Send was, so Retry can repeat it
+retry_btn = None          # the Retry button under the last answer
+LIVE_PREVIEW = True       # render the Preview tab through Chromium
 
 stop_event = threading.Event()
 ui_queue = queue.Queue()
@@ -435,7 +439,7 @@ def save_current(html=None, blocks=None, conversation=None, title=None, model=No
 def open_document(chapter_id, doc_id):
     """Load a stored document into the editor and the chat."""
     global current_chapter, current_doc, conversation_history, doc_blocks
-    global last_full_html, verify_report
+    global last_full_html, verify_report, version_at
     try:
         data = LIB.read_document(chapter_id, doc_id)
     except library.LibraryError as exc:
@@ -459,13 +463,20 @@ def open_document(chapter_id, doc_id):
         else:
             chat.insert(tk.END, "  Gemini  ", "ai_label")
             chat.insert(tk.END, "\n", "spacer")
-            chat.insert(tk.END, f"  {html_to_chat_text(body)}\n\n", "ai_msg")
+            if hs.looks_like_document(body) and 'class="' in body:
+                # A document answer is a card, as it was when it arrived.
+                chat.insert(tk.END, f"  \U0001F4C4  {card_title(body)}  \n\n", "card")
+            else:
+                chat.insert(tk.END, f"  {html_to_chat_text(body)}\n\n", "ai_msg")
     chat.config(state=tk.DISABLED)
     chat.see(tk.END)
 
+    versions = LIB.list_versions(chapter_id, doc_id)
+    version_at = versions[-1]["n"] if versions else None
     refresh_artifact()
     refresh_title()
     refresh_file_cards()
+    refresh_intent()
     # A document opened from an older version is repaired on the spot: the
     # stylesheet belongs to the app, not to the document.
     if hs.needs_restyle(last_full_html):
@@ -537,13 +548,17 @@ def new_document():
 def reset_workspace():
     """Clear the chat, the blocks and the editor, keeping the open document."""
     global conversation_history, doc_blocks, last_full_html, verify_report
+    global version_at, last_turn
     conversation_history = []
     doc_blocks = []
     last_full_html = ""
     verify_report = ""
+    version_at = None
+    last_turn = None
     clear_chat()
     refresh_artifact()
     refresh_file_cards()
+    refresh_intent()
 
 
 def rename_selected():
@@ -699,6 +714,7 @@ def clear_attachments():
 
 
 def refresh_attachments():
+    refresh_intent()
     if not attachments:
         attach_label.config(text="No pages attached", fg=MUTED)
         return
@@ -712,20 +728,193 @@ def refresh_attachments():
 # ═══════════════════════════════════════════════════════════════
 
 def refresh_artifact():
-    """Load the current document into the HTML editor."""
+    """Show the current document: the page in Preview, the HTML in Code."""
     editor.delete("1.0", tk.END)
     editor.insert(tk.END, last_full_html or "")
+    refresh_preview()
+    refresh_versions()
+
+
+# ── Preview | Code ──────────────────────────────────────────────────
+
+def show_tab(which):
+    """Switch the right side between the finished page and its HTML."""
+    global current_tab
+    current_tab = which
+    for name, frame in (("preview", preview_frame), ("code", code_frame)):
+        if name == which:
+            frame.pack(fill=tk.BOTH, expand=True)
+        else:
+            frame.pack_forget()
+    for name, button in (("preview", preview_tab), ("code", code_tab)):
+        on = name == which
+        button.config(fg=ACCENT if on else MUTED,
+                      font=("Arial", 10, "bold" if on else "normal"))
+    if which == "preview":
+        refresh_preview()
+
+
+# The page is drawn by the Chromium that makes the PDF, so the preview cannot
+# disagree with what prints. A render takes a second or two, so it runs on a
+# thread, one at a time, and a change made meanwhile renders once more after.
+preview_running = False
+preview_again = False
+preview_shown_for = None      # (html, width) of the picture on screen
+current_tab = "preview"
+
+
+def preview_message(text, colour=MUTED):
+    preview_canvas.delete("all")
+    preview_canvas.create_text(24, 28, anchor="nw", text=text, fill=colour,
+                               font=("Georgia", 11),
+                               width=max(200, preview_canvas.winfo_width() - 48))
+    preview_canvas.configure(scrollregion=(0, 0, 0, 0))
+
+
+def refresh_preview():
+    """Redraw the Preview tab if the page or the panel width has changed."""
+    global preview_running, preview_again
+    if current_tab != "preview":
+        return
+    html = last_full_html or ""
+    if not html.strip():
+        preview_message("The finished page appears here.\n\n"
+                        "Attach or paste a question, then press Send.")
+        return
+    if not LIVE_PREVIEW:
+        return
+    if not pdf_export.playwright_available():
+        preview_message("The preview needs Playwright:  pip install playwright  "
+                        "then  playwright install chromium\n\n"
+                        "The HTML is in the Code tab.")
+        return
+    width = max(300, preview_canvas.winfo_width())
+    if preview_shown_for == (html, width):
+        return
+    if preview_running:
+        preview_again = True
+        return
+    preview_running = True
+    scale = max(0.4, min(1.0, (width - 24) / PREVIEW_WIDTH))
+
+    def work():
+        try:
+            tmp_html = os.path.join(PREVIEW_DIR, "preview.html")
+            with open(tmp_html, "w", encoding="utf-8") as fh:
+                fh.write(html)
+            png = pdf_export.html_to_png(tmp_html, os.path.join(PREVIEW_DIR, "preview.png"),
+                                         width=PREVIEW_WIDTH, scale=scale)
+            post(lambda: preview_done(png, (html, width)))
+        except Exception as exc:
+            post(lambda e=str(exc): preview_failed(e))
+
+    threading.Thread(target=work, daemon=True).start()
+
+
+def preview_done(png, shown_for):
+    global preview_running, preview_again, preview_image, preview_shown_for
+    preview_running = False
+    try:
+        preview_image = tk.PhotoImage(file=png)
+    except Exception as exc:
+        preview_failed(str(exc))
+        return
+    top = preview_canvas.yview()[0] if preview_shown_for else 0.0
+    preview_canvas.delete("all")
+    preview_canvas.create_image(0, 0, anchor="nw", image=preview_image)
+    preview_canvas.configure(scrollregion=(0, 0, preview_image.width(),
+                                           preview_image.height()))
+    preview_canvas.yview_moveto(top)
+    preview_shown_for = shown_for
+    if preview_again:
+        preview_again = False
+        refresh_preview()
+
+
+def preview_failed(message):
+    global preview_running, preview_again
+    preview_running = False
+    preview_again = False
+    preview_message(f"The preview could not be drawn.\n\n{message.strip()[:400]}", RED)
+
+
+# ── versions ────────────────────────────────────────────────────────
+# Every answer keeps the page as it stood after it: ◀ v3 of 5 ▶ goes back.
+
+def record_version(label, before=None):
+    """Keep the page as it now stands. before: the page as it was, when this
+    document has no versions yet, so the first one is not lost."""
+    global version_at
+    if current_chapter is None or current_doc is None or not last_full_html.strip():
+        return
+    try:
+        if not LIB.list_versions(current_chapter, current_doc) and (before or "").strip():
+            LIB.save_version(current_chapter, current_doc, before, "Before versions")
+        version_at = LIB.save_version(current_chapter, current_doc, last_full_html, label)
+    except library.LibraryError as exc:
+        set_status(str(exc), RED)
+    refresh_versions()
+
+
+def refresh_versions():
+    """◀ v3 of 5 ▶ — hidden until there is more than one version."""
+    versions = (LIB.list_versions(current_chapter, current_doc)
+                if current_chapter and current_doc else [])
+    numbers = [v["n"] for v in versions]
+    if len(numbers) < 2:
+        version_row.pack_forget()
+        return
+    at = numbers.index(version_at) if version_at in numbers else len(numbers) - 1
+    version_label.config(text=f"v{at + 1} of {len(numbers)}")
+    label = versions[at].get("label", "")
+    version_note.config(text=label[:28])
+    version_prev.config(state=tk.NORMAL if at > 0 else tk.DISABLED)
+    version_next.config(state=tk.NORMAL if at < len(numbers) - 1 else tk.DISABLED)
+    if not version_row.winfo_ismapped():
+        # Packed before the title, so a long title is cut instead of the arrows.
+        version_row.pack(side=tk.RIGHT, padx=(0, 10), before=artifact_title)
+
+
+def step_version(step):
+    """Show the version before (-1) or after (+1) the one on screen."""
+    global version_at, last_full_html, doc_blocks
+    if busy or current_chapter is None or current_doc is None:
+        return
+    numbers = [v["n"] for v in LIB.list_versions(current_chapter, current_doc)]
+    if not numbers:
+        return
+    at = numbers.index(version_at) if version_at in numbers else len(numbers) - 1
+    at = max(0, min(len(numbers) - 1, at + step))
+    try:
+        html = LIB.read_version(current_chapter, current_doc, numbers[at])
+    except library.LibraryError as exc:
+        set_status(str(exc), RED)
+        return
+    # The version shown IS the document: the next answer builds on it, and the
+    # later versions stay where they are, one click away.
+    version_at = numbers[at]
+    last_full_html = html
+    doc_blocks = hs.blocks_of(html)
+    refresh_artifact()
+    save_current(html=last_full_html, blocks=doc_blocks)
+    set_status(f"Showing version {at + 1} of {len(numbers)}.", TEXT)
+    auto_pdf(keep_status=True)
 
 
 def apply_edited_html():
     """Take what is in the editor as the document and re-check it."""
-    global last_full_html
+    global last_full_html, doc_blocks
     edited = editor.get("1.0", tk.END).rstrip()
     if not edited.strip():
         set_status("The editor is empty — nothing to apply.", RED)
         return
+    before = last_full_html
     last_full_html = edited
+    doc_blocks = hs.blocks_of(edited)
     save_html(silent=True)
+    if edited != before:
+        record_version("Your edit", before)
+    refresh_preview()
     errors, warnings = run_validator()
     if not errors and not warnings:
         set_status("Applied. House style clean.", GREEN)
@@ -816,7 +1005,7 @@ def generate_pdf():
         return
     target = LIB.pdf_path(current_chapter, current_doc)
     set_status("Rendering PDF with Chromium...", ACCENT)
-    output_btn.config(state=tk.DISABLED)
+    pdf_make_btn.config(state=tk.DISABLED)
 
     def work():
         try:
@@ -831,7 +1020,7 @@ def generate_pdf():
 
 
 def pdf_done(path):
-    output_btn.config(state=tk.NORMAL)
+    pdf_make_btn.config(state=tk.NORMAL)
     refresh_file_cards()
     set_status("PDF ready.", GREEN)
     try:
@@ -841,7 +1030,7 @@ def pdf_done(path):
 
 
 def pdf_failed(message):
-    output_btn.config(state=tk.NORMAL)
+    pdf_make_btn.config(state=tk.NORMAL)
     set_status("PDF failed", "#CC0000")
     messagebox.showerror("PDF export failed", message)
 
@@ -909,79 +1098,6 @@ def auto_pdf_failed(message, keep_status):
     set_status(f"PDF not remade — {message.strip().splitlines()[0]}", RED)
 
 
-def open_preview():
-    """Open the document in a window, rendered by the Chromium that makes the PDF."""
-    global preview_window
-    if not (last_full_html or "").strip():
-        set_status("Nothing to preview yet.", RED)
-        return
-
-    if preview_window is not None and preview_window.winfo_exists():
-        preview_window.destroy()
-
-    win = tk.Toplevel(root)
-    preview_window = win
-    win.title("Preview")
-    win.configure(bg=ARTIFACT_BG)
-    sw, sh = root.winfo_screenwidth(), root.winfo_screenheight()
-    win.geometry(f"{min(PREVIEW_WIDTH + 40, sw - 80)}x{min(920, sh - 140)}+{sw // 3}+20")
-
-    wrap = tk.Frame(win, bg=ARTIFACT_BG)
-    wrap.pack(fill=tk.BOTH, expand=True)
-    bar = tk.Scrollbar(wrap, orient=tk.VERTICAL)
-    bar.pack(side=tk.RIGHT, fill=tk.Y)
-    canvas = tk.Canvas(wrap, bg=ARTIFACT_BG, highlightthickness=0, bd=0,
-                       yscrollcommand=bar.set)
-    canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-    bar.config(command=canvas.yview)
-
-    def wheel(event):
-        step = -1 if (getattr(event, "delta", 0) > 0 or event.num == 4) else 1
-        canvas.yview_scroll(step * 3, "units")
-
-    for seq in ("<MouseWheel>", "<Button-4>", "<Button-5>"):
-        canvas.bind(seq, wheel)
-    canvas.focus_set()
-    canvas.create_text(24, 28, anchor="nw", text="Rendering...", fill=MUTED,
-                       font=("Georgia", 11))
-
-    html_snapshot = last_full_html
-
-    def place(png):
-        global preview_image
-        if not win.winfo_exists():
-            return
-        try:
-            preview_image = tk.PhotoImage(file=png)
-        except Exception as exc:
-            fail_preview(str(exc))
-            return
-        canvas.delete("all")
-        canvas.create_image(0, 0, anchor="nw", image=preview_image)
-        canvas.configure(scrollregion=(0, 0, preview_image.width(), preview_image.height()))
-
-    def fail_preview(message):
-        if not win.winfo_exists():
-            return
-        canvas.delete("all")
-        canvas.create_text(24, 28, anchor="nw", fill=RED, font=("Georgia", 11),
-                           width=PREVIEW_WIDTH - 60,
-                           text=f"Preview could not be rendered.\n\n{message}")
-
-    def work():
-        try:
-            tmp_html = os.path.join(PREVIEW_DIR, "preview.html")
-            with open(tmp_html, "w", encoding="utf-8") as fh:
-                fh.write(html_snapshot)
-            png = pdf_export.html_to_png(
-                tmp_html, os.path.join(PREVIEW_DIR, "preview.png"), width=PREVIEW_WIDTH)
-            post(lambda: place(png))
-        except Exception as exc:
-            post(lambda e=str(exc): fail_preview(e))
-
-    threading.Thread(target=work, daemon=True).start()
-
-
 def open_folder():
     """Reveal the open document's own folder, or the library root."""
     target = LIB.root
@@ -1041,25 +1157,65 @@ def selected_model():
     return SETTINGS.get("model") or (model_ids[0][0] if model_ids else "")
 
 
+def has_document():
+    return bool(hs.block_spans(last_full_html or ""))
+
+
+def current_intent():
+    """"add", "edit", "show" or "chat" — what Send will do with the next message."""
+    if active_mode_key() == "general":
+        return "chat"
+    if intent_override and has_document():
+        return intent_override
+    return prompts.read_request(entry.get("1.0", tk.END), has_document(), bool(attachments))
+
+
+INTENT_TEXT = {
+    "add": ("Will add", "a new question at the end of the document", ACCENT),
+    "edit": ("Will edit", "changes the page in place", BLUE),
+    "show": ("Will show", "the full merged HTML, in the Code tab", GREEN),
+    "chat": ("Chat only", "General mode writes no document", MUTED),
+}
+
+
+def refresh_intent(_evt=None):
+    """The line above Send: what Send is about to do, and a way to change it."""
+    word, detail, colour = INTENT_TEXT[current_intent()]
+    intent_label.config(text=f"{word}", fg=colour)
+    hint = "  ·  click to switch" if active_mode_key() != "general" and has_document() else ""
+    intent_detail.config(text=f"— {detail}{hint}")
+
+
+def toggle_intent(_evt=None):
+    """Add becomes Edit and Edit becomes Add, for this message only."""
+    global intent_override
+    if active_mode_key() == "general" or not has_document():
+        return
+    intent_override = "edit" if current_intent() in ("add", "show") else "add"
+    refresh_intent()
+
+
 def send_message(event=None):
-    global busy
+    global intent_override
     if busy:
         return "break"
 
     text = entry.get("1.0", tk.END).strip()
     if not text and not attachments:
         return "break"
+    intent = current_intent()
     if not text:
         text = active_preset().get("default_instruction") or "Solve the attached question."
-
-    model = selected_model()
-    if not model:
-        set_status("No model selected — press Refresh models.", "#CC0000")
-        return "break"
-
     files = list(attachments)
-    ensure_target(text)
+    if submit(text, files, intent):
+        entry.delete("1.0", tk.END)
+        clear_attachments()
+        intent_override = None
+        refresh_intent()
+    return "break"
 
+
+def _user_bubble(text, files):
     chat.config(state=tk.NORMAL)
     chat.insert(tk.END, "\n", "spacer")
     chat.insert(tk.END, "  You  ", "user_label")
@@ -1067,6 +1223,60 @@ def send_message(event=None):
     for p in files:
         chat.insert(tk.END, f"  [{os.path.basename(p)}]\n", "user_msg")
     chat.insert(tk.END, f"  {text}\n\n", "user_msg")
+    chat.config(state=tk.DISABLED)
+
+
+def _drop_retry():
+    """Take the Retry button away — and its line, so no gap is left behind."""
+    global retry_btn
+    if retry_btn is not None:
+        try:
+            chat.config(state=tk.NORMAL)
+            chat.delete("retry_start", "retry_end")
+            chat.config(state=tk.DISABLED)
+            retry_btn.destroy()
+        except tk.TclError:
+            pass
+        retry_btn = None
+
+
+def submit(text, files, intent, local=True):
+    """Send one message. Returns False when it could not be sent.
+
+    local : a bare "remove Illustration 7" is done here, without the model.
+    """
+    global busy, last_turn
+
+    if intent == "show":
+        # Asked on Claude.ai to "display the full merged HTML". Here the whole
+        # document is already on the right, so nothing is sent and nothing is paid.
+        _drop_retry()
+        _user_bubble(text, files)
+        show_tab("code")
+        say("The full merged HTML is in the Code tab on the right — every "
+            "question, in order. Nothing was sent to Gemini.", "note")
+        return True
+
+    if intent == "edit" and not has_document():
+        intent = "add"
+    if intent == "edit" and not files and local:
+        target = prompts.removal_target(text)
+        if target:
+            return remove_question(text, target)
+
+    model = selected_model()
+    if not model:
+        set_status("No model selected — press Refresh models.", "#CC0000")
+        return False
+
+    ensure_target(text)
+    _drop_retry()
+    last_turn = {"text": text, "files": list(files), "intent": intent,
+                 "history": len(conversation_history), "html": last_full_html,
+                 "blocks": list(doc_blocks), "version": version_at}
+
+    _user_bubble(text, files)
+    chat.config(state=tk.NORMAL)
     chat.insert(tk.END, f"  Gemini — {active_preset()['name']}  ", "ai_label")
     chat.insert(tk.END, "\n", "spacer")
     chat.insert(tk.END, "  ", "ai_msg")
@@ -1080,8 +1290,6 @@ def send_message(event=None):
     chat.config(state=tk.DISABLED)
     chat.see(tk.END)
 
-    entry.delete("1.0", tk.END)
-    clear_attachments()
     busy = True
     stop_event.clear()
     send_btn.config(state=tk.DISABLED)
@@ -1101,7 +1309,7 @@ def send_message(event=None):
             return
         last_paint[0] = now
         snapshot = acc[0]
-        post(lambda s=snapshot: paint_stream(s))
+        post(lambda s=snapshot: paint_stream(s, intent))
 
         # A model can argue with the contract for thousands of words and never
         # start the document. Waiting for the token limit wastes minutes, and
@@ -1109,6 +1317,8 @@ def send_message(event=None):
         if not looped[0] and hs.is_looping(snapshot):
             looped[0] = True
             stop_event.set()
+
+    snapshot_html = last_full_html
 
     def work():
         try:
@@ -1122,9 +1332,20 @@ def send_message(event=None):
             if len(conversation_history) > MAX_HISTORY_TURNS * 2:
                 del conversation_history[:len(conversation_history) - MAX_HISTORY_TURNS * 2]
 
+            if intent == "edit":
+                # An edit is shown the page as it stands, and nothing else: the
+                # page is the context, and earlier turns only cost tokens.
+                system_prompt += prompts.EDIT_CONTRACT
+                request = [{"role": "user", "parts": api.build_parts(
+                    prompts.EDIT_REQUEST.format(instruction=text,
+                                                body=hs.numbered_body(snapshot_html)),
+                    files)}]
+            else:
+                request = conversation_history
+
             post(lambda: set_status("Streaming...", ACCENT))
             answer, in_tok, out_tok, cached_tok = api.stream_generate(
-                conversation_history,
+                request,
                 model,
                 system_prompt=system_prompt,
                 on_chunk=on_chunk,
@@ -1153,7 +1374,7 @@ def send_message(event=None):
                 post(lambda n=len(answer.split()): loop_stopped(n))
                 return
             post(lambda: finish(answer, in_tok, out_tok, cached_tok,
-                                elapsed, model, verdict, v_cost))
+                                elapsed, model, verdict, v_cost, intent))
 
         except api.GeminiError as exc:
             if conversation_history and conversation_history[-1].get("role") == "user":
@@ -1165,17 +1386,132 @@ def send_message(event=None):
             post(lambda e=exc: fail(f"Unexpected error: {e}"))
 
     threading.Thread(target=work, daemon=True).start()
-    return "break"
+    return True
 
 
-def paint_stream(snapshot):
+def paint_stream(snapshot, intent="add"):
     words = len(snapshot.split())
     set_status(f"Streaming... ({words} words)", ACCENT)
     chat.config(state=tk.NORMAL)
     chat.delete("stream_start", tk.END)
-    chat.insert(tk.END, for_chat(snapshot), "ai_msg")
+    if active_mode_key() == "general":
+        chat.insert(tk.END, for_chat(snapshot), "ai_msg")
+    else:
+        # The page is built on the right; the chat only says it is being written.
+        doing = "Editing the page" if intent == "edit" else "Writing the page"
+        chat.insert(tk.END, f"\U0001F4C4  {doing}…  {words} words", "card_sub")
     chat.config(state=tk.DISABLED)
     chat.see(tk.END)
+
+
+def card_title(fragment, action=""):
+    """"Illustration 7 added" — what a document answer is called in the chat."""
+    label = hs.question_label(fragment)
+    if not label:
+        topic = hs.title_from_block(fragment, "")
+        label = topic.split(" — ")[0] if topic else "The page"
+    return f"{label} {action}".strip()
+
+
+def put_card(title, verdict_kind_="", verdict_note=""):
+    """The short card that stands for a whole answer, plus Retry under it."""
+    chat.config(state=tk.NORMAL)
+    chat.delete("stream_start", tk.END)
+    chat.insert(tk.END, f"\U0001F4C4  {title}  ", ("card", "card_link"))
+    shown = {"ok": ("  ·  Verified ✓", "card_ok"),
+             "bad": ("  ·  Check this ✗", "card_bad"),
+             "unclear": ("  ·  Verification unclear", "card_sub")}.get(verdict_kind_)
+    if shown:
+        chat.insert(tk.END, shown[0], shown[1])
+    if verdict_note:
+        chat.insert(tk.END, f"  ·  {verdict_note}", "card_sub")
+    chat.insert(tk.END, "\n", "ai_msg")
+    chat.config(state=tk.DISABLED)
+    chat.see(tk.END)
+
+
+def put_retry():
+    """A Retry button under the last answer — one at a time, like Claude.ai."""
+    global retry_btn
+    _drop_retry()
+    if not last_turn:
+        return
+    retry_btn = tk.Button(chat, text="↻  Retry", command=retry_last,
+                          font=("Arial", 9), bg=SIDEBAR, fg=TEXT, relief=tk.FLAT,
+                          padx=10, pady=2, cursor="hand2", activebackground=BORDER)
+    chat.config(state=tk.NORMAL)
+    chat.mark_set("retry_start", "end-1c")
+    chat.mark_gravity("retry_start", tk.LEFT)
+    chat.insert(tk.END, "  ", "spacer")
+    chat.window_create(tk.END, window=retry_btn)
+    chat.insert(tk.END, "\n", "spacer")
+    chat.mark_set("retry_end", "end-1c")
+    chat.config(state=tk.DISABLED)
+    chat.see(tk.END)
+
+
+def retry_last():
+    """Ask again: the page goes back to how it was, and the same message is sent.
+
+    The answer being replaced is kept as a version, so nothing is lost by it.
+    """
+    global last_full_html, doc_blocks, version_at
+    if busy or not last_turn:
+        return
+    turn = last_turn
+    if last_full_html != turn["html"]:
+        last_full_html = turn["html"]
+        doc_blocks = list(turn["blocks"])
+        version_at = turn["version"]
+        refresh_artifact()
+        save_current(html=last_full_html, blocks=doc_blocks)
+    del conversation_history[turn["history"]:]
+    say("Retrying — the page is back to how it was before that answer. "
+        "That answer is kept as a version.", "note")
+    submit(turn["text"], turn["files"], turn["intent"])
+
+
+def remove_question(text, target):
+    """Take a question out without asking the model — free, and exact."""
+    global last_full_html, doc_blocks, last_turn
+    spans = hs.block_spans(last_full_html)
+    if target == "last":
+        pick = [len(spans) - 1] if spans else []
+    else:
+        want = f"{target[0]} {target[1]}".lower()
+        pick = [i for i, (a, b) in enumerate(spans)
+                if hs.question_label(last_full_html[a:b]).lower() == want]
+    if len(spans) < 2:
+        set_status("That is the only question here — nothing was removed.", RED)
+        return False
+    if len(pick) != 1:
+        return submit(text, [], "edit", local=False)
+    _drop_retry()
+    _user_bubble(text, [])
+    before = last_full_html
+    a, b = spans[pick[0]]
+    label = card_title(last_full_html[a:b], "removed")
+    last_turn = {"text": text, "files": [], "intent": "edit",
+                 "history": len(conversation_history), "html": before,
+                 "blocks": list(doc_blocks), "version": version_at}
+    while b < len(last_full_html) and last_full_html[b] in " \t\r\n":
+        b += 1
+    last_full_html = last_full_html[:a] + last_full_html[b:]
+    doc_blocks = hs.blocks_of(last_full_html)
+    save_current(html=last_full_html, blocks=doc_blocks)
+    record_version(label, before)
+    refresh_artifact()
+    chat.config(state=tk.NORMAL)
+    chat.insert(tk.END, "  Goodwill  ", "ai_label")
+    chat.insert(tk.END, "\n", "spacer")
+    chat.mark_set("stream_start", "end-1c")
+    chat.mark_gravity("stream_start", tk.LEFT)
+    chat.config(state=tk.DISABLED)
+    put_card(label, verdict_note="done here, nothing sent to Gemini")
+    set_status(f"{label} — {len(doc_blocks)} question block(s) left.", GREEN)
+    auto_pdf(keep_status=True)
+    return True
+
 
 
 def verify_model_for(solve_model):
@@ -1245,18 +1581,14 @@ def verdict_kind(verdict):
     return "unclear"
 
 
-def finish(answer, in_tok, out_tok, cached_tok, elapsed, model, verdict, v_cost=None):
-    global busy, last_response_text, last_body, last_full_html, verify_report
+def finish(answer, in_tok, out_tok, cached_tok, elapsed, model, verdict, v_cost=None,
+           intent="add"):
+    global busy, last_response_text, last_body, last_full_html, verify_report, doc_blocks
     busy = False
     send_btn.config(state=tk.NORMAL)
     stop_btn.config(state=tk.DISABLED, bg=BORDER)
 
     last_response_text = answer
-    chat.config(state=tk.NORMAL)
-    chat.delete("stream_start", tk.END)
-    chat.insert(tk.END, f"{for_chat(answer)}\n\n", "ai_msg")
-    chat.config(state=tk.DISABLED)
-    chat.see(tk.END)
 
     total = api.cost_inr(model, in_tok, out_tok, cached_tok)
     used = in_tok + out_tok
@@ -1275,81 +1607,138 @@ def finish(answer, in_tok, out_tok, cached_tok, elapsed, model, verdict, v_cost=
         text=f"{api.format_inr(total)}  ·  {compact_tokens(used)}{saved}  ·  {elapsed:.0f}s")
 
     verify_report = verdict or ""
-    if verdict:
-        kind = verdict_kind(verdict)
-        if kind == "bad":
-            say(verdict, "bad")
-            set_status("Verification found a mismatch — see the chat.", RED)
-        elif kind == "ok":
-            say(verdict, "ok")
-            set_status("Verified.", GREEN)
-        else:
-            say(verdict, "note")
-            set_status("Verification unclear — read it yourself.", ACCENT)
+    kind = verdict_kind(verdict) if verdict else ""
 
     if active_mode_key() == "general":
+        # A conversation is read in the chat, so it stays in full.
+        chat.config(state=tk.NORMAL)
+        chat.delete("stream_start", tk.END)
+        chat.insert(tk.END, f"{for_chat(answer)}\n\n", "ai_msg")
+        chat.config(state=tk.DISABLED)
+        chat.see(tk.END)
         save_current(conversation=strip_binary(conversation_history))
-        if not verdict:
-            set_status("Done.", GREEN)
+        put_retry()
+        set_status("Done.", GREEN)
         return
+
+    # Notes about the cleaning go under the card, not above it.
+    notes = []
+    before = last_full_html
 
     body = api.strip_code_fence(answer)
     body = latex_to_unicode(body)
     body = render_charts(body)
 
-    # A weak model narrates before it writes. That planning used to be printed
-    # into the PDF as page one. Keep the document, say what was dropped.
-    body, dropped = hs.extract_document(body)
-    if dropped:
-        say(f"Removed {len(dropped)} characters the model wrote before the "
-            f"document — its own notes, not part of the answer.", "note")
-
-    # Slashes and carets are the house style's own rule, not a matter of
-    # opinion, so Python fixes them rather than asking the model again. No
-    # figure is altered — only how the division is written.
-    body, repairs = hs.repair_markup(body)
-    if repairs:
-        say("Repaired " + " and ".join(repairs)
-            + " — divisions are stacked fractions, powers are superscripts.", "note")
-
-    # "Add one more question" often comes back with the earlier question too.
-    # The document already holds it, so it is left out rather than printed twice.
-    body, repeated = hs.drop_repeats(last_full_html, body)
-    if repeated:
-        say(f"Gemini sent {' and '.join(repeated)} again — this document already "
-            f"has it, so it was left out and only the new question was added.", "note")
-
-    # A small model sometimes recites the contract instead of answering it.
-    # Saving that would put a page of quoted instructions into the chapter and
-    # overwrite nothing useful, so the document is left exactly as it was.
-    if not hs.looks_like_document(body):
-        say("The model wrote about the instructions instead of solving the "
-            "question, so nothing was added to the document. Press Send to try "
-            "again, or choose a stronger model — Gemini 3.1 Flash-Lite is about "
-            "10 paise a question.", "bad")
-        set_status("No document produced — nothing was changed.", RED)
-        save_current(conversation=strip_binary(conversation_history))
-        return
-
-    if 'class="page-block"' not in body:
-        body = f'<div class="page-block">\n{body}\n</div>'
-    last_body = body
-
-    doc_blocks.append(body)
-    if last_full_html.strip():
-        # Append into the live document so manual edits in the HTML tab survive.
-        last_full_html = hs.append_block(last_full_html, body)
+    if intent == "edit":
+        # Slashes and carets are fixed here too; the block markers are comments
+        # and pass through untouched.
+        body, repairs = hs.repair_markup(body)
+        try:
+            new_html, changed, removed = hs.apply_edits(last_full_html, body)
+        except hs.EditError as exc:
+            put_card("Nothing changed")
+            say(str(exc), "bad")
+            set_status("No edit made — the page is as it was.", RED)
+            save_current(conversation=strip_binary(conversation_history))
+            put_retry()
+            return
+        spans = hs.block_spans(new_html)
+        old_spans = hs.block_spans(last_full_html)
+        if changed:
+            first = changed[0] - 1 - sum(1 for r in removed if r < changed[0])
+            a, b = spans[first]
+            title = card_title(new_html[a:b], "edited")
+            if len(changed) > 1:
+                title += f" and {len(changed) - 1} more"
+        else:
+            a, b = old_spans[removed[0] - 1]
+            title = card_title(last_full_html[a:b], "removed")
+        last_full_html = new_html
+        doc_blocks = hs.blocks_of(new_html)
+        if repairs:
+            notes.append(("Repaired " + " and ".join(repairs)
+                          + " — divisions are stacked fractions, powers are superscripts.",
+                          "note"))
     else:
-        last_full_html = hs.wrap_document(doc_blocks)
+        # A weak model narrates before it writes. That planning used to be printed
+        # into the PDF as page one. Keep the document, say what was dropped.
+        body, dropped = hs.extract_document(body)
+        if dropped:
+            notes.append((f"Removed {len(dropped)} characters the model wrote before the "
+                          f"document — its own notes, not part of the answer.", "note"))
+
+        # Slashes and carets are the house style's own rule, not a matter of
+        # opinion, so Python fixes them rather than asking the model again. No
+        # figure is altered — only how the division is written.
+        body, repairs = hs.repair_markup(body)
+        if repairs:
+            notes.append(("Repaired " + " and ".join(repairs)
+                          + " — divisions are stacked fractions, powers are superscripts.",
+                          "note"))
+
+        # "Add one more question" often comes back with the earlier question too.
+        # The document already holds it, so it is left out rather than printed twice.
+        body, repeated = hs.drop_repeats(last_full_html, body)
+        if repeated:
+            notes.append((f"Gemini sent {' and '.join(repeated)} again — this document "
+                          f"already has it, so it was left out and only the new question "
+                          f"was added.", "note"))
+
+        # A small model sometimes recites the contract instead of answering it.
+        # Saving that would put a page of quoted instructions into the chapter and
+        # overwrite nothing useful, so the document is left exactly as it was.
+        if not hs.looks_like_document(body):
+            put_card("Nothing added")
+            say("The model wrote about the instructions instead of solving the "
+                "question, so nothing was added to the document. Press Retry, or "
+                "choose a stronger model — Gemini 3.1 Flash-Lite is about "
+                "10 paise a question.", "bad")
+            set_status("No document produced — nothing was changed.", RED)
+            save_current(conversation=strip_binary(conversation_history))
+            put_retry()
+            return
+
+        if 'class="page-block"' not in body:
+            body = f'<div class="page-block">\n{body}\n</div>'
+        last_body = body
+        title = card_title(body, "added")
+
+        doc_blocks.append(body)
+        if last_full_html.strip():
+            # Append into the live document so manual edits in the Code tab survive.
+            last_full_html = hs.append_block(last_full_html, body)
+        else:
+            last_full_html = hs.wrap_document(doc_blocks)
+
+    # A pass is the tick on the card; only a doubt is worth reading in full.
+    if kind == "bad":
+        notes.insert(0, (verdict, "bad"))
+    elif kind == "unclear":
+        notes.insert(0, (verdict, "note"))
+    put_card(title, kind)
+    for text, how in notes:
+        say(text, how)
 
     refresh_artifact()
     run_validator()
     save_current(html=last_full_html, blocks=doc_blocks,
                  conversation=strip_binary(conversation_history), model=model)
-    name_document_from(body)
+    record_version(title, before)
+    if intent == "add":
+        name_document_from(body)
     refresh_tree(select=("d", current_chapter, current_doc))
     refresh_title()
-    if not verdict:
+    refresh_intent()
+    if prompts.wants_code(last_turn["text"] if last_turn else ""):
+        show_tab("code")
+    put_retry()
+    if kind == "bad":
+        set_status("Verification found a mismatch — see the chat.", RED)
+    elif kind == "ok":
+        set_status("Verified.", GREEN)
+    elif kind == "unclear":
+        set_status("Verification unclear — read it yourself.", ACCENT)
+    else:
         set_status(f"Done — {len(doc_blocks)} block(s) in this document.", GREEN)
     auto_pdf(keep_status=bool(verdict))
 
@@ -1385,12 +1774,14 @@ def loop_stopped(words):
     busy = False
     send_btn.config(state=tk.NORMAL)
     stop_btn.config(state=tk.DISABLED, bg=BORDER)
+    put_card("Nothing added")
     say(f"The model kept repeating itself — {words} words and no document — so "
-        "it was stopped. Nothing was added. Press Send to try again, or choose "
+        "it was stopped. Nothing was added. Press Retry, or choose "
         "a model that follows instructions; Gemini 3.1 Flash-Lite is about 10 "
         "paise a question.", "bad")
     set_status("Stopped — the model was going in circles.", RED)
     save_current(conversation=strip_binary(conversation_history))
+    put_retry()
 
 
 def fail(message):
@@ -1400,9 +1791,10 @@ def fail(message):
     stop_btn.config(state=tk.DISABLED, bg=BORDER)
     chat.config(state=tk.NORMAL)
     chat.delete("stream_start", tk.END)
-    chat.insert(tk.END, f"[{message}]\n\n", "ai_msg")
+    chat.insert(tk.END, f"[{message}]\n", "ai_msg")
     chat.config(state=tk.DISABLED)
     chat.see(tk.END)
+    put_retry()
     set_status("Failed — see the chat for details.", "#CC0000")
 
 
@@ -1412,8 +1804,10 @@ def stop_generation():
 
 
 def clear_chat():
-    global conversation_history
+    global conversation_history, last_turn
     conversation_history = []
+    last_turn = None
+    _drop_retry()
     chat.config(state=tk.NORMAL)
     chat.delete("1.0", tk.END)
     chat.insert(tk.END, "\n  Chat cleared.\n\n", "ai_msg")
@@ -1427,14 +1821,16 @@ def remove_last_block():
     if not doc_blocks:
         set_status("No blocks to remove.", "#CC0000")
         return
+    before = last_full_html
     doc_blocks.pop()
     cut = last_full_html.rfind('<div class="page-block"')
     if cut == -1:
         last_full_html = hs.wrap_document(doc_blocks) if doc_blocks else ""
     else:
         last_full_html = last_full_html[:cut].rstrip() + "\n</body>\n</html>\n"
-    refresh_artifact()
     save_current(html=last_full_html, blocks=doc_blocks)
+    record_version("Last question removed", before)
+    refresh_artifact()
     set_status(f"Removed the last block — {len(doc_blocks)} remaining.", GREEN)
 
 
@@ -1629,6 +2025,7 @@ def on_mode_change(_evt=None):
         if preset["name"] == label:
             SETTINGS["active"] = key
             save_settings()
+            refresh_intent()
             set_status(f"Mode: {label}", TEXT)
             return
 
@@ -1943,6 +2340,30 @@ chat.tag_config("note_label", background=BLUE, foreground="white",
 for _k in ("ok", "bad", "note"):
     chat.tag_config(f"{_k}_msg", background=AI_BUBBLE, font=("Consolas", 10),
                     lmargin1=10, lmargin2=10, rmargin=10, spacing1=3, spacing3=3)
+# The card that stands for a whole answer: the page is on the right, so the
+# chat only names what happened to it. Clicking it shows the page.
+chat.tag_config("card", background=SIDEBAR, foreground=TEXT, font=("Arial", 10, "bold"),
+                lmargin1=10, spacing1=6, spacing3=6)
+chat.tag_config("card_ok", background=SIDEBAR, foreground=GREEN, font=("Arial", 10, "bold"))
+chat.tag_config("card_bad", background=SIDEBAR, foreground=RED, font=("Arial", 10, "bold"))
+chat.tag_config("card_sub", background=SIDEBAR, foreground=MUTED, font=("Arial", 9),
+                lmargin1=10)
+chat.tag_bind("card_link", "<Button-1>", lambda _e: show_tab("preview"))
+chat.tag_bind("card_link", "<Enter>", lambda _e: chat.config(cursor="hand2"))
+chat.tag_bind("card_link", "<Leave>", lambda _e: chat.config(cursor=""))
+
+# What Send is about to do — "Will add" or "Will edit" — read from the words
+# typed, as Claude.ai does. A click switches it for this one message.
+intent_row = tk.Frame(input_frame, bg=BG)
+intent_row.pack(fill=tk.X, pady=(0, 2))
+intent_label = tk.Label(intent_row, text="Will add", font=("Arial", 9, "bold"),
+                        bg=BG, fg=ACCENT, cursor="hand2")
+intent_label.pack(side=tk.LEFT)
+intent_detail = tk.Label(intent_row, text="", font=("Arial", 9), bg=BG, fg=MUTED,
+                         cursor="hand2", anchor="w")
+intent_detail.pack(side=tk.LEFT, padx=(4, 0), fill=tk.X, expand=True)
+for _w in (intent_label, intent_detail):
+    _w.bind("<Button-1>", toggle_intent)
 
 btn_row = tk.Frame(input_frame, bg=BG)
 btn_row.pack(fill=tk.X, pady=(0, 5))
@@ -1977,21 +2398,44 @@ entry = tk.Text(input_frame, height=4, wrap=tk.WORD, font=("Georgia", 11),
 entry.pack(fill=tk.X)
 entry.bind("<Return>", send_message)
 entry.bind("<Shift-Return>", lambda e: None)
+entry.bind("<KeyRelease>", refresh_intent, add="+")
 for _seq in ("<Control-v>", "<Control-V>", "<Shift-Insert>"):
     entry.bind(_seq, paste_from_clipboard)
     root.bind(_seq, paste_from_clipboard)
 
 # ── right: artifact ──────────────────────────────────────────────────
+# Laid out like Claude.ai's artifact panel: the title and ◀ v3 of 5 ▶ on top,
+# then Preview | Code on the left and the PDF buttons on the right.
 right = tk.Frame(split, bg=ARTIFACT_BG)
 split.add(right, minsize=420, width=800)
 
-art_header = tk.Frame(right, bg=ARTIFACT_BG, height=46)
+art_header = tk.Frame(right, bg=ARTIFACT_BG, height=40)
 art_header.pack(fill=tk.X)
 art_header.pack_propagate(False)
 
+version_row = tk.Frame(art_header, bg=ARTIFACT_BG)
+version_prev = tk.Button(version_row, text="◀", command=lambda: step_version(-1),
+                         font=("Arial", 9), bg=ARTIFACT_BG, fg=TEXT, relief=tk.FLAT,
+                         padx=6, cursor="hand2", activebackground=SIDEBAR,
+                         disabledforeground=BORDER)
+version_prev.pack(side=tk.LEFT)
+version_label = tk.Label(version_row, text="", font=("Arial", 9, "bold"),
+                         bg=ARTIFACT_BG, fg=TEXT)
+version_label.pack(side=tk.LEFT, padx=2)
+version_next = tk.Button(version_row, text="▶", command=lambda: step_version(1),
+                         font=("Arial", 9), bg=ARTIFACT_BG, fg=TEXT, relief=tk.FLAT,
+                         padx=6, cursor="hand2", activebackground=SIDEBAR,
+                         disabledforeground=BORDER)
+version_next.pack(side=tk.LEFT)
+version_note = tk.Label(version_row, text="", font=("Arial", 8), bg=ARTIFACT_BG, fg=MUTED)
+version_note.pack(side=tk.LEFT, padx=(4, 0))
+
 artifact_title = tk.Label(art_header, text="No document yet", font=("Arial", 11, "bold"),
-                          bg=ARTIFACT_BG, fg=TEXT)
-artifact_title.pack(side=tk.LEFT, padx=14, pady=12)
+                          bg=ARTIFACT_BG, fg=TEXT, anchor="w")
+artifact_title.pack(side=tk.LEFT, padx=14, pady=8, fill=tk.X, expand=True)
+
+tab_bar = tk.Frame(right, bg=ARTIFACT_BG)
+tab_bar.pack(fill=tk.X, padx=8)
 
 def _popup(menu, anchor):
     """Drop a menu directly under the button that opened it."""
@@ -2033,11 +2477,11 @@ def delete_this():
 
 
 def open_output_menu(event=None):
-    """What to do with the finished document."""
+    """The document as files."""
     menu = _menu()
-    menu.add_command(label="Preview", command=open_preview)
-    menu.add_separator()
     menu.add_command(label="Save as HTML", command=lambda: save_html())
+    menu.add_command(label="Open the HTML file", command=lambda: _open_doc_file("html"))
+    menu.add_separator()
     menu.add_command(label="Save as PDF", command=generate_pdf)
     _popup(menu, output_btn)
 
@@ -2061,21 +2505,80 @@ def open_more_menu(event=None):
     _popup(menu, more_btn)
 
 
-output_btn = tk.Button(art_header, text="\u25be", command=open_output_menu,
+def _tab(text, which):
+    button = tk.Button(tab_bar, text=text, command=lambda: show_tab(which),
+                       font=("Arial", 10), bg=ARTIFACT_BG, fg=MUTED, relief=tk.FLAT,
+                       padx=10, pady=3, cursor="hand2", activebackground=SIDEBAR)
+    button.pack(side=tk.LEFT)
+    return button
+
+
+preview_tab = _tab("Preview", "preview")
+tk.Label(tab_bar, text="|", bg=ARTIFACT_BG, fg=BORDER).pack(side=tk.LEFT)
+code_tab = _tab("Code", "code")
+
+output_btn = tk.Button(tab_bar, text="▾", command=open_output_menu,
                        font=("Arial", 13), bg=ARTIFACT_BG, fg=TEXT,
-                       relief=tk.FLAT, padx=12, pady=2, cursor="hand2",
+                       relief=tk.FLAT, padx=8, pady=0, cursor="hand2",
                        activebackground=SIDEBAR)
-output_btn.pack(side=tk.RIGHT, padx=(4, 14), pady=8)
+output_btn.pack(side=tk.RIGHT, padx=(2, 6))
 
-more_btn = tk.Button(art_header, text="More", command=open_more_menu,
+more_btn = tk.Button(tab_bar, text="More", command=open_more_menu,
                      font=("Arial", 10), bg=ARTIFACT_BG, fg=MUTED,
-                     relief=tk.FLAT, padx=10, pady=5, cursor="hand2",
+                     relief=tk.FLAT, padx=8, pady=3, cursor="hand2",
                      activebackground=SIDEBAR)
-more_btn.pack(side=tk.RIGHT, padx=2, pady=8)
+more_btn.pack(side=tk.RIGHT, padx=2)
 
-# ── the document, as editable HTML ───────────────────────────────────
-editor_bar = tk.Frame(right, bg=ARTIFACT_BG)
-editor_bar.pack(fill=tk.X, padx=14)
+# The PDF buttons: Open shows the PDF on disk and says when it is out of date;
+# Make PDF renders it now and opens it.
+pdf_open_btn = tk.Button(tab_bar, text="Open PDF", command=lambda: _open_doc_file("pdf"),
+                         font=("Arial", 9), bg=SIDEBAR, fg=TEXT, relief=tk.FLAT,
+                         padx=10, pady=3, cursor="hand2", activebackground=BORDER,
+                         disabledforeground=MUTED)
+pdf_open_btn.pack(side=tk.RIGHT, padx=4)
+pdf_make_btn = tk.Button(tab_bar, text="Make PDF", command=lambda: generate_pdf(),
+                         font=("Arial", 9, "bold"), bg=ACCENT, fg="white", relief=tk.FLAT,
+                         padx=10, pady=3, cursor="hand2", activebackground=ACCENT,
+                         disabledforeground=BORDER)
+pdf_make_btn.pack(side=tk.RIGHT, padx=4)
+
+tab_body = tk.Frame(right, bg=ARTIFACT_BG)
+tab_body.pack(fill=tk.BOTH, expand=True, padx=14, pady=(4, 12))
+
+# ── Preview: the page as Chromium draws it ───────────────────────────
+preview_frame = tk.Frame(tab_body, bg=ARTIFACT_BG)
+preview_scroll = tk.Scrollbar(preview_frame, orient=tk.VERTICAL)
+preview_scroll.pack(side=tk.RIGHT, fill=tk.Y)
+preview_canvas = tk.Canvas(preview_frame, bg=ARTIFACT_BG, highlightthickness=0, bd=0,
+                           yscrollcommand=preview_scroll.set)
+preview_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+preview_scroll.config(command=preview_canvas.yview)
+
+
+def _preview_wheel(event):
+    step = -1 if (getattr(event, "delta", 0) > 0 or event.num == 4) else 1
+    preview_canvas.yview_scroll(step * 3, "units")
+
+
+for _seq in ("<MouseWheel>", "<Button-4>", "<Button-5>"):
+    preview_canvas.bind(_seq, _preview_wheel)
+
+# A narrower panel draws the page smaller, once the dragging stops.
+_resize_job = [None]
+
+
+def _preview_resized(_evt=None):
+    if _resize_job[0]:
+        root.after_cancel(_resize_job[0])
+    _resize_job[0] = root.after(400, refresh_preview)
+
+
+preview_canvas.bind("<Configure>", _preview_resized)
+
+# ── Code: the document as editable HTML ──────────────────────────────
+code_frame = tk.Frame(tab_body, bg=ARTIFACT_BG)
+editor_bar = tk.Frame(code_frame, bg=ARTIFACT_BG)
+editor_bar.pack(fill=tk.X)
 tk.Button(editor_bar, text="Apply my edits", command=apply_edited_html,
           font=("Arial", 9, "bold"), bg=ACCENT, fg="white", relief=tk.FLAT,
           padx=12, pady=4, cursor="hand2").pack(side=tk.LEFT, pady=(0, 6))
@@ -2083,14 +2586,10 @@ tk.Button(editor_bar, text="Apply my edits", command=apply_edited_html,
 tk.Label(editor_bar, text="Edit, then Apply.",
          font=("Arial", 9), bg=ARTIFACT_BG, fg=MUTED).pack(side=tk.LEFT, padx=10)
 
-editor = scrolledtext.ScrolledText(right, wrap=tk.NONE, font=("Consolas", 9),
+editor = scrolledtext.ScrolledText(code_frame, wrap=tk.NONE, font=("Consolas", 9),
                                    bg=FIELD, fg=TEXT, relief=tk.FLAT, undo=True)
-editor.pack(fill=tk.BOTH, expand=True, padx=14, pady=(0, 6))
+editor.pack(fill=tk.BOTH, expand=True)
 editor.frame.config(bg=ARTIFACT_BG)
-
-# ── the document's files, as a pair you can open ─────────────────────
-files_row = tk.Frame(right, bg=ARTIFACT_BG)
-files_row.pack(fill=tk.X, padx=14, pady=(0, 12))
 
 
 def _open_doc_file(which):
@@ -2100,50 +2599,24 @@ def _open_doc_file(which):
     path = (LIB.pdf_path(current_chapter, current_doc) if which == "pdf"
             else LIB.html_path(current_chapter, current_doc))
     if not os.path.exists(path):
-        set_status("Not made yet — use the \u25be menu to save it.", RED)
+        set_status("Not made yet — press Make PDF." if which == "pdf"
+                   else "Not saved yet — use the ▾ menu.", RED)
         return
     if which == "pdf" and pdf_is_stale():
         if not messagebox.askyesno(
             "PDF is out of date",
             "This PDF was made before the latest change to the document.\n\n"
             "Open the old one anyway?\n\n"
-            "Choose No, then use  \u25be  >  Save as PDF  to remake it."):
+            "Choose No, then press  Make PDF  to remake it."):
             return
     pdf_export.open_file(path)
-
-
-def _card(parent, glyph, kind):
-    """One file card: icon, name, Open.
-
-    The two cards share the row and shrink with it, and Open is packed to the
-    card's right edge BEFORE the name. Packed after a fixed-width name, the
-    second card's Open button was pushed off the edge of the panel and could
-    not be reached at all on a narrower window.
-    """
-    card = tk.Frame(parent, bg=SIDEBAR, highlightbackground=BORDER,
-                    highlightthickness=1)
-    card.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 10))
-    tk.Label(card, text=glyph, bg=SIDEBAR, fg=MUTED,
-             font=("Arial", 14)).pack(side=tk.LEFT, padx=(10, 6), pady=6)
-    button = tk.Button(card, text="Open", command=lambda: _open_doc_file(kind),
-                       bg=SIDEBAR, fg=TEXT, relief=tk.FLAT, font=("Arial", 9),
-                       padx=10, cursor="hand2")
-    button.pack(side=tk.RIGHT, padx=(6, 8), pady=5)
-    label = tk.Label(card, text="—", bg=SIDEBAR, fg=TEXT, font=("Arial", 9),
-                     anchor="w", width=10, justify="left")
-    label.pack(side=tk.LEFT, fill=tk.X, expand=True, pady=6)
-    return label, button
-
-
-pdf_label, pdf_open_btn = _card(files_row, "\U0001F4C4", "pdf")
-html_label, html_open_btn = _card(files_row, "\U0001F310", "html")
 
 
 def pdf_is_stale():
     """True when the HTML has changed since the PDF was made.
 
     Existence is not freshness: adding a second question rewrites the HTML but
-    leaves the old PDF on disk, and a card that only checks existence keeps
+    leaves the old PDF on disk, and a button that only checks existence keeps
     offering it.
     """
     if current_chapter is None or current_doc is None:
@@ -2159,36 +2632,22 @@ def pdf_is_stale():
 
 
 def refresh_file_cards():
-    """Show whether this document has been saved, printed, and is up to date."""
+    """Show on the PDF buttons whether there is a PDF, and whether it is current."""
     if current_chapter is None or current_doc is None:
-        for lbl, btn in ((pdf_label, pdf_open_btn), (html_label, html_open_btn)):
-            lbl.config(text="No document", fg=MUTED)
-            btn.config(state=tk.DISABLED, fg=MUTED)
+        pdf_open_btn.config(text="Open PDF", state=tk.DISABLED, fg=MUTED)
+        pdf_make_btn.config(state=tk.DISABLED)
         return
-
-    title = current_title()[:20]
-    stale = pdf_is_stale()
-
-    pdf = LIB.pdf_path(current_chapter, current_doc)
-    if not os.path.exists(pdf):
-        # Answering a question writes the HTML but never runs Chromium, so
-        # this is the normal state until  \u25be  >  Save as PDF  is used.
-        pdf_label.config(text=f"{title}\nPDF — not made yet", fg=MUTED)
-        pdf_open_btn.config(state=tk.DISABLED, fg=MUTED)
-    elif stale:
-        pdf_label.config(text=f"{title}\nPDF — out of date", fg=RED)
-        pdf_open_btn.config(state=tk.NORMAL, fg=TEXT)
+    has_html = os.path.exists(LIB.html_path(current_chapter, current_doc))
+    pdf_make_btn.config(state=tk.NORMAL if has_html else tk.DISABLED)
+    if not os.path.exists(LIB.pdf_path(current_chapter, current_doc)):
+        pdf_open_btn.config(text="Open PDF", state=tk.DISABLED, fg=MUTED)
+    elif pdf_is_stale():
+        pdf_open_btn.config(text="Open PDF — out of date", state=tk.NORMAL, fg=RED)
     else:
-        pdf_label.config(text=f"{title}\nPDF", fg=TEXT)
-        pdf_open_btn.config(state=tk.NORMAL, fg=TEXT)
+        pdf_open_btn.config(text="Open PDF", state=tk.NORMAL, fg=TEXT)
 
-    html = LIB.html_path(current_chapter, current_doc)
-    if os.path.exists(html):
-        html_label.config(text=f"{title}\nHTML", fg=TEXT)
-        html_open_btn.config(state=tk.NORMAL, fg=TEXT)
-    else:
-        html_label.config(text=f"{title}\nHTML — not saved yet", fg=MUTED)
-        html_open_btn.config(state=tk.DISABLED, fg=MUTED)
+
+show_tab("preview")
 
 
 # ── start ────────────────────────────────────────────────────────────
@@ -2196,7 +2655,8 @@ chat.config(state=tk.NORMAL)
 chat.insert(tk.END, "\n  Goodwill Gemini Tutor\n", "ai_msg")
 chat.insert(tk.END, "  Attach or paste (Ctrl+V) a PDF or image of the question, then press Send.\n", "ai_msg")
 chat.insert(tk.END, "  Solve mode builds an A4 document in house style.\n", "ai_msg")
-chat.insert(tk.END, "  The HTML appears on the right. Edit it, then Save as PDF.\n", "ai_msg")
+chat.insert(tk.END, "  The page appears on the right: Preview shows it, Code holds the HTML.\n", "ai_msg")
+chat.insert(tk.END, "  \"Add a question\" adds to the document; \"change / fix / remove\" edits it.\n", "ai_msg")
 chat.insert(tk.END, "  Chapters are on the left. Double-click a document to reopen it.\n\n", "ai_msg")
 if not pdf_export.playwright_available():
     chat.insert(tk.END, "  For the preview and PDF export:  pip install playwright"
@@ -2206,6 +2666,7 @@ chat.config(state=tk.DISABLED)
 refresh_artifact()
 refresh_title()
 refresh_file_cards()
+refresh_intent()
 
 # Bring last year's flat files into a chapter. Copies only — the originals in
 # Desktop/Goodwill_Solutions and the old conversations folder are left alone.

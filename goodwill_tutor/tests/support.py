@@ -46,6 +46,7 @@ def gui(stream=None, verdict="VERIFIED\nChecked.", models=None):
 
     import goodwill_tutor as app
     app.SETTINGS["auto_pdf"] = False        # tests that want it turn it back on
+    app.LIVE_PREVIEW = False                # no Chromium behind every answer
     return app
 
 

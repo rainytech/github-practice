@@ -133,18 +133,22 @@ limits are untouched.
 
 ## The right side
 
-The right side is the document as editable HTML, and nothing else. Two menus
-sit in its header.
+The right side is the finished page, laid out like Claude.ai's artifact panel.
 
-**▾** — what to do with the finished document:
-
-- **Preview** — opens a window showing the page rendered by Chromium, the same
-  engine that makes the PDF, so it cannot disagree with what prints
-- **Save as HTML**
-- **Save as PDF**
-
-**More** — building the document: apply edits, check house style, new document,
-remove the last question, open the folder, copy.
+- **Preview | Code** — Preview shows the page drawn by Chromium, the same
+  engine that makes the PDF, so it cannot disagree with what prints. It
+  redraws itself after every answer and every applied edit. Code is the HTML,
+  editable: change it, then **Apply my edits**.
+- **Make PDF** renders the PDF now and opens it. **Open PDF** opens the one on
+  disk, and reads **Open PDF — out of date** in red when the page has changed
+  since.
+- **◀ v3 of 5 ▶** — every answer keeps a version of the page. The arrows step
+  back and forward; the version shown is the document, and the next answer
+  builds on it. Later versions are never deleted, so going back loses nothing.
+  An applied edit and a removed question keep a version too.
+- **▾** — Save as HTML, open the HTML file, Save as PDF.
+- **More** — apply edits, check house style, new document, remove the last
+  question, open the folder, copy.
 
 Gemini's verification pass and the house-style validator report into the chat
 on the left, so there is only one place to read.
@@ -161,6 +165,37 @@ an exact round figure, so a difference of a rupee or less that comes only from
 rounding is not reported. It reports what a student would write down wrongly —
 a wrong factor, period, rate or treatment.
 
+## Add or edit — like Claude.ai
+
+The line above **Send** says what Send will do, read from the words typed:
+
+- **Will add** — "add a question", "one more", "solve Illustration 8",
+  "append to the same artifact": a new question goes at the end.
+- **Will edit** — "change", "fix", "remove", "correct", "use str_replace to…",
+  "add a hint to Illustration 6": the page is changed in place. Gemini is
+  shown the page with each block numbered and sends back only the blocks it
+  changed; the rest stay exactly as they are, hand edits included. An answer
+  that does not say which block it changed is refused, and the page is left
+  alone.
+- **Will show** — "display the full merged HTML" on its own opens the Code
+  tab. Nothing is sent to Gemini: the app always keeps the merged document.
+
+Click the line to switch Add and Edit for that one message.
+
+"Remove Illustration 7" or "remove the last question" is done by the app
+itself — free, instant, and it cannot touch anything else.
+
+### Cards and Retry
+
+The chat shows a short card for each answer — **Illustration 7 added ·
+Verified ✓** — instead of the whole answer: the answer is the page on the
+right. Clicking the card shows the Preview. A mismatch or an unclear
+verification is still written out in full under the card.
+
+**↻ Retry** under the last answer puts the page back as it was before that
+answer and sends the same message again. The answer it replaces stays in the
+versions.
+
 ## Chapters and documents
 
 The sidebar is a two-level tree. A **chapter** holds **documents**; a document
@@ -173,16 +208,16 @@ is one HTML page, its PDF, and the conversation that produced it.
 
 Each answer appends to the open document as a new `.page-block`, so one chapter
 becomes one HTML file and one PDF. Manual edits in the editor survive later
-appends. Under the editor, two cards open the PDF and the HTML.
+appends. **Open PDF** in the header opens the PDF; **▾** opens the HTML.
 
 The PDF is made for you as soon as an answer lands, and again whenever you
-apply an edit, so the card is current without your doing anything. It takes a
+apply an edit, so Open PDF is current without your doing anything. It takes a
 couple of seconds, runs in the background, and costs nothing — Chromium is on
 your own machine. Turn it off in **Settings > Make the PDF automatically after
-each answer**, and then **▾ > Save as PDF** makes it on demand.
+each answer**, and then **Make PDF** makes it on demand.
 
 If the PDF is open in your reader, Windows locks it and the status bar says so
-in red — close it and apply again, or use **▾ > Save as PDF**.
+in red — close it and apply again, or press **Make PDF**.
 
 Closing the window while a PDF is still rendering waits for it — the status bar
 says "Finishing the PDF before closing...". Without that wait, Chromium's Node
@@ -224,8 +259,8 @@ document: every answer is added after the ones before it.
 ### The PDF goes out of date
 
 With the automatic render switched off, adding a question rewrites the HTML but
-leaves the old PDF on disk. The card then reads **"PDF — out of date"** in red,
-and opening it asks first. Use **▾ > Save as PDF** to remake it.
+leaves the old PDF on disk. The button then reads **"Open PDF — out of date"** in red,
+and opening it asks first. Press **Make PDF** to remake it.
 
 If the PDF is open in your reader, Windows will not let it be overwritten. The
 app checks before rendering and tells you to close it, rather than failing
@@ -243,6 +278,7 @@ several seconds later with a Chromium error.
             document.html
             document.pdf
             conversation.json
+            versions/            v1.html, v2.html ... versions.json
 ```
 
 Work from the previous version is copied into a chapter called
@@ -277,7 +313,7 @@ and documents live elsewhere and are never touched.
 python tests\run_all.py
 ```
 
-Six groups, about five seconds, and it prints `ALL PASS` or names what broke.
+Nine groups, about ten seconds, and it prints `ALL PASS` or names what broke.
 It runs against a throwaway folder, sends nothing to Gemini and costs nothing,
 so it can be run as often as you like — after any change, before any class.
 
@@ -288,7 +324,8 @@ so it can be run as often as you like — after any change, before any class.
 | a whole answer | clean answer in, house-style page out, named, saved |
 | a weak model | reciting, looping and chatty verdicts all handled |
 | an older document | old stylesheet spotted, swapped, questions kept |
-| the window | every control reachable, cards honest, no white |
+| the window | every control reachable, PDF buttons honest, no white |
+| like Claude.ai | add or edit, versions, cards, Retry, the Claude phrases |
 | the printed page | A4, selectable text, `#C8C8C8` throughout, answer never stranded |
 | the updater | every file listed; a bad download never replaces a good one |
 
