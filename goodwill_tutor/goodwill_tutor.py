@@ -1272,6 +1272,8 @@ def submit(text, files, intent, local=True):
         number = prompts.number_request(text)
         if number:
             return number_question(text, number)
+        if prompts._DATE_ASK.match(text):
+            return change_date(text)
 
     model = selected_model()
     if not model:
@@ -1487,6 +1489,46 @@ def retry_last():
     say("Retrying — the page is back to how it was before that answer. "
         "That answer is kept as a version.", "note")
     submit(turn["text"], turn["files"], turn["intent"])
+
+
+def _local_turn(text):
+    """Chat bubble, label and Retry bookkeeping for an edit made here."""
+    global last_turn
+    _drop_retry()
+    _user_bubble(text, [])
+    chat.config(state=tk.NORMAL)
+    chat.insert(tk.END, "  Goodwill  ", "ai_label")
+    chat.insert(tk.END, "\n", "spacer")
+    chat.mark_set("stream_start", "end-1c")
+    chat.mark_gravity("stream_start", tk.LEFT)
+    chat.config(state=tk.DISABLED)
+    last_turn = {"text": text, "files": [], "intent": "edit",
+                 "history": len(conversation_history), "html": last_full_html,
+                 "blocks": list(doc_blocks), "version": version_at}
+
+
+def change_date(text):
+    """Change the date in the header — the model never sees the header."""
+    global last_full_html, doc_blocks
+    when = prompts.date_request(text, datetime.now().date())
+    _local_turn(text)
+    if when is None:
+        put_card("Date unchanged", verdict_note="could not read that date — try  change the date to 25 September")
+        set_status("Date not understood — nothing changed.", RED)
+        return True
+    before = last_full_html
+    last_full_html = hs.set_header_date(last_full_html, when)
+    if last_full_html == before:
+        put_card("Date unchanged", verdict_note="it already reads that way")
+        return True
+    stamp = hs.today_stamp(when)
+    save_current(html=last_full_html, blocks=doc_blocks)
+    record_version(f"Date set to {stamp}", before)
+    refresh_artifact()
+    put_card(f"Date set to {stamp}", verdict_note="done here, free — nothing sent to Gemini")
+    set_status(f"Date set to {stamp} — free.", GREEN)
+    auto_pdf(keep_status=True)
+    return True
 
 
 def number_question(text, number):

@@ -463,7 +463,8 @@ def read_request(text, has_document, has_files=False):
     text = text or ""
     if not has_document:
         return "add"
-    if top_bar_request(text) or number_request(text) or removal_target(text):
+    if (top_bar_request(text) or number_request(text) or removal_target(text)
+            or _DATE_ASK.match(text)):
         return "edit"                     # done by the app itself, free
     if _ADD.search(text):
         return "add"
@@ -551,6 +552,56 @@ def number_request(text):
     if word not in _WORD_OF:
         word = word.rstrip("s")
     return (_WORD_OF.get(word, word.title()), found.group(2))
+
+
+_MONTHS = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"]
+_DATE_ASK = _re.compile(
+    r"^\s*(?:please\s+)?(?:change|set|make|put|update|correct|fix)\s+(?:the\s+)?"
+    r"(?:header\s+)?date(?:\s+in\s+the\s+header)?\s*(?:to|as|:)\s*(.+?)\s*\.?\s*$", _re.I)
+
+
+def date_request(text, today):
+    """The date asked for in "change the date to 25th sept", or None.
+
+    today : a datetime.date, for "today", "tomorrow" and a missing year.
+    """
+    import datetime
+    found = _DATE_ASK.match(text or "")
+    if not found:
+        return None
+    words = found.group(1).lower().replace(",", " ")
+    if words.strip() in ("today", "todays date", "today's date"):
+        return today
+    if words.strip() == "tomorrow":
+        return today + datetime.timedelta(days=1)
+    if words.strip() == "yesterday":
+        return today - datetime.timedelta(days=1)
+    day = month = None
+    year = today.year
+    named = _re.search(r"\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\b", words)
+    if named:
+        month = _MONTHS.index(named.group(1)) + 1
+        rest = words[:named.start()] + " " + words[named.end():]
+        numbers = _re.findall(r"\d+", rest)
+        for n in numbers:
+            n = int(n)
+            if n > 31:
+                year = n if n > 999 else 2000 + n
+            elif day is None:
+                day = n
+    else:
+        parts = _re.match(r"^\s*(\d{1,2})\s*[/.-]\s*(\d{1,2})(?:\s*[/.-]\s*(\d{2,4}))?\s*$", words)
+        if parts:                        # Indian order: day / month / year
+            day, month = int(parts.group(1)), int(parts.group(2))
+            if parts.group(3):
+                year = int(parts.group(3))
+                year = year if year > 999 else 2000 + year
+    if day is None or month is None:
+        return None
+    try:
+        return datetime.date(year, month, day)
+    except ValueError:
+        return None
 
 
 def removal_target(text):

@@ -26,10 +26,18 @@ INSTITUTE_PHONE = "9567902805"
 INSTITUTE_WEBSITE = "goodwilltuitioncentre.in"
 
 
-def today_stamp():
+def today_stamp(d=None):
     """RULE 11 — 'd Month YYYY', no ordinal, no comma, full month, 4-digit year."""
-    d = date.today()
+    d = d or date.today()
     return f"{d.day} {d.strftime('%B')} {d.year}"
+
+
+_HEADER_DATE = re.compile(r'(<div class="date">)(.*?)(</div>)', re.I | re.S)
+
+
+def set_header_date(html, when):
+    """Put this date in the document header — the one date on the page."""
+    return _HEADER_DATE.sub(lambda m: m.group(1) + today_stamp(when) + m.group(3), html, count=1)
 
 
 # ═══════════════════════════════════════════════════════════════

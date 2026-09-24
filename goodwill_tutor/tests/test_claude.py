@@ -198,6 +198,19 @@ r.check("renumbered to Illustration 9", 'Illustration <span class="num">9</span>
 r.check("the old number is gone", 'Illustration <span class="num">8</span>.' in app.last_full_html, False)
 r.check("still no call", state["calls"], calls + 1)
 
+# ── 9f. the header date is changed here, free ──────────────────────────
+import datetime
+calls = state["calls"]
+ask("change the date to 25th sept")
+year = datetime.date.today().year
+r.check("the header shows 25 September", f'<div class="date">25 September {year}</div>' in app.last_full_html)
+r.check("no call for the date", state["calls"], calls)
+d = app.prompts.date_request
+today = datetime.date(2026, 9, 24)
+r.check("'25/9/2026' is 25 September", d("set the date to 25/9/2026", today), datetime.date(2026, 9, 25))
+r.check("'tomorrow' is read", d("change the date to tomorrow", today), datetime.date(2026, 9, 25))
+r.check("'sept 25 2027' is read", d("change the date to sept 25, 2027", today), datetime.date(2027, 9, 25))
+
 # ── 10. reopening the document shows cards, not the whole answers ───────
 app.open_document(app.current_chapter, app.current_doc)
 text = chat_text()
