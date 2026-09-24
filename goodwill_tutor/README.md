@@ -344,6 +344,14 @@ they move to the next page together. On paper the last block carries no bottom
 margin: nothing follows it, and that gap was enough to push the answer over
 alone with room still left on the page.
 
+### The question number stays with its question
+
+`Illustration 7.` is kept on the same page as the first sentence of its
+question (approved by the teacher, 24 Sept 2026). Without it, a question that
+began near the foot of a page printed its number alone as the page's last line.
+The rule is `break-before: avoid` on that first sentence — no forced break,
+and nothing held together but those two lines.
+
 Lines holding a stacked fraction get extra space above and below, since a
 fraction is two lines tall inside one. The body stays at line-height 1.5.
 

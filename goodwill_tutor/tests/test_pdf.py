@@ -118,4 +118,23 @@ for lines in range(18, 22):
 r.check("the final answer is never alone on a page", stranded, [])
 r.check("no blank page is left at the end", blank, [])
 
+# ── the question number never ends a page on its own ────────────────────
+# At 35 lines of earlier working, "Illustration 9." printed as the last line
+# of page one and its question began page two.
+QUESTION = ('<div class="q"><span class="qno">Illustration <span class="num">9</span>.</span>'
+            '<span>Find the present value of Rs. 66,550 receivable after three years.</span>'
+            '<span>The rate of interest is 10% per annum.</span></div>')
+alone = []
+for lines in range(33, 38):
+    filler = "".join(f'<div class="notes"><span>Line {i} of the earlier working.</span></div>'
+                     for i in range(lines))
+    path = os.path.join(folder, f"qno{lines}.html")
+    with open(path, "w", encoding="utf-8") as fh:
+        fh.write(hs.wrap_document([f'<div class="page-block">{filler}{QUESTION}</div>']))
+    doc = pdfium.PdfDocument(pdf_export.html_to_pdf(path))
+    for i in range(len(doc)):
+        if doc[i].get_textpage().get_text_range().strip().endswith("Illustration 9."):
+            alone.append(lines)
+r.check("the question number stays with its question", alone, [])
+
 sys.exit(r.finish())

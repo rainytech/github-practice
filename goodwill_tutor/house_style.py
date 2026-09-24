@@ -124,6 +124,14 @@ table.wn tr,
   page-break-before: avoid;
 }
 
+/* Keep the question number on the same page as its question text — approved
+   by the teacher, 24 Sept 2026. The sentence after the number refuses a break
+   before it, so "Illustration 7." never ends a page on its own. */
+.q > .qno + span {
+  break-before:      avoid;
+  page-break-before: avoid;
+}
+
 @media screen {
   .page-block + .page-block {
     margin-top:  40px;
