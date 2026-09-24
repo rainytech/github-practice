@@ -535,6 +535,7 @@ def top_bar_request(text):
 
 _NUMBER_IT = _re.compile(
     r"^\s*(?:please\s+)?(?:(?:re)?number\s+it|rename\s+it|renumber\s+it|call\s+it|it\s+is|make\s+it|"
+    r"(?:rename|renumber)(?:\s+(?:the|this))?(?:\s+(?:question|illustration))?(?:\s+(?:as|to))?|"
     r"(?:add|put|change|set)\s+(?:the\s+)?(?:question\s+)?number(?:\s+to)?)\s*(?:as|to|:)?\s*"
     r"(illustrations?|illus\.?|ill\.?|questions?|q\.?|problems?|exercises?|examples?|ex\.?)?"
     r"\s*(?:no\.?\s*)?(\d+[a-z]?)\s*\.?\s*$", _re.I)

@@ -1420,7 +1420,17 @@ def set_qno(block, word, number):
 def figures(html):
     """Every figure on the page, in order — what an edit is checked against."""
     body = re.search(r"<body[^>]*>", html or "", re.I)
-    return _FIGURE.findall(_words((html or "")[body.end() if body else 0:]))
+    text = (html or "")[body.end() if body else 0:]
+    # The question number and the top bar's page are labels, not figures:
+    # renumbering a question is not a change to its working.
+    for opener in (_QNO_OPEN, _PGREF_OPEN):
+        while True:
+            found = opener.search(text)
+            end = _span_close(text, found.start()) if found else -1
+            if end < 0:
+                break
+            text = text[:found.start()] + text[end:]
+    return _FIGURE.findall(_words(text))
 
 
 def teacher_pgrefs(body, instruction):

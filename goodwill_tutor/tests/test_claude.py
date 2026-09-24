@@ -193,6 +193,14 @@ r.check("the missing number is pointed out", "left out the question number" in c
 ask("number it Illustration 8")
 r.check("the number is put in", 'Illustration <span class="num">8</span>.' in app.last_full_html)
 r.check("only one call — the solve, not the numbering", state["calls"], calls + 1)
+r.check("'rename illustration no. 10' is read",
+        app.prompts.number_request("rename illustration no. 10"), (None, "10"))
+r.check("'rename the question to 4' is read",
+        app.prompts.number_request("rename the question to 4"), (None, "4"))
+page = app.last_full_html
+r.check("a new question number is not a changed figure",
+        app.hs.figures(page) == app.hs.figures(page.replace('<span class="num">8</span>',
+                                                            '<span class="num">10</span>')))
 ask("rename it illus 9")
 r.check("renumbered to Illustration 9", 'Illustration <span class="num">9</span>.' in app.last_full_html)
 r.check("the old number is gone", 'Illustration <span class="num">8</span>.' in app.last_full_html, False)
