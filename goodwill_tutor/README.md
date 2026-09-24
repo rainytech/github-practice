@@ -182,8 +182,13 @@ The line above **Send** says what Send will do, read from the words typed:
 
 Click the line to switch Add and Edit for that one message.
 
-"Remove Illustration 7" or "remove the last question" is done by the app
-itself — free, instant, and it cannot touch anything else.
+"Remove Illustration 7", "remove the last question", "remove the book name
+and page from the top bar", "change the book name to P.K. Lazar, Pg. 43" and
+"set the page to 43" are done by the app itself — free, instant, and they
+cannot touch anything else. Sent to Gemini, the top-bar one cost 23 paise.
+
+An edit is verified again only when it changes a figure. Rewording a sentence
+or fixing a title costs the edit alone, not the edit and a second check.
 
 ### The book and page in the top bar
 

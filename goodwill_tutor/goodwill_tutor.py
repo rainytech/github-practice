@@ -1266,6 +1266,9 @@ def submit(text, files, intent, local=True):
         target = prompts.removal_target(text)
         if target:
             return remove_question(text, target)
+        bar = prompts.top_bar_request(text)
+        if bar:
+            return edit_top_bar(text, bar)
 
     model = selected_model()
     if not model:
@@ -1360,7 +1363,16 @@ def submit(text, files, intent, local=True):
             conversation_history.append({"role": "model", "parts": [{"text": answer}]})
 
             verdict, v_cost = "", None
-            if SETTINGS.get("verify") and active_mode_key() == "solve" and not stop_event.is_set():
+            check = SETTINGS.get("verify") and active_mode_key() == "solve"
+            if check and intent == "edit":
+                # An edit that changes no figure has nothing to verify, and the
+                # check would cost as much again as the edit itself.
+                try:
+                    edited, _, _ = hs.apply_edits(snapshot_html, api.strip_code_fence(answer))
+                    check = hs.figures(edited) != hs.figures(snapshot_html)
+                except hs.EditError:
+                    check = False
+            if check and not stop_event.is_set():
                 checker = verify_model_for(model)
                 note = ("Verifying..." if checker == model
                         else f"Verifying with {checker}...")
@@ -1472,6 +1484,55 @@ def retry_last():
     say("Retrying — the page is back to how it was before that answer. "
         "That answer is kept as a version.", "note")
     submit(turn["text"], turn["files"], turn["intent"])
+
+
+def edit_top_bar(text, request):
+    """Change the book or page in the top bar without asking the model."""
+    global last_full_html, doc_blocks, last_turn
+    spans = hs.block_spans(last_full_html)
+    which = request["which"]
+    if which:
+        want = f"{which[0]} {which[1]}".lower()
+        spans = [(a, b) for a, b in spans
+                 if hs.question_label(last_full_html[a:b]).lower() == want]
+        if not spans:
+            return submit(text, [], "edit", local=False)
+    before = last_full_html
+    html = last_full_html
+    for a, b in reversed(spans):
+        block = html[a:b]
+        book, page = hs.read_pgref(block)
+        book = book if request["book"] is None else request["book"]
+        page = page if request["page"] is None else request["page"]
+        if book and not page:
+            page = ""                    # a book with no page is not printed
+        html = html[:a] + hs.set_pgref(block, book, page) + html[b:]
+    _drop_retry()
+    _user_bubble(text, [])
+    chat.config(state=tk.NORMAL)
+    chat.insert(tk.END, "  Goodwill  ", "ai_label")
+    chat.insert(tk.END, "\n", "spacer")
+    chat.mark_set("stream_start", "end-1c")
+    chat.mark_gravity("stream_start", tk.LEFT)
+    chat.config(state=tk.DISABLED)
+    if html == before:
+        note = ("a book prints only with its page — give the page too"
+                if request["book"] and request["page"] is None else "it already reads that way")
+        put_card("Top bar unchanged", verdict_note=note)
+        set_status("Nothing to change.", TEXT)
+        return True
+    last_turn = {"text": text, "files": [], "intent": "edit",
+                 "history": len(conversation_history), "html": before,
+                 "blocks": list(doc_blocks), "version": version_at}
+    last_full_html = html
+    doc_blocks = hs.blocks_of(html)
+    save_current(html=last_full_html, blocks=doc_blocks)
+    record_version("Top bar edited", before)
+    refresh_artifact()
+    put_card("Top bar edited", verdict_note="done here, free — nothing sent to Gemini")
+    set_status("Top bar edited — free.", GREEN)
+    auto_pdf(keep_status=True)
+    return True
 
 
 def remove_question(text, target):

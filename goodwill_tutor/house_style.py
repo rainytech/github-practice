@@ -1331,6 +1331,44 @@ def _letters(text):
     return re.sub(r"[^a-z0-9]", "", html_lib.unescape(_TAG.sub("", text or "")).lower())
 
 
+def _pgref_at(block):
+    """(start, end) of the top bar's pgref span, or None."""
+    found = _PGREF_OPEN.search(block or "")
+    end = _span_close(block, found.start()) if found else -1
+    return (found.start(), end) if found and end > 0 else None
+
+
+def read_pgref(block):
+    """(book, page) as the top bar prints them — "" for either that is absent."""
+    at = _pgref_at(block)
+    if not at:
+        return "", ""
+    inner = block[at[0]:at[1]]
+    inner = inner[inner.index(">") + 1:-len("</span>")]
+    text = re.sub(r"\s+", " ", html_lib.unescape(_TAG.sub("", inner))).strip()
+    page = _PG_MARK.search(text)
+    book = text.split("|", 1)[0].strip(" .|—-") if "|" in text else ""
+    return book, (page.group(2) if page else "")
+
+
+def set_pgref(block, book, page):
+    """Write the top bar's book and page. With no page, the pgref goes."""
+    at = _pgref_at(block)
+    if not page:
+        return block[:at[0]] + block[at[1]:] if at else block
+    new = ('<span class="pgref">' + (f"{html_lib.escape(book)} | " if book else "")
+           + f'Pg. <span class="num">{html_lib.escape(page)}</span></span>')
+    if at:
+        return block[:at[0]] + new + block[at[1]:]
+    bar = _TOPBAR_OPEN.search(block or "")
+    if bar:
+        close = _div_end(block, bar.start())
+        if close > 0:
+            inside = block.rfind("</div>", 0, close)
+            return block[:inside] + new + block[inside:]
+    return block
+
+
 def teacher_pgref(block, instruction):
     """The top bar's book and page, as the teacher gave them — or nothing.
 
@@ -1341,31 +1379,17 @@ def teacher_pgref(block, instruction):
       - a page                   -> "Pg. <his page>"
       - and a book he named      -> "<book> | Pg. <his page>"
     """
-    found = _PGREF_OPEN.search(block or "")
-    end = _span_close(block, found.start()) if found else -1
     page = _TEACHER_PAGE.search(instruction or "")
-    book = ""
-    if found and end > 0:
-        inner = block[found.end():end - len("</span>")]
-        before = re.split(r"\|", inner, maxsplit=1)[0] if "|" in inner else ""
-        name = re.sub(r"\s+", " ", html_lib.unescape(_TAG.sub("", before))).strip(" .|—-")
-        if name and _letters(name) and _letters(name) in _letters(instruction):
-            book = name
-    if not page:
-        if found and end > 0:
-            block = block[:found.start()] + block[end:]
-        return block
-    new = ('<span class="pgref">' + (f"{html_lib.escape(book)} | " if book else "")
-           + f'Pg. <span class="num">{page.group(1)}</span></span>')
-    if found and end > 0:
-        return block[:found.start()] + new + block[end:]
-    bar = _TOPBAR_OPEN.search(block or "")
-    if bar:
-        close = _div_end(block, bar.start())
-        if close > 0:
-            inside = block.rfind("</div>", 0, close)
-            return block[:inside] + new + block[inside:]
-    return block
+    book, _ = read_pgref(block)
+    if not (book and _letters(book) and _letters(book) in _letters(instruction)):
+        book = ""
+    return set_pgref(block, book, page.group(1) if page else "")
+
+
+def figures(html):
+    """Every figure on the page, in order — what an edit is checked against."""
+    body = re.search(r"<body[^>]*>", html or "", re.I)
+    return _FIGURE.findall(_words((html or "")[body.end() if body else 0:]))
 
 
 def teacher_pgrefs(body, instruction):

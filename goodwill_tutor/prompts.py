@@ -487,6 +487,49 @@ _REMOVE_ONE = _re.compile(
     r"problem|exercise|example)\s*(?:no\.?\s*)?(\d+[a-z]?)\s*\.?\s*$", _re.I)
 
 
+_PG_WORDS = (r"(?:book(?:\s+name)?|author|page(?:\s+(?:number|no\.?))?|pg\.?|"
+             r"page\s+reference|reference|pgref)")
+_WHICH = r"(?:\s+(?:of|in|from|for)\s+(?:the\s+)?(illustration|question|problem|exercise|example)\s*(?:no\.?\s*)?(\d+[a-z]?))?"
+_PG_CLEAR = _re.compile(
+    rf"^\s*(?:please\s+)?(?:remove|delete|clear|drop|hide|take\s+out)\s+(?:the\s+)?{_PG_WORDS}"
+    rf"(?:\s*(?:and|&|,)\s*(?:the\s+)?{_PG_WORDS})*"
+    rf"(?:\s+(?:from|in|on|of)\s+(?:the\s+)?top.?bar)?{_WHICH}\s*\.?\s*$", _re.I)
+_PG_SET = _re.compile(
+    r"^\s*(?:please\s+)?(?:change|set|make|put|update|correct|fix)\s+(?:the\s+)?"
+    r"(book(?:\s+name)?(?:\s+and\s+(?:the\s+)?page(?:\s+number)?)?|top.?bar|"
+    rf"page(?:\s+number)?|pg\.?){_WHICH}\s+(?:to|as|:)\s+(.+?)\s*\.?\s*$", _re.I)
+_PAGE_IN = _re.compile(r"\b(?:pg|page|p)\b\.?\s*(?:no\.?\s*)?(\d+(?:\.\d+)*[A-Za-z]?)", _re.I)
+
+
+def top_bar_request(text):
+    """A change to the top bar's book or page the app can make itself, or None.
+
+    Returns {"book", "page", "which"}: book/page None = keep as it is,
+    "" = remove; which = ("Illustration", "6") or None for every question.
+    Sending the page to Gemini for this cost 23 paise; done here it is free.
+    """
+    found = _PG_CLEAR.match(text or "")
+    if found:
+        which = (found.group(1).title(), found.group(2)) if found.group(1) else None
+        words = (text or "").lower()
+        book_only = "book" in words and not _re.search(r"\b(?:page|pg)\b", words)
+        return {"book": "", "page": None if book_only else "", "which": which}
+    found = _PG_SET.match(text or "")
+    if not found:
+        return None
+    what, which_word, which_no, rest = found.groups()
+    which = (which_word.title(), which_no) if which_word else None
+    page = _PAGE_IN.search(rest)
+    if page:
+        book = rest[:page.start()].strip(" ,;|—-")
+        return {"book": book or None, "page": page.group(1), "which": which}
+    if what.lower().startswith(("page", "pg")) and _re.fullmatch(r"\d+(?:\.\d+)*[A-Za-z]?", rest):
+        return {"book": None, "page": rest, "which": which}
+    if what.lower().startswith("book"):
+        return {"book": rest.strip(" ,;|—-"), "page": None, "which": which}
+    return None
+
+
 def removal_target(text):
     """"last", ("Illustration", "7"), or None — a removal the app can do itself.
 

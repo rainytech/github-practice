@@ -159,6 +159,31 @@ r.check("the edit is made", "Rs. 60,000" in app.last_full_html)
 r.check("but a border Gemini put on the block is not kept",
         'style="border' in app.last_full_html, False)
 
+# ── 9c. the top bar's book and page are changed here, free ──────────────
+calls = state["calls"]
+checks = []
+real_generate = app.api.generate
+app.api.generate = lambda *a, **k: (checks.append(1), real_generate(*a, **k))[1]
+ask("change the book name to P.K. Lazar, Pg. 43")
+r.check("book and page set", 'P.K. Lazar | Pg. <span class="num">43</span>' in app.last_full_html)
+ask("remove the book name and page from the top bar")
+r.check("book and page removed", 'class="pgref"' in app.last_full_html, False)
+r.check("card: Top bar edited", "Top bar edited" in chat_text())
+r.check("neither sent anything to Gemini", state["calls"], calls)
+
+# ── 9d. an edit that changes no figure is not verified again ────────────
+kept = app.last_full_html
+state["reply"] = "<!-- block 1 -->\n" + app.hs.blocks_of(kept)[0].replace(
+    "Find the present value", "Calculate the present value")
+ask("change 'Find' to 'Calculate' in Illustration 6")
+r.check("the wording edit is made", "Calculate the present value" in app.last_full_html)
+r.check("no verification call for it", len(checks), 0)
+state["reply"] = "<!-- block 1 -->\n" + app.hs.blocks_of(app.last_full_html)[0].replace(
+    "60,000", "61,000")
+ask("fix the amount in Illustration 6")
+r.check("an edit that changes a figure is verified", len(checks), 1)
+app.api.generate = real_generate
+
 # ── 10. reopening the document shows cards, not the whole answers ───────
 app.open_document(app.current_chapter, app.current_doc)
 text = chat_text()
