@@ -63,6 +63,23 @@ r.check("broken Python is refused", refused(b"def broken(:\n"))
 r.check("good Python is accepted", refused(b"x = 1\n"), False)
 r.check("a text file is not compiled", refused(b"plain words\n", "notes.txt"), False)
 
+# ── a new updater runs in place of the old one ──────────────────────────
+folder = sandbox()
+update.HERE = folder
+open(os.path.join(folder, "update.py"), "wb").write(b"FILES = []  # the old list\n")
+ran = []
+update.latest = lambda: (None, None)
+update.fetch = lambda name: b"FILES = ['new.py']\n"
+update.subprocess.run = lambda cmd, cwd=None, env=None: (
+    ran.append((cmd[-1], env.get(update.RESTARTED))) or type("Done", (), {"returncode": 0})())
+os.environ.pop(update.RESTARTED, None)
+code = update.main()
+r.check("a changed updater is installed first",
+        open(os.path.join(folder, "update.py"), "rb").read(), b"FILES = ['new.py']\n")
+r.check("and the new copy is run, with its own list",
+        ran, [(os.path.join(folder, "update.py"), "1")])
+r.check("the old copy stops there", code, 0)
+
 # ── installing replaces in one step ─────────────────────────────────────
 folder = sandbox()
 update.HERE = folder

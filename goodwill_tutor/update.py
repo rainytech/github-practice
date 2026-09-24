@@ -27,6 +27,9 @@ API = f"https://api.github.com/repos/rainytech/github-practice/commits/{BRANCH}"
 # commit's. The branch name is the fallback when the commit cannot be looked up.
 BASE = RAW.format(BRANCH)
 VERSION_FILE = "VERSION"
+# Set when this script has replaced itself and started the new copy, so the new
+# copy does not do it again.
+RESTARTED = "GOODWILL_UPDATE_RESTARTED"
 
 # Every file, in one place, so nothing can be forgotten the way a hand-typed
 # list of curl lines forgot tests/test_restyle.py.
@@ -110,6 +113,22 @@ def main():
         print(f"  Latest version: {sha[:7]}, {date.replace('T', ' ').rstrip('Z')} UTC\n")
     else:
         print("  Could not ask GitHub for the latest version; using the branch.\n")
+    # update.py goes first. The list below is the OLD copy's list: run on as
+    # it is, a file added since — tests/test_claude.py — is never fetched, and
+    # the tests then report it missing. A new updater is installed and run in
+    # this one's place, so the new list is the one used.
+    if not os.environ.get(RESTARTED):
+        try:
+            data = fetch("update.py")
+        except RuntimeError:
+            data = None
+        path = os.path.join(HERE, "update.py")
+        if data is not None and open(path, "rb").read() != data:
+            install("update.py", data)
+            print("  update.py                   updated — starting the new copy\n")
+            env = dict(os.environ, **{RESTARTED: "1"})
+            return subprocess.run([sys.executable, path], cwd=HERE, env=env).returncode
+
     changed, same, failed = [], [], []
     for name in FILES:
         print(f"  {name:<28}", end="", flush=True)
