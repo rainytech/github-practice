@@ -184,6 +184,16 @@ ask("fix the amount in Illustration 6")
 r.check("an edit that changes a figure is verified", len(checks), 1)
 app.api.generate = real_generate
 
+# ── 9e. a question Gemini left unnumbered is numbered here, free ────────
+calls = state["calls"]
+state["reply"] = block(8, "2,00,000").replace(
+    '<span class="qno">Illustration <span class="num">8</span>.</span>', "")
+ask("solve the next question")
+r.check("the missing number is pointed out", "left out the question number" in chat_text())
+ask("number it Illustration 8")
+r.check("the number is put in", 'Illustration <span class="num">8</span>.' in app.last_full_html)
+r.check("only one call — the solve, not the numbering", state["calls"], calls + 1)
+
 # ── 10. reopening the document shows cards, not the whole answers ───────
 app.open_document(app.current_chapter, app.current_doc)
 text = chat_text()

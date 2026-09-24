@@ -1269,6 +1269,9 @@ def submit(text, files, intent, local=True):
         bar = prompts.top_bar_request(text)
         if bar:
             return edit_top_bar(text, bar)
+        number = prompts.number_request(text)
+        if number:
+            return number_question(text, number)
 
     model = selected_model()
     if not model:
@@ -1484,6 +1487,41 @@ def retry_last():
     say("Retrying — the page is back to how it was before that answer. "
         "That answer is kept as a version.", "note")
     submit(turn["text"], turn["files"], turn["intent"])
+
+
+def number_question(text, number):
+    """Give the unnumbered question its number, without asking the model."""
+    global last_full_html, doc_blocks, last_turn
+    spans = [(a, b) for a, b in hs.block_spans(last_full_html)
+             if not hs.question_label(last_full_html[a:b])]
+    if not spans:
+        return submit(text, [], "edit", local=False)
+    a, b = spans[-1]                     # the latest question without one
+    before = last_full_html
+    block = hs.set_qno(last_full_html[a:b], *number)
+    if block == last_full_html[a:b]:
+        return submit(text, [], "edit", local=False)
+    _drop_retry()
+    _user_bubble(text, [])
+    chat.config(state=tk.NORMAL)
+    chat.insert(tk.END, "  Goodwill  ", "ai_label")
+    chat.insert(tk.END, "\n", "spacer")
+    chat.mark_set("stream_start", "end-1c")
+    chat.mark_gravity("stream_start", tk.LEFT)
+    chat.config(state=tk.DISABLED)
+    last_turn = {"text": text, "files": [], "intent": "edit",
+                 "history": len(conversation_history), "html": before,
+                 "blocks": list(doc_blocks), "version": version_at}
+    last_full_html = last_full_html[:a] + block + last_full_html[b:]
+    doc_blocks = hs.blocks_of(last_full_html)
+    label = f"{number[0]} {number[1]}"
+    save_current(html=last_full_html, blocks=doc_blocks)
+    record_version(f"{label} numbered", before)
+    refresh_artifact()
+    put_card(f"{label} numbered", verdict_note="done here, free — nothing sent to Gemini")
+    set_status(f"{label} numbered — free.", GREEN)
+    auto_pdf(keep_status=True)
+    return True
 
 
 def edit_top_bar(text, request):
@@ -1768,6 +1806,9 @@ def finish(answer, in_tok, out_tok, cached_tok, elapsed, model, verdict, v_cost=
         body = hs.teacher_pgrefs(body, last_turn["text"] if last_turn else "")
         last_body = body
         title = card_title(body, "added")
+        if active_mode_key() == "solve" and not hs.question_label(body):
+            notes.append(("Gemini left out the question number. Type, for example,  "
+                          "number it Illustration 6  and it is put in — free.", "bad"))
 
         doc_blocks.append(body)
         if last_full_html.strip():

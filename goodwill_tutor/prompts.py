@@ -463,6 +463,8 @@ def read_request(text, has_document, has_files=False):
     text = text or ""
     if not has_document:
         return "add"
+    if top_bar_request(text) or number_request(text) or removal_target(text):
+        return "edit"                     # done by the app itself, free
     if _ADD.search(text):
         return "add"
     if _EDIT.search(text):
@@ -528,6 +530,18 @@ def top_bar_request(text):
     if what.lower().startswith("book"):
         return {"book": rest.strip(" ,;|—-"), "page": None, "which": which}
     return None
+
+
+_NUMBER_IT = _re.compile(
+    r"^\s*(?:please\s+)?(?:number\s+it|add\s+(?:the\s+)?(?:question\s+)?number|"
+    r"put\s+(?:the\s+)?(?:question\s+)?number|it\s+is|call\s+it)\s*(?:as|:)?\s*"
+    r"(illustration|question|problem|exercise|example)\s*(?:no\.?\s*)?(\d+[a-z]?)\s*\.?\s*$", _re.I)
+
+
+def number_request(text):
+    """("Illustration", "6") for "number it Illustration 6", else None."""
+    found = _NUMBER_IT.match(text or "")
+    return (found.group(1).title(), found.group(2)) if found else None
 
 
 def removal_target(text):

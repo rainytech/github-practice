@@ -184,7 +184,7 @@ Click the line to switch Add and Edit for that one message.
 
 "Remove Illustration 7", "remove the last question", "remove the book name
 and page from the top bar", "change the book name to P.K. Lazar, Pg. 43" and
-"set the page to 43" are done by the app itself — free, instant, and they
+"set the page to 43" and "number it Illustration 6" are done by the app itself — free, instant, and they
 cannot touch anything else. Sent to Gemini, the top-bar one cost 23 paise.
 
 An edit is verified again only when it changes a figure. Rewording a sentence
@@ -197,6 +197,9 @@ They print only when you type them. "solve it — P.K. Lazar, Pg. 43" prints
 the top bar shows the topic alone. Whatever Gemini writes there is checked
 against your message, so a book it guesses — or reads off the scan — is never
 printed.
+
+A small model sometimes leaves out the question number. The chat says so under
+the card; "number it Illustration 6" puts it in, free.
 
 ### Cards and Retry
 

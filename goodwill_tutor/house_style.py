@@ -1386,6 +1386,23 @@ def teacher_pgref(block, instruction):
     return set_pgref(block, book, page.group(1) if page else "")
 
 
+_Q_OPEN = re.compile(r'<div\b[^>]*class\s*=\s*"q"[^>]*>', re.I)
+
+
+def set_qno(block, word, number):
+    """Put "Illustration 6." at the head of a question that has no number.
+
+    Returns the block unchanged if it already has one or has no question.
+    """
+    if question_label(block) or 'class="qno"' in block:
+        return block
+    q = _Q_OPEN.search(block or "")
+    if not q:
+        return block
+    qno = f'<span class="qno">{html_lib.escape(word)} <span class="num">{html_lib.escape(number)}</span>.</span>'
+    return block[:q.end()] + qno + block[q.end():]
+
+
 def figures(html):
     """Every figure on the page, in order — what an edit is checked against."""
     body = re.search(r"<body[^>]*>", html or "", re.I)
