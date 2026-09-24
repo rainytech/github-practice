@@ -1617,8 +1617,8 @@ def run_quick(text, kind, match):
 def explain_style(text):
     """Colours and fonts belong to the house style; say so instead of asking Gemini."""
     _local_turn(text)
-    put_card("Nothing changed", verdict_note="colours and fonts come from the house style")
-    say("Colours, fonts, borders and backgrounds are set by the house style "
+    put_card("Nothing changed", verdict_note="the look comes from the house style")
+    say("Colours, fonts, spacing, borders and backgrounds are set by the house style "
         "(house_style.py), not by Gemini — so every page looks the same and the "
         "look cannot drift. Table cells are already #C8C8C8, the page colour; a "
         "table's header row is #BDBDBD.\n\nTo change the look of every page, ask "
@@ -2409,6 +2409,14 @@ meter_label = tk.Label(top, text="", font=("Arial", 9), bg=SIDEBAR, fg=MUTED,
 meter_label.pack(side=tk.RIGHT, padx=10)
 
 # ── body ─────────────────────────────────────────────────────────────
+# The status bar runs along the foot of the whole window. Sat beside Send, a
+# long message was squeezed over "Clear chat" as soon as the chat got narrow.
+status_bar = tk.Frame(root, bg=SIDEBAR)
+status_bar.pack(side=tk.BOTTOM, fill=tk.X)
+status_label = tk.Label(status_bar, text="Ready", font=("Arial", 9), bg=SIDEBAR, fg=MUTED,
+                        anchor="w")
+status_label.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=12, pady=3)
+
 body = tk.Frame(root, bg=BG)
 body.pack(fill=tk.BOTH, expand=True)
 
@@ -2710,8 +2718,6 @@ stop_btn.pack(side=tk.LEFT, padx=6)
 tk.Button(btn_row, text="Clear chat", command=lambda: clear_chat(), font=("Arial", 9),
           bg=BG, fg=MUTED, relief=tk.FLAT).pack(side=tk.LEFT, padx=6)
 
-status_label = tk.Label(btn_row, text="Ready", font=("Arial", 9), bg=BG, fg=MUTED)
-status_label.pack(side=tk.RIGHT)
 
 attach_row = tk.Frame(input_frame, bg=BG)
 attach_row.pack(fill=tk.X, pady=(0, 6))
@@ -2722,9 +2728,10 @@ tk.Button(attach_row, text="Paste  (Ctrl+V)", command=paste_from_clipboard,
           padx=10, cursor="hand2").pack(side=tk.LEFT, padx=5)
 tk.Button(attach_row, text="Clear", command=clear_attachments, font=("Arial", 9),
           bg=BG, fg=MUTED, relief=tk.FLAT).pack(side=tk.LEFT, padx=5)
-attach_label = tk.Label(attach_row, text="No pages attached", font=("Arial", 9),
+attach_label = tk.Label(attach_row, text="No pages attached", font=("Arial", 9), anchor="w",
+                        width=1,
                         bg=BG, fg=MUTED)
-attach_label.pack(side=tk.LEFT, padx=10)
+attach_label.pack(side=tk.LEFT, padx=10, fill=tk.X, expand=True)   # cut at the end, not the middle
 
 entry = tk.Text(input_frame, height=4, wrap=tk.WORD, font=("Georgia", 11),
                 bg=FIELD, fg=TEXT, relief=tk.FLAT, padx=10, pady=8)

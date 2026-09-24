@@ -468,6 +468,8 @@ def read_request(text, has_document, has_files=False):
         return "edit"                     # done by the app itself, free
     if _ADD.search(text):
         return "add"
+    if style_request(text):
+        return "edit"                     # a look, answered by the app
     if _EDIT.search(text):
         return "edit"
     if _ADD_WORD.search(text) and _TARGET.search(text):
@@ -608,6 +610,7 @@ def date_request(text, today):
 _STYLE_ASK = _re.compile(
     r"\b(?:colou?rs?|background|bg|font|fonts|font.?size|bold|italic|underline|border|"
     r"css|style|shade|grey|gray|white|black|red|blue|green|purple|pink|"
+    r"line.?spac\w*|line.?height|spacing|space\s+between|gap\s+between|margin|padding|indent\w*|"
     r"#?[0-9a-f]{6}\b|#[0-9a-f]{3}\b|\d+\s*pt\b)", _re.I)
 _CONTENT_WORDS = _re.compile(r"\b(?:figure|amount|rs\.?|₹|total|answer\s+is|wording|sentence)\b", _re.I)
 

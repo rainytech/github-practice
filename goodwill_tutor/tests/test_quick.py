@@ -170,6 +170,13 @@ app._preview_press(Click(300, 300))
 app._preview_release(Click(300, 300))
 r.check("a plain click clears the selection", app.preview_canvas.find_withtag("picked"), ())
 
+r.check("'more line space between the sentences' is answered free",
+        ask("more line space between the sentences"), "Free")
+r.check("a new question in blue is still a new question",
+        app.prompts.read_request("add one more question in blue", True), "add")
+r.check("the status bar spans the window, not the Send row",
+        app.status_label.master is app.status_bar)
+
 r.check("none of it was sent to Gemini", state["calls"], paid)
 r.check("each change kept a version", versions() > before)
 r.check("a real edit still goes to Gemini", ask("fix the working in Illustration 1"), "Will edit")
