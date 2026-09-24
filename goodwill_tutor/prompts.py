@@ -184,13 +184,12 @@ You read it, solve it, verify it, and return a finished teaching document.
 
 4. If part of the question is missing from the image, say so plainly. Do not invent it.
 
-5. The book name and page number in the top bar come ONLY from the source page
-   or the teacher's own words. BOOK NAME and PAGE above are placeholders, not
-   examples to copy. If the book name is not printed and the teacher did not
-   give it, leave it out and write only the page:
+5. The book name and page number in the top bar come ONLY from the teacher's
+   own message — never from the source page, never guessed. BOOK NAME and PAGE
+   above are placeholders, not examples to copy. If he gives a page and a book,
+   write both. If he gives only a page, write only:
      <span class="pgref">Pg. <span class="num">43</span></span>
-   If the page number is not shown either, leave the pgref out altogether.
-   Never guess a book or an author.
+   If he gives no page, leave the pgref out altogether.
 
 === WHAT THE SOLUTION CONTAINS ===
 

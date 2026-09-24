@@ -1703,6 +1703,8 @@ def finish(answer, in_tok, out_tok, cached_tok, elapsed, model, verdict, v_cost=
 
         if 'class="page-block"' not in body:
             body = f'<div class="page-block">\n{body}\n</div>'
+        # The book and page print only when the teacher typed them.
+        body = hs.teacher_pgrefs(body, last_turn["text"] if last_turn else "")
         last_body = body
         title = card_title(body, "added")
 

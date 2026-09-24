@@ -28,7 +28,7 @@ app = gui(stream=stream_of(NOISY))
 from support import wait_for_models, settle
 
 r.check("a model is available", bool(wait_for_models(app)))
-app.entry.insert("1.0", "solve it in a table format, working notes first")
+app.entry.insert("1.0", "solve it in a table format, working notes first — Central Concepts, Pg. 43")
 app.send_message()
 settle(app)
 
@@ -59,6 +59,17 @@ r.check("the chat shows signs, not their HTML names", chat, "FV × PVF ÷ 1 → 
 r.check("a bracketed fraction gets one pair of brackets in the chat",
         app.html_to_chat_text('Factor (<span class="frac"><span class="num">1</span>'
                               '<span class="den">1.331</span></span>)'), "Factor (1 over 1.331)")
+
+# ── the book and page print only when the teacher gives them ───────────
+first = app.doc_blocks[0]
+r.check("the book and page he gave are printed",
+        'Central Concepts | Pg. <span class="num">43</span>' in first)
+bar = app.hs.teacher_pgrefs(first, "solve it in a table format")
+r.check("with none given, the top bar has no book or page", 'class="pgref"' in bar, False)
+r.check("a page alone prints the page alone",
+        'class="pgref">Pg. <span class="num">7</span>' in app.hs.teacher_pgrefs(first, "page 7"))
+r.check("a book Gemini guessed is not printed",
+        "Central Concepts" in app.hs.teacher_pgrefs(first, "P.K. Lazar, Pg. 43"), False)
 
 # A second question appends, keeping the first.
 app.entry.insert("1.0", "and the PVF method")

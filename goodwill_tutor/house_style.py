@@ -13,6 +13,7 @@ Nothing here depends on the API or the GUI.
 from datetime import date
 import collections
 import difflib
+import html as html_lib
 import re
 
 # ═══════════════════════════════════════════════════════════════
@@ -1309,6 +1310,70 @@ def drop_repeats(existing_html, body):
         body = body[:a] + body[b:]
     body = re.sub(r'<div class="page-block"[^>]*>\s*</div>\s*', "", body)
     return body, labels
+
+
+_PGREF_OPEN = re.compile(r'<span\b[^>]*class\s*=\s*"[^"]*\bpgref\b[^"]*"[^>]*>', re.I)
+_TOPBAR_OPEN = re.compile(r'<div\b[^>]*class\s*=\s*"[^"]*\btop-bar\b[^"]*"[^>]*>', re.I)
+_TEACHER_PAGE = re.compile(r"\b(?:pg|page|p)\b\.?\s*(?:no\.?\s*)?(\d+(?:\.\d+)*[A-Za-z]?)\b", re.I)
+
+
+def _span_close(html, start):
+    """Index just past the </span> closing the <span> that opens at start."""
+    depth = 0
+    for tag in re.finditer(r"<(/?)span\b[^>]*>", html[start:], re.I):
+        depth += -1 if tag.group(1) else 1
+        if depth == 0:
+            return start + tag.end()
+    return -1
+
+
+def _letters(text):
+    return re.sub(r"[^a-z0-9]", "", html_lib.unescape(_TAG.sub("", text or "")).lower())
+
+
+def teacher_pgref(block, instruction):
+    """The top bar's book and page, as the teacher gave them — or nothing.
+
+    The book name and page print only when the teacher typed them. Gemini
+    guessed "T.S. Grewal" once and "P.K. Lazar" the next time for the same
+    page, so what it writes there is checked against his words, not trusted:
+      - no page in his message   -> no pgref at all
+      - a page                   -> "Pg. <his page>"
+      - and a book he named      -> "<book> | Pg. <his page>"
+    """
+    found = _PGREF_OPEN.search(block or "")
+    end = _span_close(block, found.start()) if found else -1
+    page = _TEACHER_PAGE.search(instruction or "")
+    book = ""
+    if found and end > 0:
+        inner = block[found.end():end - len("</span>")]
+        before = re.split(r"\|", inner, maxsplit=1)[0] if "|" in inner else ""
+        name = re.sub(r"\s+", " ", html_lib.unescape(_TAG.sub("", before))).strip(" .|—-")
+        if name and _letters(name) and _letters(name) in _letters(instruction):
+            book = name
+    if not page:
+        if found and end > 0:
+            block = block[:found.start()] + block[end:]
+        return block
+    new = ('<span class="pgref">' + (f"{html_lib.escape(book)} | " if book else "")
+           + f'Pg. <span class="num">{page.group(1)}</span></span>')
+    if found and end > 0:
+        return block[:found.start()] + new + block[end:]
+    bar = _TOPBAR_OPEN.search(block or "")
+    if bar:
+        close = _div_end(block, bar.start())
+        if close > 0:
+            inside = block.rfind("</div>", 0, close)
+            return block[:inside] + new + block[inside:]
+    return block
+
+
+def teacher_pgrefs(body, instruction):
+    """teacher_pgref for every block in an answer."""
+    spans = block_spans(body) or [(0, len(body or ""))]
+    for a, b in reversed(spans):
+        body = body[:a] + teacher_pgref(body[a:b], instruction) + body[b:]
+    return body
 
 
 def block_spans(html):

@@ -185,6 +185,14 @@ Click the line to switch Add and Edit for that one message.
 "Remove Illustration 7" or "remove the last question" is done by the app
 itself — free, instant, and it cannot touch anything else.
 
+### The book and page in the top bar
+
+They print only when you type them. "solve it — P.K. Lazar, Pg. 43" prints
+**P.K. Lazar | Pg. 43**; "solve it, page 43" prints **Pg. 43**; with neither,
+the top bar shows the topic alone. Whatever Gemini writes there is checked
+against your message, so a book it guesses — or reads off the scan — is never
+printed.
+
 ### Cards and Retry
 
 The chat shows a short card for each answer — **Illustration 7 added ·
