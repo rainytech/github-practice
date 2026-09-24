@@ -135,6 +135,16 @@ r.check("and it reads as Free", app.intent_label.cget("text"), "Free")
 app.entry.delete("1.0", "end")
 app.refresh_intent()
 
+# ── copying from the Preview ────────────────────────────────────────────
+app.preview_lines[:] = [{"x": 10, "y": 10, "w": 100, "h": 12, "t": "Future Value (F)"},
+                        {"x": 120, "y": 10, "w": 60, "h": 12, "t": "Rs. 66,550"},
+                        {"x": 10, "y": 30, "w": 200, "h": 12, "t": "∴ Present Value = Rs. 50,000"}]
+app.copy_preview(15, 15, 16, 16)
+r.check("a click in the Preview copies that line", app.root.clipboard_get(), "Future Value (F)")
+app.copy_preview_all()
+r.check("Copy all text copies the page, row by row", app.root.clipboard_get(),
+        "Future Value (F)\tRs. 66,550\n∴ Present Value = Rs. 50,000")
+
 r.check("none of it was sent to Gemini", state["calls"], paid)
 r.check("each change kept a version", versions() > before)
 r.check("a real edit still goes to Gemini", ask("fix the working in Illustration 1"), "Will edit")

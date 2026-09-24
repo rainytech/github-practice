@@ -140,6 +140,11 @@ The right side is the finished page, laid out like Claude.ai's artifact panel.
   engine that makes the PDF, so it cannot disagree with what prints. It
   redraws itself after every answer and every applied edit. Code is the HTML,
   editable: change it, then **Apply my edits**.
+- **Copying from the Preview** — the Preview is a picture, so Chromium also
+  records where each line of text sits. Click a line to copy it; drag a box to
+  copy every line it touches (a table row copies as columns, tab-separated, so
+  it pastes into Excel); right-click for Copy all text. A fraction copies as
+  66,550/1.331.
 - **Make PDF** renders the PDF now and opens it. **Open PDF** opens the one on
   disk, and reads **Open old PDF** in red when the page has changed
   since.

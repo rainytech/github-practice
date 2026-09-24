@@ -12,6 +12,7 @@ First-time setup on a new machine:
     playwright install chromium
 """
 
+import json
 import os
 import pathlib
 
@@ -107,11 +108,55 @@ def html_to_pdf(html_path, pdf_path=None, wait_ms=350):
     return pdf_path
 
 
-def html_to_png(html_path, png_path=None, width=880, wait_ms=300, scale=1.0, media="screen"):
+# One entry per line of text a teacher would want to copy. Cells rather than
+# rows, so a table row copies as columns.
+_LINE_SELECTOR = (".header > div, .top-bar .title, .top-bar .pgref, .q > span, .adj > span, "
+                  ".notes > span, .wn-text > span, .sub > span, .sol-label, .wn-label, .wn-sub, "
+                  ".part-heading, .tbl-title, .dr-cr-row > span, th, td, .formula-box .line, "
+                  ".rule-note, .quote-box, .ans, .hint, .final-ans, .verify-ok, .verify-bad")
+
+_LINE_SCRIPT = """(sel) => Array.from(document.querySelectorAll(sel)).map(e => {
+  const r = e.getBoundingClientRect();
+  const c = e.cloneNode(true);
+  c.querySelectorAll('.frac').forEach(f => {
+    const n = f.querySelector('.num'), d = f.querySelector('.den');
+    f.replaceWith(' ' + (n ? n.textContent : '') + '/' + (d ? d.textContent : '') + ' ');
+  });
+  c.querySelectorAll('sup').forEach(s => s.replaceWith('^' + s.textContent));
+  const t = c.textContent.replace(/\\s+/g, ' ').trim();
+  return {x: r.left + scrollX, y: r.top + scrollY, w: r.width, h: r.height, t: t};
+}).filter(b => b.t && b.w > 0 && b.h > 0)"""
+
+
+def text_in(lines, x0, y0, x1, y1):
+    """The text of the lines touching a box, a row per line, cells tab-apart.
+
+    lines : [{x, y, w, h, t}] in the picture's own pixels.
+    """
+    x0, x1 = sorted((x0, x1))
+    y0, y1 = sorted((y0, y1))
+    hit = [b for b in lines
+           if b["x"] < x1 and b["x"] + b["w"] > x0 and b["y"] < y1 and b["y"] + b["h"] > y0]
+    hit.sort(key=lambda b: (b["y"] + b["h"] / 2, b["x"]))
+    rows = []
+    for b in hit:
+        middle = b["y"] + b["h"] / 2
+        if rows and abs(rows[-1][0] - middle) < max(4, b["h"] / 3):
+            rows[-1][1].append(b)
+        else:
+            rows.append([middle, [b]])
+    return "\n".join("\t".join(c["t"] for c in sorted(cells, key=lambda c: c["x"]))
+                     for _, cells in rows)
+
+
+def html_to_png(html_path, png_path=None, width=880, wait_ms=300, scale=1.0, media="screen",
+                lines=False):
     """Render an HTML file to a full-page PNG through the same Chromium that
     makes the PDF, so the preview cannot disagree with the printed page.
 
     media="print" draws the page with the print rules, as the PDF does.
+    lines=True also writes <png>.json: where each line of text sits in the
+    picture, so the Preview can copy the text under the mouse.
     scale shrinks the picture, not the layout: the page is laid out at the
     same width and drawn smaller, so it wraps where the print does.
 
@@ -142,6 +187,13 @@ def html_to_png(html_path, png_path=None, width=880, wait_ms=300, scale=1.0, med
                 page.goto(pathlib.Path(html_path).as_uri(), wait_until="load")
                 page.wait_for_timeout(wait_ms)
                 page.screenshot(path=png_path, full_page=True)
+                if lines:
+                    found = page.evaluate(_LINE_SCRIPT, _LINE_SELECTOR)
+                    for b in found:
+                        for k in ("x", "y", "w", "h"):
+                            b[k] = round(b[k] * scale, 1)
+                    with open(png_path + ".json", "w", encoding="utf-8") as fh:
+                        json.dump(found, fh, ensure_ascii=False)
             finally:
                 browser.close()
     except PdfExportError:

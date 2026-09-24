@@ -765,6 +765,7 @@ def show_tab(which):
 preview_running = False
 preview_again = False
 preview_shown_for = None      # (html, width) of the picture on screen
+preview_lines = []            # where each line of text sits in the picture
 current_tab = "preview"
 
 
@@ -809,7 +810,7 @@ def refresh_preview():
                 fh.write(html)
             png = pdf_export.html_to_png(tmp_html, os.path.join(PREVIEW_DIR, "preview.png"),
                                          width=PREVIEW_WIDTH, scale=scale,
-                                         media="print")
+                                         media="print", lines=True)
             post(lambda: preview_done(png, (html, width)))
         except Exception as exc:
             post(lambda e=str(exc): preview_failed(e))
@@ -832,6 +833,11 @@ def preview_done(png, shown_for):
                                            preview_image.height()))
     preview_canvas.yview_moveto(top)
     preview_shown_for = shown_for
+    try:
+        with open(png + ".json", encoding="utf-8") as fh:
+            preview_lines[:] = json.load(fh)
+    except (OSError, ValueError):
+        preview_lines[:] = []
     if preview_again:
         preview_again = False
         refresh_preview()
@@ -2874,6 +2880,90 @@ def _preview_wheel(event):
 
 for _seq in ("<MouseWheel>", "<Button-4>", "<Button-5>"):
     preview_canvas.bind(_seq, _preview_wheel)
+
+# Copying from the Preview. The picture has no text in it, so Chromium also
+# records where each line sits; a click copies the line under the mouse, a
+# drag copies every line the box touches, a table row as tab-separated cells.
+_drag = {"x": 0, "y": 0}
+
+
+def _canvas_xy(event):
+    return preview_canvas.canvasx(event.x), preview_canvas.canvasy(event.y)
+
+
+def _mark_lines(x0, y0, x1, y1):
+    preview_canvas.delete("picked")
+    for b in preview_lines:
+        if b["x"] < max(x0, x1) and b["x"] + b["w"] > min(x0, x1) \
+                and b["y"] < max(y0, y1) and b["y"] + b["h"] > min(y0, y1):
+            preview_canvas.create_rectangle(b["x"], b["y"], b["x"] + b["w"], b["y"] + b["h"],
+                                            outline=ACCENT, width=2, tags="picked")
+
+
+def copy_preview(x0, y0, x1, y1):
+    text = pdf_export.text_in(preview_lines, x0, y0, x1, y1)
+    if not text:
+        set_status("No text there to copy." if preview_lines else
+                   "The preview is still being drawn — try again in a moment.", MUTED)
+        return ""
+    root.clipboard_clear()
+    root.clipboard_append(text)
+    lines = text.count("\n") + 1
+    shown = text if lines == 1 else f"{lines} lines"
+    set_status(f"Copied: {shown[:60]}", GREEN)
+    return text
+
+
+def _preview_press(event):
+    preview_canvas.focus_set()
+    _drag["x"], _drag["y"] = _canvas_xy(event)
+    preview_canvas.delete("dragbox")
+
+
+def _preview_motion(event):
+    x, y = _canvas_xy(event)
+    preview_canvas.delete("dragbox")
+    preview_canvas.create_rectangle(_drag["x"], _drag["y"], x, y, outline=ACCENT,
+                                    dash=(4, 2), tags="dragbox")
+
+
+def _preview_release(event):
+    x, y = _canvas_xy(event)
+    preview_canvas.delete("dragbox")
+    if abs(x - _drag["x"]) < 4 and abs(y - _drag["y"]) < 4:
+        x0, y0, x1, y1 = x, y, x + 1, y + 1          # a click: the line under it
+    else:
+        x0, y0, x1, y1 = _drag["x"], _drag["y"], x, y
+    _mark_lines(x0, y0, x1, y1)
+    copy_preview(x0, y0, x1, y1)
+
+
+def copy_preview_all(_evt=None):
+    big = 10 ** 6
+    _mark_lines(0, 0, big, big)
+    copy_preview(0, 0, big, big)
+    return "break"
+
+
+def _preview_menu(event):
+    menu = _menu()
+    x, y = _canvas_xy(event)
+    menu.add_command(label="Copy this line",
+                     command=lambda: (_mark_lines(x, y, x + 1, y + 1), copy_preview(x, y, x + 1, y + 1)))
+    menu.add_command(label="Copy all text", command=copy_preview_all)
+    try:
+        menu.tk_popup(event.x_root, event.y_root)
+    finally:
+        menu.grab_release()
+
+
+preview_canvas.bind("<ButtonPress-1>", _preview_press)
+preview_canvas.bind("<B1-Motion>", _preview_motion)
+preview_canvas.bind("<ButtonRelease-1>", _preview_release)
+preview_canvas.bind("<Button-3>", _preview_menu)
+for _seq in ("<Control-a>", "<Control-A>"):
+    preview_canvas.bind(_seq, copy_preview_all)
+preview_canvas.config(cursor="xterm")
 
 # A narrower panel draws the page smaller, once the dragging stops.
 _resize_job = [None]

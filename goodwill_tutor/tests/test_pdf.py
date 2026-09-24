@@ -162,91 +162,19 @@ with sync_playwright() as pw:
     browser.close()
 r.check("the Preview breaks lines where the PDF does", preview_lines, pdf_lines)
 
-sys.exit(r.finish())
-
-page = pdfium.PdfDocument(pdf)[0]
-width_mm = page.get_width() * 25.4 / 72
-height_mm = page.get_height() * 25.4 / 72
-r.check("A4 wide", 209 < width_mm < 212, True)
-r.check("A4 tall", 296 < height_mm < 299, True)
-
-
-words = page.get_textpage().get_text_range()
-r.check("the words are really in the file", "Present Value" in words and "66,550" in words)
-
-image = page.render(scale=1.2).to_pil().convert("RGB")
-colours = image.getcolors(maxcolors=1 << 24) or []
-page_colour = max(colours)[1] if colours else None
-r.check("the page is #C8C8C8 throughout", page_colour, (200, 200, 200))
-white = sum(n for n, colour in colours if min(colour) > 245)
-r.check("almost nothing is white", white < image.size[0] * 3)
-
-# ── the final answer never sits alone on a page ─────────────────────────
-# The layout that showed the fault: at 18 to 21 lines of question, the page
-# still had room, yet the final answer was pushed over by itself.
-TAIL = ('<div class="tbl-title">Calculation of Present Value</div>'
-        '<table class="wn"><tr><th>Particulars</th><th>Amount (Rs.)</th></tr>'
-        '<tr><td>Future Value (F)</td><td class="right">66,550</td></tr>'
-        '<tr><td>Discount Rate (r)</td><td class="right">10%</td></tr>'
-        '<tr><td>Time Period (n)</td><td class="right">3 years</td></tr>'
-        '<tr><td>Present Value Factor</td><td class="right">0.7513</td></tr>'
-        '<tr class="total"><td>Present Value (P)</td><td class="right">50,000</td></tr></table>'
-        '<div class="formula-box">'
-        '<span class="line">Present Value = Future Value \u00d7 1 / (1 + r)^n</span>'
-        '<span class="line">Present Value = 66,550 \u00d7 1 / (1 + 0.10)^3</span>'
-        '<span class="line final">Present Value = 50,000</span></div>'
-        '<div class="final-ans">\u2234 The present value of Rs. 66,550 receivable '
-        'after three years is Rs. 50,000.</div>')
-stranded, blank = [], []
-for lines in range(18, 22):
-    filler = "".join(f'<div class="q"><span>Line {i} of the question text.</span></div>'
-                     for i in range(lines))
-    body, _ = hs.repair_markup(f'<div class="page-block">{filler}{TAIL}</div>')
-    path = os.path.join(folder, f"break{lines}.html")
-    with open(path, "w", encoding="utf-8") as fh:
-        fh.write(hs.wrap_document([body]))
-    doc = pdfium.PdfDocument(pdf_export.html_to_pdf(path))
-    texts = [doc[i].get_textpage().get_text_range() for i in range(len(doc))]
-    for number, text in enumerate(texts):
-        if "\u2234" in text and number > 0 and "Present Value = 50,000" not in text:
-            stranded.append(lines)
-        if not text.strip():
-            blank.append(lines)
-r.check("the final answer is never alone on a page", stranded, [])
-r.check("no blank page is left at the end", blank, [])
-
-# ── the question number never ends a page on its own ────────────────────
-# At 35 lines of earlier working, "Illustration 9." printed as the last line
-# of page one and its question began page two.
-QUESTION = ('<div class="q"><span class="qno">Illustration <span class="num">9</span>.</span>'
-            '<span>Find the present value of Rs. 66,550 receivable after three years.</span>'
-            '<span>The rate of interest is 10% per annum.</span></div>')
-alone = []
-for lines in range(33, 38):
-    filler = "".join(f'<div class="notes"><span>Line {i} of the earlier working.</span></div>'
-                     for i in range(lines))
-    path = os.path.join(folder, f"qno{lines}.html")
-    with open(path, "w", encoding="utf-8") as fh:
-        fh.write(hs.wrap_document([f'<div class="page-block">{filler}{QUESTION}</div>']))
-    doc = pdfium.PdfDocument(pdf_export.html_to_pdf(path))
-    for i in range(len(doc)):
-        if doc[i].get_textpage().get_text_range().strip().endswith("Illustration 9."):
-            alone.append(lines)
-r.check("the question number stays with its question", alone, [])
-
-# ── the Preview wraps lines where the PDF does ──────────────────────────
-# At 880px the institute name sat on one line in Preview and broke onto two
-# in the PDF. The Preview is now drawn at A4 width (794px) with the print rules.
-from PIL import Image
-tall = os.path.join(folder, "wide.html")
-with open(tall, "w", encoding="utf-8") as fh:
-    fh.write(hs.wrap_document(['<div class="page-block"><div class="q"><span>x</span></div></div>']))
-pdf_lines = pdfium.PdfDocument(pdf_export.html_to_pdf(tall))[0].get_textpage() \
-    .get_text_range().split("Ernakulam")[0].strip().count("\n") + 1
-shot = pdf_export.html_to_png(tall, os.path.join(folder, "wide.png"), width=794, media="print")
-blue = [y for y in range(Image.open(shot).height)
-        if any(px == (0, 87, 184) for px in [Image.open(shot).convert("RGB").getpixel((x, y))
-                                             for x in range(40, 754, 3)])][:1]
-r.check("the PDF breaks the institute name as the Preview will", pdf_lines, 2)
+# ── text can be copied from the Preview ─────────────────────────────────
+import json
+shot = pdf_export.html_to_png(html, os.path.join(folder, "copy.png"), width=794,
+                              scale=0.6, media="print", lines=True)
+lines = json.load(open(shot + ".json", encoding="utf-8"))
+everything = pdf_export.text_in(lines, 0, 0, 10 ** 6, 10 ** 6)
+r.check("the Preview knows where its text is", len(lines) > 5)
+r.check("all its text can be copied", "Present Value" in everything and "Discounting".upper() in everything.upper())
+r.check("a fraction copies as 66,550/1.331", "66,550/1.331" in everything.replace(" ", ""))
+row = next(b for b in lines if b["t"].startswith("Future Value"))
+got = pdf_export.text_in(lines, row["x"] + 2, row["y"] + 2, row["x"] + 3, row["y"] + 3)
+r.check("a click copies the one cell under it", got, "Future Value (F)")
+across = pdf_export.text_in(lines, row["x"] + 2, row["y"] + 2, 10 ** 6, row["y"] + 3)
+r.check("a table row copies as columns", across, "Future Value (F)\tRs. 66,550")
 
 sys.exit(r.finish())
