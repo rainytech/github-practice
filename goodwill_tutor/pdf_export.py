@@ -107,10 +107,11 @@ def html_to_pdf(html_path, pdf_path=None, wait_ms=350):
     return pdf_path
 
 
-def html_to_png(html_path, png_path=None, width=880, wait_ms=300, scale=1.0):
+def html_to_png(html_path, png_path=None, width=880, wait_ms=300, scale=1.0, media="screen"):
     """Render an HTML file to a full-page PNG through the same Chromium that
     makes the PDF, so the preview cannot disagree with the printed page.
 
+    media="print" draws the page with the print rules, as the PDF does.
     scale shrinks the picture, not the layout: the page is laid out at the
     same width and drawn smaller, so it wraps where the print does.
 
@@ -137,6 +138,7 @@ def html_to_png(html_path, png_path=None, width=880, wait_ms=300, scale=1.0):
             try:
                 page = browser.new_page(viewport={"width": width, "height": 1000},
                                         device_scale_factor=scale)
+                page.emulate_media(media=media)
                 page.goto(pathlib.Path(html_path).as_uri(), wait_until="load")
                 page.wait_for_timeout(wait_ms)
                 page.screenshot(path=png_path, full_page=True)

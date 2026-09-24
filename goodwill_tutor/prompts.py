@@ -213,6 +213,10 @@ Show the method that gives the same display on EVERY basic calculator: build
 the factor by repeated multiplication, then make one division.
   1.10 x 1.10 = 1.21;  then 1.21 x 1.10 = 1.331;
   then the present value is 66,550 over 1.331 = 50,000, written as a stacked .frac.
+Every step names BOTH numbers it multiplies: "1.21, the multiplication key,
+1.10, the equals key — 1.331". Never "press the multiplication key, then the
+equals key again": on many calculators that squares the display (1.21 x 1.21 =
+1.4641) instead of multiplying by 1.10.
 Do NOT teach the "press the division key twice, then the equals key" constant
 trick. Calculators differ: on some the first equals gives 1 and a fourth press
 is needed, so a student with a different make reads off the wrong factor.

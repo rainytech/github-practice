@@ -5,8 +5,10 @@ installed it says so and passes, rather than failing for the wrong reason.
 """
 
 import os
+import pathlib
+import re
 import sys
-from support import Report, sandbox
+from support import ROOT, Report, sandbox
 
 sandbox()
 import house_style as hs
@@ -136,5 +138,115 @@ for lines in range(33, 38):
         if doc[i].get_textpage().get_text_range().strip().endswith("Illustration 9."):
             alone.append(lines)
 r.check("the question number stays with its question", alone, [])
+
+# ── the Preview wraps lines where the PDF does ──────────────────────────
+# At 880px the institute name sat on one line in Preview and broke onto two
+# in the PDF. The Preview is now drawn at A4 width with the print rules.
+from playwright.sync_api import sync_playwright
+wide = os.path.join(folder, "wide.html")
+with open(wide, "w", encoding="utf-8") as fh:
+    fh.write(hs.wrap_document(['<div class="page-block"><div class="q"><span>x</span></div></div>']))
+pdf_lines = (pdfium.PdfDocument(pdf_export.html_to_pdf(wide))[0].get_textpage()
+             .get_text_range().split("Ernakulam")[0].strip().count("\n") + 1)
+# Read from the source: importing the app would open its window.
+with open(os.path.join(ROOT, "goodwill_tutor.py"), encoding="utf-8") as fh:
+    width = int(re.search(r"^PREVIEW_WIDTH = (\d+)", fh.read(), re.M).group(1))
+with sync_playwright() as pw:
+    browser = pw.chromium.launch()
+    page = browser.new_page(viewport={"width": width, "height": 1000})
+    page.emulate_media(media="print")
+    page.goto(pathlib.Path(wide).as_uri())
+    preview_lines = round(page.eval_on_selector(
+        ".header .name",
+        "e => e.getBoundingClientRect().height / parseFloat(getComputedStyle(e).lineHeight)"))
+    browser.close()
+r.check("the Preview breaks lines where the PDF does", preview_lines, pdf_lines)
+
+sys.exit(r.finish())
+
+page = pdfium.PdfDocument(pdf)[0]
+width_mm = page.get_width() * 25.4 / 72
+height_mm = page.get_height() * 25.4 / 72
+r.check("A4 wide", 209 < width_mm < 212, True)
+r.check("A4 tall", 296 < height_mm < 299, True)
+
+
+words = page.get_textpage().get_text_range()
+r.check("the words are really in the file", "Present Value" in words and "66,550" in words)
+
+image = page.render(scale=1.2).to_pil().convert("RGB")
+colours = image.getcolors(maxcolors=1 << 24) or []
+page_colour = max(colours)[1] if colours else None
+r.check("the page is #C8C8C8 throughout", page_colour, (200, 200, 200))
+white = sum(n for n, colour in colours if min(colour) > 245)
+r.check("almost nothing is white", white < image.size[0] * 3)
+
+# ── the final answer never sits alone on a page ─────────────────────────
+# The layout that showed the fault: at 18 to 21 lines of question, the page
+# still had room, yet the final answer was pushed over by itself.
+TAIL = ('<div class="tbl-title">Calculation of Present Value</div>'
+        '<table class="wn"><tr><th>Particulars</th><th>Amount (Rs.)</th></tr>'
+        '<tr><td>Future Value (F)</td><td class="right">66,550</td></tr>'
+        '<tr><td>Discount Rate (r)</td><td class="right">10%</td></tr>'
+        '<tr><td>Time Period (n)</td><td class="right">3 years</td></tr>'
+        '<tr><td>Present Value Factor</td><td class="right">0.7513</td></tr>'
+        '<tr class="total"><td>Present Value (P)</td><td class="right">50,000</td></tr></table>'
+        '<div class="formula-box">'
+        '<span class="line">Present Value = Future Value \u00d7 1 / (1 + r)^n</span>'
+        '<span class="line">Present Value = 66,550 \u00d7 1 / (1 + 0.10)^3</span>'
+        '<span class="line final">Present Value = 50,000</span></div>'
+        '<div class="final-ans">\u2234 The present value of Rs. 66,550 receivable '
+        'after three years is Rs. 50,000.</div>')
+stranded, blank = [], []
+for lines in range(18, 22):
+    filler = "".join(f'<div class="q"><span>Line {i} of the question text.</span></div>'
+                     for i in range(lines))
+    body, _ = hs.repair_markup(f'<div class="page-block">{filler}{TAIL}</div>')
+    path = os.path.join(folder, f"break{lines}.html")
+    with open(path, "w", encoding="utf-8") as fh:
+        fh.write(hs.wrap_document([body]))
+    doc = pdfium.PdfDocument(pdf_export.html_to_pdf(path))
+    texts = [doc[i].get_textpage().get_text_range() for i in range(len(doc))]
+    for number, text in enumerate(texts):
+        if "\u2234" in text and number > 0 and "Present Value = 50,000" not in text:
+            stranded.append(lines)
+        if not text.strip():
+            blank.append(lines)
+r.check("the final answer is never alone on a page", stranded, [])
+r.check("no blank page is left at the end", blank, [])
+
+# ── the question number never ends a page on its own ────────────────────
+# At 35 lines of earlier working, "Illustration 9." printed as the last line
+# of page one and its question began page two.
+QUESTION = ('<div class="q"><span class="qno">Illustration <span class="num">9</span>.</span>'
+            '<span>Find the present value of Rs. 66,550 receivable after three years.</span>'
+            '<span>The rate of interest is 10% per annum.</span></div>')
+alone = []
+for lines in range(33, 38):
+    filler = "".join(f'<div class="notes"><span>Line {i} of the earlier working.</span></div>'
+                     for i in range(lines))
+    path = os.path.join(folder, f"qno{lines}.html")
+    with open(path, "w", encoding="utf-8") as fh:
+        fh.write(hs.wrap_document([f'<div class="page-block">{filler}{QUESTION}</div>']))
+    doc = pdfium.PdfDocument(pdf_export.html_to_pdf(path))
+    for i in range(len(doc)):
+        if doc[i].get_textpage().get_text_range().strip().endswith("Illustration 9."):
+            alone.append(lines)
+r.check("the question number stays with its question", alone, [])
+
+# ── the Preview wraps lines where the PDF does ──────────────────────────
+# At 880px the institute name sat on one line in Preview and broke onto two
+# in the PDF. The Preview is now drawn at A4 width (794px) with the print rules.
+from PIL import Image
+tall = os.path.join(folder, "wide.html")
+with open(tall, "w", encoding="utf-8") as fh:
+    fh.write(hs.wrap_document(['<div class="page-block"><div class="q"><span>x</span></div></div>']))
+pdf_lines = pdfium.PdfDocument(pdf_export.html_to_pdf(tall))[0].get_textpage() \
+    .get_text_range().split("Ernakulam")[0].strip().count("\n") + 1
+shot = pdf_export.html_to_png(tall, os.path.join(folder, "wide.png"), width=794, media="print")
+blue = [y for y in range(Image.open(shot).height)
+        if any(px == (0, 87, 184) for px in [Image.open(shot).convert("RGB").getpixel((x, y))
+                                             for x in range(40, 754, 3)])][:1]
+r.check("the PDF breaks the institute name as the Preview will", pdf_lines, 2)
 
 sys.exit(r.finish())

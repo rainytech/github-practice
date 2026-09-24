@@ -62,7 +62,11 @@ DESKTOP = os.path.join(os.path.expanduser("~"), "Desktop")
 SOLUTIONS_DIR = os.path.join(DESKTOP, "Goodwill_Solutions")
 PREVIEW_DIR = os.path.join(APP_DIR, "preview")
 PASTED_DIR = os.path.join(APP_DIR, "pasted")
-PREVIEW_WIDTH = 880       # A4 at 96dpi is 794px; a little wider reads better
+# A4 is 210mm, which is 794px at 96dpi. The Preview tab lays the page out at
+# exactly that width, with the print rules, so a line wraps where the PDF
+# wraps it. At 880px the institute name fitted on one line in Preview and broke
+# onto two in the PDF.
+PREVIEW_WIDTH = 794
 
 for _d in (APP_DIR, CONVERSATIONS_DIR, SOLUTIONS_DIR, PREVIEW_DIR, PASTED_DIR):
     os.makedirs(_d, exist_ok=True)
@@ -803,7 +807,8 @@ def refresh_preview():
             with open(tmp_html, "w", encoding="utf-8") as fh:
                 fh.write(html)
             png = pdf_export.html_to_png(tmp_html, os.path.join(PREVIEW_DIR, "preview.png"),
-                                         width=PREVIEW_WIDTH, scale=scale)
+                                         width=PREVIEW_WIDTH, scale=scale,
+                                         media="print")
             post(lambda: preview_done(png, (html, width)))
         except Exception as exc:
             post(lambda e=str(exc): preview_failed(e))
