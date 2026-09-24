@@ -412,6 +412,10 @@ began near the foot of a page printed its number alone as the page's last line.
 The rule is `break-before: avoid` on that first sentence — no forced break,
 and nothing held together but those two lines.
 
+Each sentence line in a question, its notes, adjustments and working-note text
+has a quarter line (3pt) under it, so lines read apart on Zoom (approved by
+the teacher, 24 Sept 2026). Tables and formula boxes are unchanged.
+
 Lines holding a stacked fraction get extra space above and below, since a
 fraction is two lines tall inside one. The body stays at line-height 1.5.
 

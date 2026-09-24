@@ -168,6 +168,13 @@ table.wn tr,
 .adj     > span,
 .wn-text > span { display: block; }
 
+/* A quarter line under each sentence, so lines read apart on Zoom —
+   approved by the teacher, 24 Sept 2026. Direct children only (RULE 5). */
+.q       > span,
+.notes   > span,
+.adj     > span,
+.wn-text > span { margin-bottom: 3pt; }
+
 .qno      { font-weight: bold; }                     /* problem no. words: bold */
 .qno .num { font-size: 20pt; font-weight: bold; }   /* RULE 12 */
 

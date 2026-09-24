@@ -100,6 +100,7 @@ r.check("RULE 4 permits it", "break-inside: avoid" not in " ".join(
     e for e in hs.validate_html(hs.wrap_document(["<div class='page-block'>x</div>"]))[0]))
 r.check("the question number is kept with its first sentence",
         ".q > .qno + span {\n  break-before:      avoid;" in css)
+r.check("a quarter line under each sentence", ".wn-text > span { margin-bottom: 3pt; }" in css)
 r.check("the last block leaves no gap on paper", ".page-block:last-child" in css)
 r.check("fraction lines have room above and below", "margin:          0.3em 0.15em;" in css)
 
