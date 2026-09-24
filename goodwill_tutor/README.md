@@ -175,7 +175,8 @@ The line above **Send** says what Send will do, read from the words typed:
   shown the page with each block numbered and sends back only the blocks it
   changed; the rest stay exactly as they are, hand edits included. An answer
   that does not say which block it changed is refused, and the page is left
-  alone.
+  alone. The block's own outer tag is always kept, so an edit cannot box or
+  restyle the whole page.
 - **Will show** — "display the full merged HTML" on its own opens the Code
   tab. Nothing is sent to Gemini: the app always keeps the merged document.
 
