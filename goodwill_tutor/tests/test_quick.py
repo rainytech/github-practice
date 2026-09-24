@@ -111,6 +111,17 @@ ask("help")
 r.check("23. help lists the free edits", "Free — done by the app" in chat())
 r.check("a mistyped word is reported, not guessed", "Nothing changed" in (ask("replace 'Zebra' with 'x'") and chat()))
 
+# a click on the label with nothing typed must not switch the next message
+app.entry.delete("1.0", "end")
+app.toggle_intent()
+r.check("a click on an empty box switches nothing", app.intent_override, None)
+r.check("help is free after that click", ask("help"), "Free")
+app.entry.insert("1.0", "undo")
+app.toggle_intent()
+r.check("undo stays free even when switched", app.current_intent(), "free")
+app.entry.delete("1.0", "end")
+app.refresh_intent()
+
 r.check("none of it was sent to Gemini", state["calls"], paid)
 r.check("each change kept a version", versions() > before)
 r.check("a real edit still goes to Gemini", ask("fix the working in Illustration 1"), "Will edit")

@@ -1169,9 +1169,14 @@ def current_intent():
     """"add", "edit", "show" or "chat" — what Send will do with the next message."""
     if active_mode_key() == "general":
         return "chat"
-    if intent_override and has_document():
-        return intent_override
     text = entry.get("1.0", tk.END).strip()
+    # undo, help, the PDF and the tabs are never worth sending to the model,
+    # whatever the label was switched to.
+    quick = quick_edits.parse(text)
+    if quick and quick[0] in quick_edits.WINDOW_KINDS and not attachments:
+        return "free"
+    if intent_override and has_document() and text:
+        return intent_override
     if not attachments and is_free(text):
         return "free"
     return prompts.read_request(text, has_document(), bool(attachments))
@@ -1200,6 +1205,9 @@ INTENT_TEXT = {
 
 def refresh_intent(_evt=None):
     """The line above Send: what Send is about to do, and a way to change it."""
+    global intent_override
+    if intent_override and not entry.get("1.0", tk.END).strip():
+        intent_override = None           # the box was cleared: the switch goes with it
     word, detail, colour = INTENT_TEXT[current_intent()]
     intent_label.config(text=f"{word}", fg=colour)
     hint = "  ·  click to switch" if active_mode_key() != "general" and has_document() else ""
@@ -1210,6 +1218,11 @@ def toggle_intent(_evt=None):
     """Add becomes Edit and Edit becomes Add, for this message only."""
     global intent_override
     if active_mode_key() == "general" or not has_document():
+        return
+    if not entry.get("1.0", tk.END).strip():
+        # Nothing typed yet: a click here used to switch the NEXT message
+        # silently, and "help" was then sent to the model as an edit.
+        set_status("Type the message first, then click to switch.", MUTED)
         return
     intent_override = "edit" if current_intent() in ("add", "show", "free") else "add"
     refresh_intent()
