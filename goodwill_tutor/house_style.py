@@ -1394,6 +1394,14 @@ def apply_edits(html, answer):
                 changes[n] = answer[a:b]
     if len(removed) == len(spans) and not changes:
         raise EditError("That would remove every question. Nothing was changed.")
+    # The block's own opening tag is kept. Gemini is asked to change what is
+    # inside a question, and once gave the wrapper a style="border:..." that
+    # boxed the whole page in the PDF.
+    for n in list(changes):
+        a, _ = spans[n - 1]
+        old_open = html[a:html.index(">", a) + 1]
+        new = changes[n].strip()
+        changes[n] = old_open + new[new.index(">") + 1:]
     for n in sorted(set(changes) | removed, reverse=True):
         a, b = spans[n - 1]
         if n in removed:

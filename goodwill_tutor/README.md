@@ -140,15 +140,14 @@ The right side is the finished page, laid out like Claude.ai's artifact panel.
   redraws itself after every answer and every applied edit. Code is the HTML,
   editable: change it, then **Apply my edits**.
 - **Make PDF** renders the PDF now and opens it. **Open PDF** opens the one on
-  disk, and reads **Open PDF — out of date** in red when the page has changed
+  disk, and reads **Open old PDF** in red when the page has changed
   since.
 - **◀ v3 of 5 ▶** — every answer keeps a version of the page. The arrows step
   back and forward; the version shown is the document, and the next answer
   builds on it. Later versions are never deleted, so going back loses nothing.
   An applied edit and a removed question keep a version too.
-- **▾** — Save as HTML, open the HTML file, Save as PDF.
-- **More** — apply edits, check house style, new document, remove the last
-  question, open the folder, copy.
+- **More ▾** — Save as HTML, open the HTML file, apply edits, check house
+  style, new document, remove the last question, open the folder, copy.
 
 Gemini's verification pass and the house-style validator report into the chat
 on the left, so there is only one place to read.
@@ -208,7 +207,7 @@ is one HTML page, its PDF, and the conversation that produced it.
 
 Each answer appends to the open document as a new `.page-block`, so one chapter
 becomes one HTML file and one PDF. Manual edits in the editor survive later
-appends. **Open PDF** in the header opens the PDF; **▾** opens the HTML.
+appends. **Open PDF** in the header opens the PDF; **More ▾** opens the HTML.
 
 The PDF is made for you as soon as an answer lands, and again whenever you
 apply an edit, so Open PDF is current without your doing anything. It takes a
@@ -259,7 +258,7 @@ document: every answer is added after the ones before it.
 ### The PDF goes out of date
 
 With the automatic render switched off, adding a question rewrites the HTML but
-leaves the old PDF on disk. The button then reads **"Open PDF — out of date"** in red,
+leaves the old PDF on disk. The button then reads **"Open old PDF"** in red,
 and opening it asks first. Press **Make PDF** to remake it.
 
 If the PDF is open in your reader, Windows will not let it be overwritten. The

@@ -871,8 +871,6 @@ def refresh_versions():
         return
     at = numbers.index(version_at) if version_at in numbers else len(numbers) - 1
     version_label.config(text=f"v{at + 1} of {len(numbers)}")
-    label = versions[at].get("label", "")
-    version_note.config(text=label[:28])
     version_prev.config(state=tk.NORMAL if at > 0 else tk.DISABLED)
     version_next.config(state=tk.NORMAL if at < len(numbers) - 1 else tk.DISABLED)
     if not version_row.winfo_ismapped():
@@ -2432,8 +2430,6 @@ version_next = tk.Button(version_row, text="▶", command=lambda: step_version(1
                          padx=6, cursor="hand2", activebackground=SIDEBAR,
                          disabledforeground=BORDER)
 version_next.pack(side=tk.LEFT)
-version_note = tk.Label(version_row, text="", font=("Arial", 8), bg=ARTIFACT_BG, fg=MUTED)
-version_note.pack(side=tk.LEFT, padx=(4, 0))
 
 artifact_title = tk.Label(art_header, text="No document yet", font=("Arial", 11, "bold"),
                           bg=ARTIFACT_BG, fg=TEXT, anchor="w")
@@ -2481,19 +2477,12 @@ def delete_this():
         delete_selected()
 
 
-def open_output_menu(event=None):
-    """The document as files."""
+def open_more_menu(event=None):
+    """Everything to do with building the document."""
     menu = _menu()
     menu.add_command(label="Save as HTML", command=lambda: save_html())
     menu.add_command(label="Open the HTML file", command=lambda: _open_doc_file("html"))
     menu.add_separator()
-    menu.add_command(label="Save as PDF", command=generate_pdf)
-    _popup(menu, output_btn)
-
-
-def open_more_menu(event=None):
-    """Everything to do with building the document."""
-    menu = _menu()
     menu.add_command(label="Apply my edits", command=apply_edited_html)
     menu.add_command(label="Check house style", command=check_house_style)
     menu.add_separator()
@@ -2513,7 +2502,7 @@ def open_more_menu(event=None):
 def _tab(text, which):
     button = tk.Button(tab_bar, text=text, command=lambda: show_tab(which),
                        font=("Arial", 10), bg=ARTIFACT_BG, fg=MUTED, relief=tk.FLAT,
-                       padx=10, pady=3, cursor="hand2", activebackground=SIDEBAR)
+                       padx=6, pady=3, cursor="hand2", activebackground=SIDEBAR)
     button.pack(side=tk.LEFT)
     return button
 
@@ -2522,17 +2511,13 @@ preview_tab = _tab("Preview", "preview")
 tk.Label(tab_bar, text="|", bg=ARTIFACT_BG, fg=BORDER).pack(side=tk.LEFT)
 code_tab = _tab("Code", "code")
 
-output_btn = tk.Button(tab_bar, text="▾", command=open_output_menu,
-                       font=("Arial", 13), bg=ARTIFACT_BG, fg=TEXT,
-                       relief=tk.FLAT, padx=8, pady=0, cursor="hand2",
-                       activebackground=SIDEBAR)
-output_btn.pack(side=tk.RIGHT, padx=(2, 6))
-
-more_btn = tk.Button(tab_bar, text="More", command=open_more_menu,
+# One menu for everything else. A separate ▾ beside it made the row too wide
+# for Windows at 125% text size, and Make PDF was cut in half.
+more_btn = tk.Button(tab_bar, text="More ▾", command=open_more_menu,
                      font=("Arial", 10), bg=ARTIFACT_BG, fg=MUTED,
-                     relief=tk.FLAT, padx=8, pady=3, cursor="hand2",
+                     relief=tk.FLAT, padx=6, pady=3, cursor="hand2",
                      activebackground=SIDEBAR)
-more_btn.pack(side=tk.RIGHT, padx=2)
+more_btn.pack(side=tk.RIGHT, padx=(2, 4))
 
 # The PDF buttons: Open shows the PDF on disk and says when it is out of date;
 # Make PDF renders it now and opens it.
@@ -2540,12 +2525,12 @@ pdf_open_btn = tk.Button(tab_bar, text="Open PDF", command=lambda: _open_doc_fil
                          font=("Arial", 9), bg=SIDEBAR, fg=TEXT, relief=tk.FLAT,
                          padx=10, pady=3, cursor="hand2", activebackground=BORDER,
                          disabledforeground=MUTED)
-pdf_open_btn.pack(side=tk.RIGHT, padx=4)
+pdf_open_btn.pack(side=tk.RIGHT, padx=2)
 pdf_make_btn = tk.Button(tab_bar, text="Make PDF", command=lambda: generate_pdf(),
                          font=("Arial", 9, "bold"), bg=ACCENT, fg="white", relief=tk.FLAT,
                          padx=10, pady=3, cursor="hand2", activebackground=ACCENT,
                          disabledforeground=BORDER)
-pdf_make_btn.pack(side=tk.RIGHT, padx=4)
+pdf_make_btn.pack(side=tk.RIGHT, padx=2)
 
 tab_body = tk.Frame(right, bg=ARTIFACT_BG)
 tab_body.pack(fill=tk.BOTH, expand=True, padx=14, pady=(4, 12))
@@ -2647,7 +2632,7 @@ def refresh_file_cards():
     if not os.path.exists(LIB.pdf_path(current_chapter, current_doc)):
         pdf_open_btn.config(text="Open PDF", state=tk.DISABLED, fg=MUTED)
     elif pdf_is_stale():
-        pdf_open_btn.config(text="Open PDF — out of date", state=tk.NORMAL, fg=RED)
+        pdf_open_btn.config(text="Open old PDF", state=tk.NORMAL, fg=RED)
     else:
         pdf_open_btn.config(text="Open PDF", state=tk.NORMAL, fg=TEXT)
 

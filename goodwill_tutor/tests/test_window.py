@@ -23,7 +23,7 @@ def inside(widget, panel):
 
 
 # ── the header keeps every control on screen as the window narrows ──────
-HEADER = ("preview_tab", "code_tab", "pdf_make_btn", "pdf_open_btn", "more_btn", "output_btn")
+HEADER = ("preview_tab", "code_tab", "pdf_make_btn", "pdf_open_btn", "more_btn")
 
 
 def header_fits():
@@ -38,6 +38,16 @@ for width in (1500, 1200, 1000):
     app.root.geometry(f"{width}x780")
     app.root.update()
     r.check(f"header controls on screen at {width}px", header_fits(), [])
+# Windows at 125-150% text size draws every font larger; the row must still
+# fit with the right panel dragged to its narrowest.
+app.root.geometry("1200x780")
+app.root.tk.call("tk", "scaling", 2.0)
+app.root.update()
+app.split.sash_place(0, 1200 - 240 - 440, 0)
+app.root.update()
+r.check("header fits at 150% text on a narrow panel", header_fits(), [])
+app.root.tk.call("tk", "scaling", 1.333)
+app.root.update()
 os.remove(app.LIB.pdf_path(app.current_chapter, app.current_doc))
 os.remove(app.LIB.html_path(app.current_chapter, app.current_doc))
 app.refresh_file_cards()
@@ -57,7 +67,7 @@ r.check("and Open PDF works", str(app.pdf_open_btn.cget("state")), "normal")
 
 time.sleep(1.2)
 app.save_current(html="<html><body>y</body></html>")
-r.check("editing makes the PDF stale", "out of date" in app.pdf_open_btn.cget("text"))
+r.check("editing makes the PDF stale", app.pdf_open_btn.cget("text"), "Open old PDF")
 r.check("and it is marked in red", app.pdf_open_btn.cget("fg"), app.RED)
 
 # ── Preview | Code ──────────────────────────────────────────────────────

@@ -150,6 +150,15 @@ r.check("a click makes it edit", app.intent_label.cget("text"), "Will edit")
 app.entry.delete("1.0", "end")
 app.intent_override = None
 
+# ── 9b. Gemini may not restyle the block itself ─────────────────────────
+state["reply"] = ("<!-- block 1 -->\n"
+                  + block(6, "60,000").replace('class="page-block"',
+                                               'class="page-block" style="border:1px solid #000"', 1))
+ask("fix the final answer in Illustration 6")
+r.check("the edit is made", "Rs. 60,000" in app.last_full_html)
+r.check("but a border Gemini put on the block is not kept",
+        'style="border' in app.last_full_html, False)
+
 # ── 10. reopening the document shows cards, not the whole answers ───────
 app.open_document(app.current_chapter, app.current_doc)
 text = chat_text()
