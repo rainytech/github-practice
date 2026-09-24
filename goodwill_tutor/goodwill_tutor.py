@@ -32,6 +32,7 @@ import house_style as hs
 import library
 import pdf_export
 import prompts
+import quick_edits
 
 # ── optional dependencies ────────────────────────────────────────────
 try:
@@ -1170,11 +1171,27 @@ def current_intent():
         return "chat"
     if intent_override and has_document():
         return intent_override
-    return prompts.read_request(entry.get("1.0", tk.END), has_document(), bool(attachments))
+    text = entry.get("1.0", tk.END).strip()
+    if not attachments and is_free(text):
+        return "free"
+    return prompts.read_request(text, has_document(), bool(attachments))
+
+
+def is_free(text):
+    """True when the app can do this itself, without the model."""
+    quick = quick_edits.parse(text)
+    if quick:
+        return quick[0] in ("help", "tab", "pdf", "open_pdf") or has_document()
+    if not has_document():
+        return False
+    return bool(prompts.removal_target(text) or prompts.top_bar_request(text)
+                or prompts.number_request(text) or prompts._DATE_ASK.match(text)
+                or (prompts.read_request(text, True) == "edit" and prompts.style_request(text)))
 
 
 INTENT_TEXT = {
     "add": ("Will add", "a new question at the end of the document", ACCENT),
+    "free": ("Free", "done by the app — nothing sent to Gemini", GREEN),
     "edit": ("Will edit", "changes the page in place", BLUE),
     "show": ("Will show", "the full merged HTML, in the Code tab", GREEN),
     "chat": ("Chat only", "General mode writes no document", MUTED),
@@ -1194,7 +1211,7 @@ def toggle_intent(_evt=None):
     global intent_override
     if active_mode_key() == "general" or not has_document():
         return
-    intent_override = "edit" if current_intent() in ("add", "show") else "add"
+    intent_override = "edit" if current_intent() in ("add", "show", "free") else "add"
     refresh_intent()
 
 
@@ -1260,6 +1277,11 @@ def submit(text, files, intent, local=True):
             "question, in order. Nothing was sent to Gemini.", "note")
         return True
 
+    if intent == "free":
+        quick = quick_edits.parse(text)
+        if quick:
+            return run_quick(text, *quick)
+        intent = "edit"                  # one of the edits below
     if intent == "edit" and not has_document():
         intent = "add"
     if intent == "edit" and not files and local:
@@ -1509,6 +1531,68 @@ def _local_turn(text):
                  "blocks": list(doc_blocks), "version": version_at}
 
 
+def run_quick(text, kind, match):
+    """A free edit from quick_edits: made here, nothing sent to the model."""
+    global last_full_html, doc_blocks
+    _local_turn(text)
+    if kind == "help":
+        put_card("Free edits")
+        say(quick_edits.HELP, "note")
+        return True
+    if kind == "tab":
+        show_tab("code" if match.group(1).lower() in ("code", "html") else "preview")
+        put_card("Showing the " + ("Code" if current_tab == "code" else "Preview"))
+        return True
+    if kind == "pdf":
+        put_card("Making the PDF")
+        generate_pdf()
+        return True
+    if kind == "open_pdf":
+        put_card("Opening the PDF")
+        _open_doc_file("pdf")
+        return True
+    if kind == "rename_doc":
+        title = match.group(1).strip()
+        try:
+            LIB.rename_document(current_chapter, current_doc, title)
+        except library.LibraryError as exc:
+            put_card("Not renamed", verdict_note=str(exc))
+            return True
+        auto_titles.pop(current_doc, None)       # his name now
+        refresh_tree(select=("d", current_chapter, current_doc))
+        refresh_title()
+        put_card(f"Document renamed to {title}", verdict_note="free")
+        return True
+    if kind in ("undo", "redo"):
+        numbers = [v["n"] for v in LIB.list_versions(current_chapter, current_doc)]
+        at = numbers.index(version_at) if version_at in numbers else len(numbers) - 1
+        step = -1 if kind == "undo" else 1
+        if not numbers or not 0 <= at + step < len(numbers):
+            put_card("Nothing to " + kind, verdict_note="no version " +
+                     ("before" if kind == "undo" else "after") + " this one")
+            return True
+        step_version(step)
+        put_card(f"{'Undone' if kind == 'undo' else 'Redone'} — showing v{at + step + 1} "
+                 f"of {len(numbers)}", verdict_note="free")
+        return True
+    before = last_full_html
+    try:
+        html, title = quick_edits.apply(kind, match, last_full_html)
+    except quick_edits.QuickEditError as exc:
+        put_card("Nothing changed", verdict_note=str(exc))
+        set_status("Nothing changed.", RED)
+        return True
+    last_full_html = html
+    doc_blocks = hs.blocks_of(html)
+    save_current(html=last_full_html, blocks=doc_blocks)
+    record_version(title, before)
+    refresh_artifact()
+    put_card(title, verdict_note="done here, free — nothing sent to Gemini")
+    set_status(f"{title} — free.", GREEN)
+    auto_pdf(keep_status=True)
+    return True
+
+
 def explain_style(text):
     """Colours and fonts belong to the house style; say so instead of asking Gemini."""
     _local_turn(text)
@@ -1524,7 +1608,7 @@ def explain_style(text):
 
 def change_date(text):
     """Change the date in the header — the model never sees the header."""
-    global last_full_html, doc_blocks
+    global last_full_html
     when = prompts.date_request(text, datetime.now().date())
     _local_turn(text)
     if when is None:

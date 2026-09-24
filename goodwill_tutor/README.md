@@ -49,6 +49,7 @@ python goodwill_tutor.py
 | `prompts.py` | What Gemini is told in each mode | Changing how it solves or writes |
 | `gemini_api.py` | All network calls | Changing models, tokens, uploads |
 | `pdf_export.py` | Playwright PDF and preview rendering | Changing the PDF geometry |
+| `quick_edits.py` | The free edits: what they read and what they change | Adding a free edit |
 
 Gemini writes only the `.page-block` body. Every line of CSS comes from
 `house_style.py`, so the house style cannot drift between documents.
@@ -206,6 +207,35 @@ printed.
 A small model sometimes leaves out the question number. The chat says so under
 the card; "number it Illustration 6" puts it in, free.
 
+### Free edits
+
+When the line above Send reads **Free**, the app makes the change itself —
+instant, exact, nothing sent to Gemini. Type **help** for the list:
+
+| Type | Does |
+|---|---|
+| `undo` · `redo` | step back or forward one version |
+| `replace 'Find' with 'Calculate'` | every question; add `in Illustration 6` for one. Quotes needed |
+| `change Rs. to ₹` · `change ₹ to Rs.` | the currency sign, everywhere |
+| `change the title to ADMISSION OF A PARTNER` | the top bar's topic |
+| `add (CBSE 2019) to Illustration 6` · `remove the source` | the exam source tag |
+| `add answer: Rs. 50,000` · `remove the answer line` | the [Ans.: ...] line |
+| `add hint: use 1.10 × 1.10` · `remove the hint` | the [Hint: ...] line |
+| `change the final answer to ...` | the ∴ line |
+| `remove the rule note` | the ► notes |
+| `remove the solutions` · `remove the solution from Illustration 6` | a worksheet: questions only |
+| `renumber the questions from 1` | 1, 2, 3 ... in page order |
+| `move Illustration 7 above Illustration 6` · `move the last question to the top` | reorder |
+| `remove the top bar` | the topic and page line |
+| `make the pdf` · `open the pdf` · `show the code` · `show the preview` | the buttons, by typing |
+| `rename the document to Discounting — Set 1` | the sidebar name |
+| `remove Illustration 7` · `number it Illustration 6` · `rename illustration no. 10` | as above |
+| `change the book name to P.K. Lazar, Pg. 43` · `change the date to 25th sept` | as above |
+
+An answer or hint with no question named goes under the last question. A
+word that is not on the page is reported, not guessed. Every free edit keeps a
+version, so `undo` takes it back.
+
 ### Cards and Retry
 
 The chat shows a short card for each answer — **Illustration 7 added ·
@@ -334,7 +364,7 @@ and documents live elsewhere and are never touched.
 python tests\run_all.py
 ```
 
-Nine groups, about ten seconds, and it prints `ALL PASS` or names what broke.
+Ten groups, about half a minute, and it prints `ALL PASS` or names what broke.
 It runs against a throwaway folder, sends nothing to Gemini and costs nothing,
 so it can be run as often as you like — after any change, before any class.
 
@@ -347,6 +377,7 @@ so it can be run as often as you like — after any change, before any class.
 | an older document | old stylesheet spotted, swapped, questions kept |
 | the window | every control reachable, PDF buttons honest, no white |
 | like Claude.ai | add or edit, versions, cards, Retry, the Claude phrases |
+| the free edits | every free edit made here, none sent to Gemini |
 | the printed page | A4, selectable text, `#C8C8C8` throughout, answer never stranded |
 | the updater | every file listed; a bad download never replaces a good one |
 

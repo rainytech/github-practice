@@ -40,6 +40,7 @@ FILES = [
     "gemini_api.py",
     "library.py",
     "pdf_export.py",
+    "quick_edits.py",
     "update.py",
     "requirements.txt",
     "README.md",
@@ -52,6 +53,7 @@ FILES = [
     "tests/test_restyle.py",
     "tests/test_window.py",
     "tests/test_claude.py",
+    "tests/test_quick.py",
     "tests/test_pdf.py",
     "tests/test_update.py",
 ]
