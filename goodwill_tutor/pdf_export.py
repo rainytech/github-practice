@@ -108,45 +108,95 @@ def html_to_pdf(html_path, pdf_path=None, wait_ms=350):
     return pdf_path
 
 
-# One entry per line of text a teacher would want to copy. Cells rather than
-# rows, so a table row copies as columns.
-_LINE_SELECTOR = (".header > div, .top-bar .title, .top-bar .pgref, .q > span, .adj > span, "
-                  ".notes > span, .wn-text > span, .sub > span, .sol-label, .wn-label, .wn-sub, "
-                  ".part-heading, .tbl-title, .dr-cr-row > span, th, td, .formula-box .line, "
-                  ".rule-note, .quote-box, .ans, .hint, .final-ans, .verify-ok, .verify-bad")
+# Every word on the page, where Chromium drew it, in reading order — what lets
+# the Preview select text as a browser does. For each word:
+#   x y w h  its box        t  the word          s  a space came before it
+#   b  the line or cell it sits in (a fraction counts as part of its line)
+#   r  its table row, or -1
+#   f  "n"/"d" inside a fraction's top/bottom    u  1 inside a superscript
+_WORD_SCRIPT = """() => {
+  const out = [], ids = new Map();
+  const idOf = e => { if (!ids.has(e)) ids.set(e, ids.size); return ids.get(e); };
+  const blockOf = e => {
+    while (e && e !== document.body) {
+      const d = getComputedStyle(e).display;
+      if (!d.startsWith('inline') && d !== 'contents') return e;
+      e = e.parentElement;
+    }
+    return document.body;
+  };
+  const walk = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+  let pending = false, node;
+  while ((node = walk.nextNode())) {
+    const text = node.textContent, p = node.parentElement;
+    if (!text.trim()) { if (text.length) pending = true; continue; }
+    const fr = p.closest('.frac');
+    const f = fr ? (p.closest('.den') ? 'd' : 'n') : '';
+    const u = p.closest('sup') ? 1 : 0;
+    const blk = idOf(blockOf(fr ? fr.parentElement : p)), tr = p.closest('tr'), row = tr ? idOf(tr) : -1;
+    const re = /\\S+/g; let m;
+    while ((m = re.exec(text))) {
+      const r = document.createRange();
+      r.setStart(node, m.index); r.setEnd(node, m.index + m[0].length);
+      const box = r.getClientRects()[0];
+      if (!box || !box.width) continue;
+      const s = m.index > 0 ? /\\s/.test(text[m.index - 1]) : pending;
+      out.push({x: box.left + scrollX, y: box.top + scrollY, w: box.width, h: box.height,
+                t: m[0], s: s ? 1 : 0, b: blk, r: row, f: f, u: u});
+    }
+    pending = /\\s$/.test(text);
+  }
+  return out;
+}"""
 
-_LINE_SCRIPT = """(sel) => Array.from(document.querySelectorAll(sel)).map(e => {
-  const r = e.getBoundingClientRect();
-  const c = e.cloneNode(true);
-  c.querySelectorAll('.frac').forEach(f => {
-    const n = f.querySelector('.num'), d = f.querySelector('.den');
-    f.replaceWith(' ' + (n ? n.textContent : '') + '/' + (d ? d.textContent : '') + ' ');
-  });
-  c.querySelectorAll('sup').forEach(s => s.replaceWith('^' + s.textContent));
-  const t = c.textContent.replace(/\\s+/g, ' ').trim();
-  return {x: r.left + scrollX, y: r.top + scrollY, w: r.width, h: r.height, t: t};
-}).filter(b => b.t && b.w > 0 && b.h > 0)"""
 
+def words_text(words, first, last):
+    """The text of words[first..last] as it reads on the page.
 
-def text_in(lines, x0, y0, x1, y1):
-    """The text of the lines touching a box, a row per line, cells tab-apart.
-
-    lines : [{x, y, w, h, t}] in the picture's own pixels.
+    Lines break where the page breaks them, table cells are tab-apart, a
+    fraction reads 66,550/1.331 and a power 1.10^3.
     """
-    x0, x1 = sorted((x0, x1))
-    y0, y1 = sorted((y0, y1))
-    hit = [b for b in lines
-           if b["x"] < x1 and b["x"] + b["w"] > x0 and b["y"] < y1 and b["y"] + b["h"] > y0]
-    hit.sort(key=lambda b: (b["y"] + b["h"] / 2, b["x"]))
-    rows = []
-    for b in hit:
-        middle = b["y"] + b["h"] / 2
-        if rows and abs(rows[-1][0] - middle) < max(4, b["h"] / 3):
-            rows[-1][1].append(b)
-        else:
-            rows.append([middle, [b]])
-    return "\n".join("\t".join(c["t"] for c in sorted(cells, key=lambda c: c["x"]))
-                     for _, cells in rows)
+    first, last = sorted((first, last))
+    out, prev = [], None
+    for w in words[first:last + 1]:
+        if prev is not None:
+            if w["u"] and not prev["u"]:
+                sep = "^"
+            elif w["f"] == "d" and prev["f"] == "n":
+                sep = "/"
+            elif w["b"] != prev["b"]:
+                sep = "\t" if w["r"] >= 0 and w["r"] == prev["r"] else "\n"
+            else:
+                sep = " " if w["s"] else ""
+            out.append(sep)
+        out.append(w["t"])
+        prev = w
+    return "".join(out)
+
+
+def word_at(words, x, y):
+    """The word under a point, or the nearest one to it; None on an empty page."""
+    if not words:
+        return None
+    for i, w in enumerate(words):
+        if w["x"] <= x <= w["x"] + w["w"] and w["y"] <= y <= w["y"] + w["h"]:
+            return i
+    on_line = [i for i, w in enumerate(words) if w["y"] <= y <= w["y"] + w["h"]]
+    if on_line:
+        return min(on_line, key=lambda i: min(abs(x - words[i]["x"]),
+                                              abs(x - words[i]["x"] - words[i]["w"])))
+
+    def distance(i):
+        w = words[i]
+        dy = 0 if w["y"] <= y <= w["y"] + w["h"] else min(abs(y - w["y"]), abs(y - w["y"] - w["h"]))
+        dx = 0 if w["x"] <= x <= w["x"] + w["w"] else min(abs(x - w["x"]), abs(x - w["x"] - w["w"]))
+        return (dy, dx)
+    return min(range(len(words)), key=distance)
+
+
+def hit_word(words, x, y):
+    """True when the point is on a word — for the text cursor."""
+    return any(w["x"] <= x <= w["x"] + w["w"] and w["y"] <= y <= w["y"] + w["h"] for w in words)
 
 
 def html_to_png(html_path, png_path=None, width=880, wait_ms=300, scale=1.0, media="screen",
@@ -155,8 +205,8 @@ def html_to_png(html_path, png_path=None, width=880, wait_ms=300, scale=1.0, med
     makes the PDF, so the preview cannot disagree with the printed page.
 
     media="print" draws the page with the print rules, as the PDF does.
-    lines=True also writes <png>.json: where each line of text sits in the
-    picture, so the Preview can copy the text under the mouse.
+    lines=True also writes <png>.json: where every word sits in the picture,
+    so the Preview can select and copy text as a browser does.
     scale shrinks the picture, not the layout: the page is laid out at the
     same width and drawn smaller, so it wraps where the print does.
 
@@ -188,7 +238,7 @@ def html_to_png(html_path, png_path=None, width=880, wait_ms=300, scale=1.0, med
                 page.wait_for_timeout(wait_ms)
                 page.screenshot(path=png_path, full_page=True)
                 if lines:
-                    found = page.evaluate(_LINE_SCRIPT, _LINE_SELECTOR)
+                    found = page.evaluate(_WORD_SCRIPT)
                     for b in found:
                         for k in ("x", "y", "w", "h"):
                             b[k] = round(b[k] * scale, 1)

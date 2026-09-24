@@ -19,6 +19,7 @@ import html as html_lib
 import io
 import json
 import os
+import pathlib
 import queue
 import re
 import threading
@@ -833,6 +834,7 @@ def preview_done(png, shown_for):
                                            preview_image.height()))
     preview_canvas.yview_moveto(top)
     preview_shown_for = shown_for
+    _sel.update(anchor=None, first=None, last=None)       # a new page, no selection
     try:
         with open(png + ".json", encoding="utf-8") as fh:
             preview_lines[:] = json.load(fh)
@@ -2810,6 +2812,7 @@ def open_more_menu(event=None):
     menu = _menu()
     menu.add_command(label="Save as HTML", command=lambda: save_html())
     menu.add_command(label="Open the HTML file", command=lambda: _open_doc_file("html"))
+    menu.add_command(label="Open in browser", command=open_in_browser)
     menu.add_separator()
     menu.add_command(label="Apply my edits", command=apply_edited_html)
     menu.add_command(label="Check house style", command=check_house_style)
@@ -2881,76 +2884,143 @@ def _preview_wheel(event):
 for _seq in ("<MouseWheel>", "<Button-4>", "<Button-5>"):
     preview_canvas.bind(_seq, _preview_wheel)
 
-# Copying from the Preview. The picture has no text in it, so Chromium also
-# records where each line sits; a click copies the line under the mouse, a
-# drag copies every line the box touches, a table row as tab-separated cells.
-_drag = {"x": 0, "y": 0}
+# Selecting text in the Preview, as in a browser. The picture has no text in
+# it, so Chromium also records where every word was drawn; the panel then does
+# what a browser does: press and drag to select in reading order, double-click
+# a word, triple-click a line, Ctrl+A for the page, Ctrl+C to copy. Letting go
+# of the mouse copies too — one step fewer for the teacher.
+SELECT_BLUE = "#3390FF"
+_sel = {"anchor": None, "first": None, "last": None, "multi": False, "moved": False,
+        "x": 0, "y": 0}
 
 
 def _canvas_xy(event):
     return preview_canvas.canvasx(event.x), preview_canvas.canvasy(event.y)
 
 
-def _mark_lines(x0, y0, x1, y1):
+def _draw_selection():
+    """Highlight the selected words, one band per line, as a browser draws it."""
     preview_canvas.delete("picked")
-    for b in preview_lines:
-        if b["x"] < max(x0, x1) and b["x"] + b["w"] > min(x0, x1) \
-                and b["y"] < max(y0, y1) and b["y"] + b["h"] > min(y0, y1):
-            preview_canvas.create_rectangle(b["x"], b["y"], b["x"] + b["w"], b["y"] + b["h"],
-                                            outline=ACCENT, width=2, tags="picked")
+    if _sel["first"] is None:
+        return
+    first, last = sorted((_sel["first"], _sel["last"]))
+    bands = {}
+    for w in preview_lines[first:last + 1]:
+        key = (w["b"], round(w["y"] / 4))
+        x0, y0, x1, y1 = bands.get(key, (w["x"], w["y"], w["x"] + w["w"], w["y"] + w["h"]))
+        bands[key] = (min(x0, w["x"]), min(y0, w["y"]),
+                      max(x1, w["x"] + w["w"]), max(y1, w["y"] + w["h"]))
+    for x0, y0, x1, y1 in bands.values():
+        preview_canvas.create_rectangle(x0 - 1, y0, x1 + 1, y1, fill=SELECT_BLUE,
+                                        stipple="gray50", outline="", tags="picked")
 
 
-def copy_preview(x0, y0, x1, y1):
-    text = pdf_export.text_in(preview_lines, x0, y0, x1, y1)
-    if not text:
-        set_status("No text there to copy." if preview_lines else
-                   "The preview is still being drawn — try again in a moment.", MUTED)
+def _select(first, last):
+    _sel["first"], _sel["last"] = first, last
+    _draw_selection()
+
+
+def clear_preview_selection():
+    _sel.update(anchor=None, first=None, last=None)
+    preview_canvas.delete("picked")
+
+
+def copy_preview_selection(_evt=None):
+    """Copy what is selected in the Preview. Returns the text."""
+    if _sel["first"] is None or not preview_lines:
+        set_status("Select some text in the Preview first — press and drag." if preview_lines
+                   else "The preview is still being drawn — try again in a moment.", MUTED)
         return ""
+    text = pdf_export.words_text(preview_lines, _sel["first"], _sel["last"])
     root.clipboard_clear()
     root.clipboard_append(text)
-    lines = text.count("\n") + 1
-    shown = text if lines == 1 else f"{lines} lines"
-    set_status(f"Copied: {shown[:60]}", GREEN)
+    words = abs(_sel["last"] - _sel["first"]) + 1
+    set_status(f"Copied: {text[:50]}" if words <= 8 else f"Copied {words} words.", GREEN)
     return text
 
 
 def _preview_press(event):
     preview_canvas.focus_set()
-    _drag["x"], _drag["y"] = _canvas_xy(event)
-    preview_canvas.delete("dragbox")
+    x, y = _canvas_xy(event)
+    _sel.update(x=x, y=y, moved=False, multi=False)
+    clear_preview_selection()
+    _sel["anchor"] = pdf_export.word_at(preview_lines, x, y)
 
 
 def _preview_motion(event):
+    if _sel["anchor"] is None:
+        return
     x, y = _canvas_xy(event)
-    preview_canvas.delete("dragbox")
-    preview_canvas.create_rectangle(_drag["x"], _drag["y"], x, y, outline=ACCENT,
-                                    dash=(4, 2), tags="dragbox")
-
-
-def _preview_release(event):
+    if not _sel["moved"] and abs(x - _sel["x"]) < 3 and abs(y - _sel["y"]) < 3:
+        return
+    _sel["moved"] = True
+    # Drag past the edge and the page scrolls with you.
+    if event.y < 16:
+        preview_canvas.yview_scroll(-1, "units")
+    elif event.y > preview_canvas.winfo_height() - 16:
+        preview_canvas.yview_scroll(1, "units")
     x, y = _canvas_xy(event)
-    preview_canvas.delete("dragbox")
-    if abs(x - _drag["x"]) < 4 and abs(y - _drag["y"]) < 4:
-        x0, y0, x1, y1 = x, y, x + 1, y + 1          # a click: the line under it
-    else:
-        x0, y0, x1, y1 = _drag["x"], _drag["y"], x, y
-    _mark_lines(x0, y0, x1, y1)
-    copy_preview(x0, y0, x1, y1)
+    _select(_sel["anchor"], pdf_export.word_at(preview_lines, x, y))
 
 
-def copy_preview_all(_evt=None):
-    big = 10 ** 6
-    _mark_lines(0, 0, big, big)
-    copy_preview(0, 0, big, big)
+def _preview_release(_event):
+    if _sel["multi"]:
+        _sel["multi"] = False
+        copy_preview_selection()
+    elif _sel["moved"] and _sel["first"] is not None:
+        copy_preview_selection()
+
+
+def _preview_double(event):
+    x, y = _canvas_xy(event)
+    i = pdf_export.word_at(preview_lines, x, y)
+    if i is not None:
+        _sel["multi"] = True
+        _select(i, i)
     return "break"
+
+
+def _preview_triple(event):
+    x, y = _canvas_xy(event)
+    i = pdf_export.word_at(preview_lines, x, y)
+    if i is not None:
+        block = preview_lines[i]["b"]
+        same = [j for j, w in enumerate(preview_lines) if w["b"] == block]
+        _sel["multi"] = True
+        _select(same[0], same[-1])
+    return "break"
+
+
+def select_all_preview(_evt=None):
+    if preview_lines:
+        _select(0, len(preview_lines) - 1)
+        copy_preview_selection()
+    return "break"
+
+
+def _preview_hover(event):
+    x, y = _canvas_xy(event)
+    preview_canvas.config(cursor="xterm" if pdf_export.hit_word(preview_lines, x, y) else "")
+
+
+def open_in_browser():
+    """The page in the system browser — Edge and Chrome are Chromium too."""
+    path = save_html(silent=True)
+    if not path:
+        set_status("Nothing to open yet.", RED)
+        return
+    import webbrowser
+    webbrowser.open(pathlib.Path(path).as_uri())
 
 
 def _preview_menu(event):
     menu = _menu()
-    x, y = _canvas_xy(event)
-    menu.add_command(label="Copy this line",
-                     command=lambda: (_mark_lines(x, y, x + 1, y + 1), copy_preview(x, y, x + 1, y + 1)))
-    menu.add_command(label="Copy all text", command=copy_preview_all)
+    has = _sel["first"] is not None
+    menu.add_command(label="Copy", command=copy_preview_selection,
+                     state=tk.NORMAL if has else tk.DISABLED)
+    menu.add_command(label="Select all and copy", command=select_all_preview)
+    menu.add_separator()
+    menu.add_command(label="Open in browser", command=open_in_browser)
     try:
         menu.tk_popup(event.x_root, event.y_root)
     finally:
@@ -2960,10 +3030,14 @@ def _preview_menu(event):
 preview_canvas.bind("<ButtonPress-1>", _preview_press)
 preview_canvas.bind("<B1-Motion>", _preview_motion)
 preview_canvas.bind("<ButtonRelease-1>", _preview_release)
+preview_canvas.bind("<Double-Button-1>", _preview_double)
+preview_canvas.bind("<Triple-Button-1>", _preview_triple)
+preview_canvas.bind("<Motion>", _preview_hover)
 preview_canvas.bind("<Button-3>", _preview_menu)
 for _seq in ("<Control-a>", "<Control-A>"):
-    preview_canvas.bind(_seq, copy_preview_all)
-preview_canvas.config(cursor="xterm")
+    preview_canvas.bind(_seq, select_all_preview)
+for _seq in ("<Control-c>", "<Control-C>", "<Control-Insert>"):
+    preview_canvas.bind(_seq, copy_preview_selection)
 
 # A narrower panel draws the page smaller, once the dragging stops.
 _resize_job = [None]

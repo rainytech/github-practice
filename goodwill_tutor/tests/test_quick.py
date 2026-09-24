@@ -29,6 +29,10 @@ app = gui(stream=stream)
 r.check("a model is available", bool(wait_for_models(app)))
 
 
+def word(x, y, t, b, s=1, r=-1):
+    return {"x": x, "y": y, "w": 8 * len(t), "h": 12, "t": t, "s": s, "b": b, "r": r, "f": "", "u": 0}
+
+
 def ask(what):
     app.entry.insert("1.0", what)
     app.refresh_intent()
@@ -135,15 +139,36 @@ r.check("and it reads as Free", app.intent_label.cget("text"), "Free")
 app.entry.delete("1.0", "end")
 app.refresh_intent()
 
-# ── copying from the Preview ────────────────────────────────────────────
-app.preview_lines[:] = [{"x": 10, "y": 10, "w": 100, "h": 12, "t": "Future Value (F)"},
-                        {"x": 120, "y": 10, "w": 60, "h": 12, "t": "Rs. 66,550"},
-                        {"x": 10, "y": 30, "w": 200, "h": 12, "t": "∴ Present Value = Rs. 50,000"}]
-app.copy_preview(15, 15, 16, 16)
-r.check("a click in the Preview copies that line", app.root.clipboard_get(), "Future Value (F)")
-app.copy_preview_all()
-r.check("Copy all text copies the page, row by row", app.root.clipboard_get(),
-        "Future Value (F)\tRs. 66,550\n∴ Present Value = Rs. 50,000")
+# ── selecting in the Preview, as in a browser ───────────────────────────
+class Click:
+    def __init__(self, x, y):
+        self.x, self.y = x, y
+
+
+app.preview_canvas.configure(scrollregion=(0, 0, 800, 2000))     # a page, as after a render
+app.preview_canvas.yview_moveto(0)
+app.preview_lines[:] = [word(10, 10, "Future", 1, 0, 7), word(60, 10, "Value", 1, 1, 7),
+                        word(200, 10, "Rs.", 2, 0, 7), word(230, 10, "66,550", 2, 1, 7),
+                        word(10, 40, "∴", 3, 0), word(20, 40, "Present", 3, 1), word(90, 40, "Value", 3, 1)]
+app._preview_press(Click(12, 14))
+app._preview_motion(Click(240, 14))
+app._preview_release(Click(240, 14))
+r.check("a drag selects and copies, cells tab-apart", app.root.clipboard_get(), "Future Value\tRs. 66,550")
+r.check("the selection is drawn", len(app.preview_canvas.find_withtag("picked")) > 0)
+app._preview_press(Click(95, 45))
+app._preview_double(Click(95, 45))
+app._preview_release(Click(95, 45))
+r.check("a double-click copies one word", app.root.clipboard_get(), "Value")
+app._preview_press(Click(25, 45))
+app._preview_triple(Click(25, 45))
+app._preview_release(Click(25, 45))
+r.check("a triple-click copies the line", app.root.clipboard_get(), "∴ Present Value")
+app.select_all_preview()
+r.check("Ctrl+A copies the page", app.root.clipboard_get(),
+        "Future Value\tRs. 66,550\n∴ Present Value")
+app._preview_press(Click(300, 300))
+app._preview_release(Click(300, 300))
+r.check("a plain click clears the selection", app.preview_canvas.find_withtag("picked"), ())
 
 r.check("none of it was sent to Gemini", state["calls"], paid)
 r.check("each change kept a version", versions() > before)

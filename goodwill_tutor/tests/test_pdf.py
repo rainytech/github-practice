@@ -162,19 +162,27 @@ with sync_playwright() as pw:
     browser.close()
 r.check("the Preview breaks lines where the PDF does", preview_lines, pdf_lines)
 
-# ── text can be copied from the Preview ─────────────────────────────────
+# ── text can be selected in the Preview, as in a browser ────────────────
 import json
 shot = pdf_export.html_to_png(html, os.path.join(folder, "copy.png"), width=794,
                               scale=0.6, media="print", lines=True)
-lines = json.load(open(shot + ".json", encoding="utf-8"))
-everything = pdf_export.text_in(lines, 0, 0, 10 ** 6, 10 ** 6)
-r.check("the Preview knows where its text is", len(lines) > 5)
-r.check("all its text can be copied", "Present Value" in everything and "Discounting".upper() in everything.upper())
-r.check("a fraction copies as 66,550/1.331", "66,550/1.331" in everything.replace(" ", ""))
-row = next(b for b in lines if b["t"].startswith("Future Value"))
-got = pdf_export.text_in(lines, row["x"] + 2, row["y"] + 2, row["x"] + 3, row["y"] + 3)
-r.check("a click copies the one cell under it", got, "Future Value (F)")
-across = pdf_export.text_in(lines, row["x"] + 2, row["y"] + 2, 10 ** 6, row["y"] + 3)
-r.check("a table row copies as columns", across, "Future Value (F)\tRs. 66,550")
+words = json.load(open(shot + ".json", encoding="utf-8"))
+everything = pdf_export.words_text(words, 0, len(words) - 1)
+r.check("the Preview knows where every word is", len(words) > 20)
+r.check("the whole page can be copied", "Present Value = Rs. 50,000" in everything)
+r.check("lines break where the page breaks them",
+        "GOODWILL TUITION CENTRE" in everything.splitlines()[0])
+r.check("a fraction copies as 66,550/1.331", "66,550/1.331" in everything)
+r.check("a table row copies as columns", "Future Value (F)\tRs. 66,550" in everything)
+line = next(l for l in everything.splitlines() if "66,550/1.331" in l)
+r.check("the line after a fraction starts on its own line", line.rstrip().endswith("1.331"))
+start = next(i for i, w in enumerate(words) if w["t"] == "Future")
+end = next(i for i, w in enumerate(words) if w["t"] == "66,550" and i > start)
+r.check("a drag from one word to another copies just those",
+        pdf_export.words_text(words, start, end), "Future Value (F)\tRs. 66,550")
+w = words[start]
+r.check("a point on a word finds it", pdf_export.word_at(words, w["x"] + 1, w["y"] + 1), start)
+r.check("a point beside a line finds its nearest word",
+        pdf_export.word_at(words, w["x"] - 30, w["y"] + 2), start)
 
 sys.exit(r.finish())
