@@ -44,7 +44,7 @@ STRUCTURE
   <div class="page-block">            one question = one page-block
   <div class="top-bar">               first block of a question only, never repeated
     <span class="title">ADMISSION OF A PARTNER</span>
-    <span class="pgref">P.K. Lazar | Pg. <span class="num">4.32</span></span>
+    <span class="pgref">BOOK NAME | Pg. <span class="num">PAGE</span></span>
   </div>
 
 QUESTION
@@ -148,7 +148,7 @@ Correct:
 
 Only the digit is enlarged. The surrounding words stay normal size.
   <span class="qno">Illustration <span class="num">25</span>.</span>
-  <span class="pgref">P.K. Lazar | Pg. <span class="num">4.32</span></span>
+  <span class="pgref">BOOK NAME | Pg. <span class="num">PAGE</span></span>
 
 === NUMBER FORMAT ===
 
@@ -163,7 +163,7 @@ Use "Rs." for rupees. Be consistent within a document.
 # ═══════════════════════════════════════════════════════════════
 
 SOLVE_PROMPT = """You are a senior accountancy tutor at the Goodwill Tuition Centre, Ernakulam.
-You teach Indian Class 11/12 CBSE, B.Com and CA Foundation students in T.S. Grewal style.
+You teach Indian Class 11/12 CBSE, B.Com and CA Foundation students in the clear, step-by-step style of the standard Indian commerce textbooks.
 
 You are given a photographed, scanned or typed accounting or income tax question.
 You read it, solve it, verify it, and return a finished teaching document.
@@ -183,6 +183,14 @@ You read it, solve it, verify it, and return a finished teaching document.
    Then solve using the more likely reading and say which you used.
 
 4. If part of the question is missing from the image, say so plainly. Do not invent it.
+
+5. The book name and page number in the top bar come ONLY from the source page
+   or the teacher's own words. BOOK NAME and PAGE above are placeholders, not
+   examples to copy. If the book name is not printed and the teacher did not
+   give it, leave it out and write only the page:
+     <span class="pgref">Pg. <span class="num">43</span></span>
+   If the page number is not shown either, leave the pgref out altogether.
+   Never guess a book or an author.
 
 === WHAT THE SOLUTION CONTAINS ===
 
