@@ -2589,6 +2589,61 @@ chat = scrolledtext.ScrolledText(chat_frame, wrap=tk.WORD, font=("Georgia", 11),
 chat.pack(fill=tk.BOTH, expand=True)
 chat.frame.config(bg=BG)          # ScrolledText's wrapper keeps Tk's grey otherwise
 chat.config(state=tk.DISABLED)
+# The chat is read-only, and on Windows a read-only Text never takes the
+# keyboard focus from a click — so a selection could be made but Ctrl+C did
+# nothing, and the selection was drawn without its highlight. Take focus on
+# click, copy on Ctrl+C, and keep the highlight when the focus moves on.
+chat.config(inactiveselectbackground=ACCENT, exportselection=True)
+
+
+def _chat_selection():
+    try:
+        return chat.get("sel.first", "sel.last")
+    except tk.TclError:
+        return ""
+
+
+def copy_chat(_evt=None, everything=False):
+    text = chat.get("1.0", "end-1c") if everything else _chat_selection()
+    text = text.strip()
+    if not text:
+        set_status("Select some text in the chat first.", MUTED)
+        return "break"
+    root.clipboard_clear()
+    root.clipboard_append(text)
+    set_status("Copied.", GREEN)
+    return "break"
+
+
+def chat_to_message(_evt=None):
+    """Put the selected text in the typing box — a command from help, say."""
+    text = _chat_selection().strip()
+    if not text:
+        set_status("Select a line in the chat first.", MUTED)
+        return "break"
+    entry.delete("1.0", tk.END)
+    entry.insert("1.0", text)
+    entry.focus_set()
+    refresh_intent()
+    return "break"
+
+
+def open_chat_menu(event):
+    menu = _menu()
+    menu.add_command(label="Copy", command=copy_chat)
+    menu.add_command(label="Copy all", command=lambda: copy_chat(everything=True))
+    menu.add_separator()
+    menu.add_command(label="Put in my message", command=chat_to_message)
+    try:
+        menu.tk_popup(event.x_root, event.y_root)
+    finally:
+        menu.grab_release()
+
+
+chat.bind("<Button-1>", lambda _e: chat.focus_set(), add="+")
+for _seq in ("<Control-c>", "<Control-C>", "<Control-Insert>"):
+    chat.bind(_seq, copy_chat)
+chat.bind("<Button-3>", open_chat_menu)
 chat.tag_config("user_label", background=ACCENT, foreground="white",
                 font=("Arial", 9, "bold"), spacing1=5, spacing3=5)
 chat.tag_config("ai_label", background=TEXT, foreground=BG,

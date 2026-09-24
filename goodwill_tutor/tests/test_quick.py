@@ -122,6 +122,17 @@ r.check("undo stays free even when switched", app.current_intent(), "free")
 app.entry.delete("1.0", "end")
 app.refresh_intent()
 
+# ── copying from the chat ───────────────────────────────────────────────
+at = app.chat.search("make the pdf", "1.0", "end")
+app.chat.tag_add("sel", at, f"{at}+12c")
+app.copy_chat()
+r.check("Ctrl+C copies the selection", app.root.clipboard_get(), "make the pdf")
+app.chat_to_message()
+r.check("'Put in my message' fills the typing box", app.entry.get("1.0", "end").strip(), "make the pdf")
+r.check("and it reads as Free", app.intent_label.cget("text"), "Free")
+app.entry.delete("1.0", "end")
+app.refresh_intent()
+
 r.check("none of it was sent to Gemini", state["calls"], paid)
 r.check("each change kept a version", versions() > before)
 r.check("a real edit still goes to Gemini", ask("fix the working in Illustration 1"), "Will edit")
