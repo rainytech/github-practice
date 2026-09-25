@@ -1424,6 +1424,40 @@ def set_qno(block, word, number):
     return block[:q.end()] + qno + block[q.end():]
 
 
+def summarize_answer(html, limit=900):
+    """An earlier answer, cut down to what a follow-up needs.
+
+    The app keeps the document, so the model never needs an earlier solution
+    back — only which question it was, how it was worded and what it came to,
+    to match its difficulty and phrasing. Sending the whole answer again cost
+    about 3,000 tokens a question, and more with every question added.
+    """
+    parts = []
+    for block in blocks_of(html) or [html or ""]:
+        label = question_label(block) or "An earlier question"
+        q = _Q_START.search(block)
+        end = _div_end(block, q.start()) if q else -1
+        question = _plain(block[q.start():end]) if q and end > 0 else ""
+        final = re.search(r'<div\b[^>]*class\s*=\s*"final-ans"[^>]*>(.*?)</div>', block, re.I | re.S)
+        line = f"{label}: {question}"
+        if final:
+            line += f"  Final answer: {_plain(final.group(1))}"
+        parts.append(line)
+    text = "\n".join(parts)
+    if len(text) > limit:
+        text = text[:limit].rsplit(" ", 1)[0] + " ..."
+    return ("[Earlier answer, already in the document — not to be sent again]\n" + text)
+
+
+def _plain(fragment):
+    """Readable text of a fragment: fractions as a/b, powers as ^n."""
+    fragment = re.sub(r'<span class="frac"><span class="num">(.*?)</span><span class="den">(.*?)</span></span>',
+                      r" \1/\2 ", fragment)
+    fragment = re.sub(r"<sup>(.*?)</sup>", r"^\1", fragment)
+    text = html_lib.unescape(_TAG.sub(" ", fragment))
+    return re.sub(r"\s+", " ", text).strip()
+
+
 def figures(html):
     """Every figure on the page, in order — what an edit is checked against."""
     body = re.search(r"<body[^>]*>", html or "", re.I)

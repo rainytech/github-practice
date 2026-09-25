@@ -315,6 +315,16 @@ amounts, is left out and the chat says so. A question solved again by another
 method reads differently and is kept. You never need to ask for the merged
 document: every answer is added after the ones before it.
 
+### Why a second question used to cost more
+
+Each Send used to carry the whole conversation: the first page's screenshot
+and its full HTML answer went to Gemini again with the second question — about
+4,000 tokens, roughly 8 paise more, and more with every question added. The
+document already holds those answers, so earlier answers now go as a short
+summary (the question, its wording, its final answer) and earlier pages as a
+placeholder. Gemini still sees what came before, enough to match its
+difficulty and phrasing, without paying to read it all again.
+
 ### The PDF goes out of date
 
 With the automatic render switched off, adding a question rewrites the HTML but

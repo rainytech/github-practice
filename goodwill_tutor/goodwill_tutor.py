@@ -1397,7 +1397,7 @@ def submit(text, files, intent, local=True):
                                                 body=hs.numbered_body(snapshot_html)),
                     files)}]
             else:
-                request = conversation_history
+                request = compact_history(conversation_history)
 
             post(lambda: set_status("Streaming...", ACCENT))
             answer, in_tok, out_tok, cached_tok = api.stream_generate(
@@ -1452,6 +1452,32 @@ def submit(text, files, intent, local=True):
 
     threading.Thread(target=work, daemon=True).start()
     return True
+
+
+def compact_history(history):
+    """The conversation as sent to the model: earlier turns cut to the bone.
+
+    Earlier answers go as a short summary — the document already holds them —
+    and earlier pages as a placeholder; the question just asked goes whole.
+    Sent in full, the second question of a document cost 10 paise more than
+    the first, and each later one more again.
+    """
+    out = []
+    last = len(history) - 1
+    for i, turn in enumerate(history):
+        if i == last:
+            out.append(turn)
+            continue
+        parts = []
+        for part in turn.get("parts", []):
+            if "inline_data" in part:
+                parts.append({"text": "[page attached earlier]"})
+            elif turn.get("role") == "model" and "text" in part and 'class="' in part["text"]:
+                parts.append({"text": hs.summarize_answer(part["text"])})
+            else:
+                parts.append(part)
+        out.append({"role": turn.get("role", "user"), "parts": parts})
+    return out
 
 
 def paint_stream(snapshot, intent="add"):
