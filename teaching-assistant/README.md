@@ -53,6 +53,17 @@ The **Today** list at the top then shows each class with where to continue:
 The current or next class is highlighted. After class, the screenshot is matched
 to the class that just ended, so the student is filled in for you.
 
+## WhatsApp class message
+
+Click **💬 WhatsApp** on a Today row (or **WhatsApp Message** on a student) to get:
+
+> Class at 5:30 PM — T.S. Grewal, Page 3.1, Question No. 24. For assistance: 9567902805.
+
+Fill in the book and textbook page (remembered per student), add the student's
+number when you have it, then **Open in WhatsApp**: the WhatsApp app opens that
+chat with the message typed — press Enter to send. The message is also copied,
+so without a number you can paste it into any chat.
+
 ## How the student is suggested
 
 1. The timetable class that just ended (if a timetable is saved), else

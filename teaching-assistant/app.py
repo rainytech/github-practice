@@ -20,6 +20,7 @@ from PIL import Image
 from PySide6.QtCore import QBuffer, QByteArray, QEventLoop, QIODevice, Qt, QTimer, QUrl
 from PySide6.QtGui import QColor, QDesktopServices, QFont, QGuiApplication, QImage, QKeySequence, QPalette, QPixmap, QShortcut
 from PySide6.QtWidgets import (
+    QPlainTextEdit,
     QAbstractItemView, QApplication, QComboBox, QDialog, QDialogButtonBox, QFileDialog, QFormLayout,
     QFrame, QGridLayout, QHBoxLayout, QHeaderView, QInputDialog, QLabel, QLineEdit, QListWidget,
     QListWidgetItem, QMainWindow, QMessageBox, QProgressBar, QPushButton, QScrollArea, QSpinBox,
@@ -28,11 +29,12 @@ from PySide6.QtWidgets import (
 
 import reader
 import timetable as tt
+import whatsapp as wa
 from ocr_engine import OcrError
 from storage import Store, data_dir
 
 APP = "TeachMark"
-VERSION = "1.8"
+VERSION = "1.9"
 IMAGE_EXT = (".png", ".jpg", ".jpeg", ".bmp", ".gif", ".webp")
 SCREENSHOTS = [Path.home() / "Pictures" / "Screenshots"]
 if os.environ.get("OneDrive"):
@@ -336,6 +338,87 @@ class TimetableDialog(QDialog):
         return out
 
 
+class WhatsAppDialog(QDialog):
+    """Builds the one-line class message and opens it in the WhatsApp app, ready to send."""
+
+    def __init__(self, store: Store, sid: int, parent=None):
+        super().__init__(parent)
+        self.store, self.sid = store, sid
+        st = store.student(sid)
+        stops = store.stops(sid, limit=1)
+        now = datetime.now()
+        nxt = wa.next_class(store.schedule_of(sid, now.date().isoformat()), now)
+        self.day, self.start = nxt if nxt else (None, None)
+        self.setWindowTitle(f"WhatsApp message — {st['name']}")
+
+        self.phone = QLineEdit(st["phone"])
+        self.phone.setPlaceholderText("Student's WhatsApp number (add later — optional)")
+        self.book = QLineEdit(st["book"])
+        self.book.setPlaceholderText("e.g. T.S. Grewal")
+        self.page = QLineEdit(st["book_page"])
+        self.page.setPlaceholderText("Textbook page, e.g. 3.1")
+        self.point = QLineEdit(stops[0]["point"] if stops else "")
+        self.point.setPlaceholderText("e.g. Question 24")
+        when = QLabel(f"{self.day:%a} {self.day.day} {self.day:%b}, {wa.ampm(self.start)}" if self.start
+                      else "No class found in the timetable")
+        when.setObjectName("key")
+        when.setFixedHeight(when.sizeHint().height())
+        self.text = QPlainTextEdit()
+        self.text.setFixedHeight(90)
+        for w in (self.book, self.page, self.point):
+            w.textChanged.connect(self._update)
+
+        form = QFormLayout()
+        form.addRow("Class", when)
+        form.addRow("Book", self.book)
+        form.addRow("Page", self.page)
+        form.addRow("Question", self.point)
+        form.addRow("Phone", self.phone)
+        form.addRow("Message", self.text)
+
+        copy = QPushButton("Copy")
+        copy.clicked.connect(self._copy)
+        send = QPushButton("💬  Open in WhatsApp")
+        send.setObjectName("big")
+        send.clicked.connect(self._send)
+        close = QPushButton("Close")
+        close.clicked.connect(self.reject)
+        hint = QLabel("WhatsApp opens with the message typed — press Enter there to send.")
+        hint.setObjectName("key")
+        row = QHBoxLayout()
+        row.addWidget(copy)
+        row.addStretch()
+        row.addWidget(close)
+        row.addWidget(send)
+        lay = QVBoxLayout(self)
+        lay.addLayout(form)
+        lay.addWidget(hint)
+        lay.addLayout(row)
+        self.resize(640, 420)
+        self._update()
+
+    def _update(self):
+        self.text.setPlainText(wa.build_message(self.day, self.start, self.book.text(),
+                                                self.page.text(), self.point.text()))
+
+    def _save(self):
+        self.store.update_contact(self.sid, self.phone.text(), self.book.text(), self.page.text())
+        QGuiApplication.clipboard().setText(self.text.toPlainText())
+
+    def _copy(self):
+        self._save()
+        QMessageBox.information(self, APP, "Message copied. Paste it in WhatsApp with Ctrl+V.")
+
+    def _send(self):
+        self._save()
+        url = QUrl.fromEncoded(wa.whatsapp_url(self.phone.text(), self.text.toPlainText()).encode())
+        if not QDesktopServices.openUrl(url):
+            QMessageBox.information(self, APP, "Could not open the WhatsApp app.\n"
+                                    "The message is copied — paste it in WhatsApp with Ctrl+V.")
+            return
+        self.accept()
+
+
 # ====================================================================== main window
 
 class MainWindow(QMainWindow):
@@ -434,8 +517,10 @@ class MainWindow(QMainWindow):
         self.btn_copy.clicked.connect(self.copy_path)
         self.btn_shot = QPushButton("View Screenshot")
         self.btn_shot.clicked.connect(lambda: self.view_shot(self.current_stop))
+        self.btn_wa = QPushButton("💬  WhatsApp Message")
+        self.btn_wa.clicked.connect(lambda: self.open_whatsapp(self.selected()[0]))
         card_btns = QHBoxLayout()
-        for b in (self.btn_folder, self.btn_copy, self.btn_shot):
+        for b in (self.btn_folder, self.btn_copy, self.btn_shot, self.btn_wa):
             card_btns.addWidget(b)
         card_btns.addStretch()
 
@@ -470,8 +555,8 @@ class MainWindow(QMainWindow):
         right.addWidget(self.history)
 
         self.today_title = QLabel()
-        self.today = QTableWidget(0, 4)
-        self.today.setHorizontalHeaderLabels(["Time", "Student", "Continue from", "Status"])
+        self.today = QTableWidget(0, 5)
+        self.today.setHorizontalHeaderLabels(["Time", "Student", "Continue from", "Status", "Message"])
         self.today.verticalHeader().hide()
         self.today.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.today.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
@@ -581,9 +666,16 @@ class MainWindow(QMainWindow):
                     f.setBold(True)
                     item.setFont(f)
                 self.today.setItem(r, col, item)
+            btn = QPushButton("💬 WhatsApp")
+            btn.clicked.connect(lambda _=False, sid=c["id"]: self.open_whatsapp(sid))
+            self.today.setCellWidget(r, 4, btn)
         self.today.resizeRowsToContents()
         rows_h = sum(self.today.rowHeight(i) for i in range(len(classes)))
         self.today.setFixedHeight(self.today.horizontalHeader().height() + rows_h + 4)
+
+    def open_whatsapp(self, sid):
+        if sid is not None:
+            WhatsAppDialog(self.store, sid, self).exec()
 
     def import_timetable(self, path: Path | None = None):
         path = path or timetable_file() or newest_screenshot()

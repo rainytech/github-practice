@@ -62,6 +62,11 @@ class Store:
         self.db.row_factory = sqlite3.Row
         self.db.execute("PRAGMA foreign_keys = ON")
         self.db.executescript(SCHEMA)
+        cols = {r[1] for r in self.db.execute("PRAGMA table_info(students)")}
+        for col in ("phone", "book", "book_page"):  # added in v1.9
+            if col not in cols:
+                self.db.execute(f"ALTER TABLE students ADD COLUMN {col} TEXT NOT NULL DEFAULT ''")
+        self.db.commit()
 
     # ---- students
     def students(self) -> list[sqlite3.Row]:
@@ -96,6 +101,19 @@ class Store:
                 (name, datetime.now().isoformat(timespec="seconds")),
             )
         return self.db.execute("SELECT id FROM students WHERE name = ?", (name,)).fetchone()[0]
+
+    def student(self, sid: int) -> sqlite3.Row:
+        return self.db.execute("SELECT * FROM students WHERE id = ?", (sid,)).fetchone()
+
+    def update_contact(self, sid: int, phone: str, book: str, book_page: str) -> None:
+        with self.db:
+            self.db.execute("UPDATE students SET phone = ?, book = ?, book_page = ? WHERE id = ?",
+                            (phone.strip(), book.strip(), book_page.strip(), sid))
+
+    def schedule_of(self, sid: int, from_day: str) -> list[tuple[str, str]]:
+        return [tuple(r) for r in self.db.execute(
+            "SELECT day, start FROM schedule WHERE student_id = ? AND day >= ? ORDER BY day, start",
+            (sid, from_day))]
 
     def find(self, name: str) -> int | None:
         row = self.db.execute("SELECT id FROM students WHERE name = ?", (name.strip(),)).fetchone()
@@ -172,7 +190,8 @@ class Store:
                                 [(d, s, ids[n]) for d, s, n in entries])
             # drop empty look-alikes left behind (no stops, no classes)
             self.db.execute("""DELETE FROM students WHERE id NOT IN (SELECT student_id FROM stops)
-                               AND id NOT IN (SELECT student_id FROM schedule)""")
+                               AND id NOT IN (SELECT student_id FROM schedule)
+                               AND phone = '' AND book = ''""")
 
     def classes_on(self, day: str) -> list[sqlite3.Row]:
         """That day's classes with each student's latest stop."""
