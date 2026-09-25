@@ -32,7 +32,7 @@ from ocr_engine import OcrError
 from storage import Store, data_dir
 
 APP = "TeachMark"
-VERSION = "1.7"
+VERSION = "1.8"
 IMAGE_EXT = (".png", ".jpg", ".jpeg", ".bmp", ".gif", ".webp")
 SCREENSHOTS = [Path.home() / "Pictures" / "Screenshots"]
 if os.environ.get("OneDrive"):
@@ -64,25 +64,32 @@ def ampm(hhmm: str) -> str:
     h, m = map(int, hhmm.split(":"))
     return f"{h % 12 or 12}:{m:02d} {'PM' if h >= 12 else 'AM'}"
 
-STYLE = """
-QWidget { font-size: 11pt; }
-QPushButton { padding: 6px 14px; }
-QPushButton#big { font-size: 13pt; font-weight: bold; padding: 10px 18px;
-                  background: #0057B8; color: white; border-radius: 6px; }
-QPushButton#big:hover { background: #00469a; }
-QLabel#name { font-size: 18pt; font-weight: bold; color: #00008B; }
-QLabel#page { font-size: 24pt; font-weight: bold; color: #CC0000; }
-QLabel#point { font-size: 14pt; font-weight: bold; color: #6A0DAD; }
-QLabel#key { color: #555; }
-QFrame#card { background: #FAF9F5; border: 1px solid #DDD8C8; border-radius: 8px; }
-QMainWindow, QDialog, QStatusBar { background: #F0EEE6; }
-QListWidget, QTableWidget { background: #FAF9F5; border: 1px solid #DDD8C8; }
-QListWidget::item:selected { background: #E3DACB; color: #000; }
-QHeaderView::section { background: #EAE6DA; border: none; border-right: 1px solid #DDD8C8; padding: 4px; }
-"""
+# Warm, low-glare colours in the style of Claude.ai
+BEIGE, PAPER, INK, MUTED, LINE, CLAY = "#F2EFE6", "#FAF8F2", "#3D3929", "#7A7566", "#E2DCCD", "#C96442"
 
-# Claude-style warm beige
-BEIGE, PAPER = "#F0EEE6", "#FAF9F5"
+STYLE = f"""
+QWidget {{ font-size: 11pt; color: {INK}; }}
+QPushButton {{ padding: 6px 14px; background: {PAPER}; border: 1px solid {LINE}; border-radius: 6px; }}
+QPushButton:hover {{ background: #F0EADC; }}
+QPushButton:disabled {{ color: #B5AFA0; }}
+QPushButton#big {{ font-size: 13pt; font-weight: bold; padding: 10px 18px;
+                  background: {CLAY}; color: white; border: none; border-radius: 8px; }}
+QPushButton#big:hover {{ background: #B5573A; }}
+QLabel#name {{ font-size: 18pt; font-weight: bold; color: #1F3A5F; }}
+QLabel#page {{ font-size: 24pt; font-weight: bold; color: #B8412E; }}
+QLabel#point {{ font-size: 14pt; font-weight: bold; color: #6A4C93; }}
+QLabel#key {{ color: {MUTED}; }}
+QFrame#card {{ background: {PAPER}; border: 1px solid {LINE}; border-radius: 10px; }}
+QMainWindow, QDialog, QStatusBar, QScrollArea, QScrollArea > QWidget > QWidget {{ background: {BEIGE}; }}
+QListWidget, QTableWidget {{ background: {PAPER}; border: 1px solid {LINE}; border-radius: 6px;
+                             gridline-color: {LINE}; }}
+QListWidget::item {{ padding: 4px 2px; }}
+QListWidget::item:selected, QTableWidget::item:selected {{ background: #EADFCB; color: {INK}; }}
+QProgressBar {{ border: 1px solid {LINE}; border-radius: 6px; background: {PAPER}; text-align: center; }}
+QProgressBar::chunk {{ background: #DDA893; border-radius: 5px; }}
+QHeaderView::section {{ background: #EDE7DA; color: {INK}; border: none;
+                        border-right: 1px solid {LINE}; border-bottom: 1px solid {LINE}; padding: 4px; }}
+"""
 
 
 def log_error(e: BaseException) -> None:
@@ -440,6 +447,7 @@ class MainWindow(QMainWindow):
         card_lay.addLayout(card_btns)
 
         self.history = QTableWidget(0, 4)
+        self.history.setMinimumHeight(170)
         self.history.setHorizontalHeaderLabels(["Saved", "File", "Page", "Stopped at"])
         self.history.verticalHeader().hide()
         self.history.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
@@ -484,7 +492,12 @@ class MainWindow(QMainWindow):
 
         body = QHBoxLayout()
         body.addLayout(left)
-        body.addWidget(self.detail, 1)
+        detail_scroll = QScrollArea()
+        detail_scroll.setWidget(self.detail)
+        detail_scroll.setWidgetResizable(True)
+        detail_scroll.setFrameShape(QFrame.Shape.NoFrame)
+        self.detail_scroll = detail_scroll
+        body.addWidget(detail_scroll, 1)
         body.addWidget(self.empty, 1)
 
         root = QWidget()
@@ -563,7 +576,7 @@ class MainWindow(QMainWindow):
             for col, text in enumerate(cells):
                 item = QTableWidgetItem(text)
                 if r == highlight:
-                    item.setBackground(QColor("#FFE9A8"))
+                    item.setBackground(QColor("#F5E2B8"))
                     f = item.font()
                     f.setBold(True)
                     item.setFont(f)
@@ -596,7 +609,7 @@ class MainWindow(QMainWindow):
     def show_student(self):
         item = self.list.currentItem()
         has = item is not None
-        self.detail.setVisible(has)
+        self.detail_scroll.setVisible(has)
         self.empty.setVisible(not has)
         if not has:
             return
@@ -763,12 +776,14 @@ def main():
     app.setFont(QFont("Segoe UI", 10))
     pal = app.palette()
     for role, color in ((QPalette.ColorRole.Window, BEIGE), (QPalette.ColorRole.Base, PAPER),
-                        (QPalette.ColorRole.AlternateBase, BEIGE), (QPalette.ColorRole.Button, PAPER)):
+                        (QPalette.ColorRole.AlternateBase, BEIGE), (QPalette.ColorRole.Button, PAPER),
+                        (QPalette.ColorRole.WindowText, INK), (QPalette.ColorRole.Text, INK),
+                        (QPalette.ColorRole.ButtonText, INK)):
         pal.setColor(role, QColor(color))
     app.setPalette(pal)
     app.setStyleSheet(STYLE)
     win = MainWindow(Store())
-    win.show()
+    win.showMaximized()  # fits the screen above the taskbar
     sys.exit(app.exec())
 
 
