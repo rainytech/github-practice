@@ -284,3 +284,26 @@ def read_box_number(img: Image.Image, region: tuple, total: int | None) -> int |
             if re.fullmatch(r"\d{1,4}", t) and 1 <= int(t) <= (total or 9999):
                 return int(t)
     return None
+
+
+_rapid_page = None
+
+
+def page_items(img: Image.Image) -> list[tuple[str, float, float, float]]:
+    """All text on an image as (text, left x, centre y, height) — for grids like a timetable.
+
+    RapidOCR keeps table cells apart; the Windows/Tesseract fallback returns words.
+    """
+    global _rapid_page
+    img = img.convert("RGB")
+    try:
+        import numpy as np
+        from rapidocr import RapidOCR
+
+        if _rapid_page is None:
+            _rapid_page = RapidOCR()
+        out = _rapid_page(np.array(img))
+        return [(t, float(b[:, 0].min()), float(b[:, 1].mean()), float(b[:, 1].max() - b[:, 1].min()))
+                for t, b in zip(out.txts or (), out.boxes if out.boxes is not None else ())]
+    except ImportError:
+        return [(w.text, w.x, w.y + w.h / 2, w.h) for ln in _ocr(img) for w in ln.words]

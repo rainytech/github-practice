@@ -13,11 +13,11 @@ import sys
 import time
 import traceback
 from concurrent.futures import ThreadPoolExecutor
-from datetime import datetime
+from datetime import date, datetime
 from pathlib import Path, PureWindowsPath
 
 from PIL import Image
-from PySide6.QtCore import QBuffer, QByteArray, QEventLoop, QIODevice, Qt, QUrl
+from PySide6.QtCore import QBuffer, QByteArray, QEventLoop, QIODevice, Qt, QTimer, QUrl
 from PySide6.QtGui import QColor, QDesktopServices, QFont, QGuiApplication, QImage, QKeySequence, QPalette, QPixmap, QShortcut
 from PySide6.QtWidgets import (
     QAbstractItemView, QApplication, QComboBox, QDialog, QDialogButtonBox, QFileDialog, QFormLayout,
@@ -27,11 +27,12 @@ from PySide6.QtWidgets import (
 )
 
 import reader
+import timetable as tt
 from ocr_engine import OcrError
 from storage import Store, data_dir
 
 APP = "TeachMark"
-VERSION = "1.4"
+VERSION = "1.5"
 IMAGE_EXT = (".png", ".jpg", ".jpeg", ".bmp", ".gif", ".webp")
 SCREENSHOTS = [Path.home() / "Pictures" / "Screenshots"]
 if os.environ.get("OneDrive"):
@@ -40,6 +41,20 @@ if os.environ.get("OneDrive"):
 
 def screenshot_dirs() -> list[Path]:
     return [d for d in SCREENSHOTS if d.is_dir()]
+
+
+def newest_screenshot() -> Path | None:
+    files = [p for d in screenshot_dirs() for p in d.iterdir() if p.is_file() and p.suffix.lower() in IMAGE_EXT]
+    return max(files, key=lambda p: p.stat().st_mtime) if files else None
+
+
+def file_time(p: Path) -> datetime:
+    return datetime.fromtimestamp(p.stat().st_mtime)
+
+
+def ampm(hhmm: str) -> str:
+    h, m = map(int, hhmm.split(":"))
+    return f"{h % 12 or 12}:{m:02d} {'PM' if h >= 12 else 'AM'}"
 
 STYLE = """
 QWidget { font-size: 11pt; }
@@ -232,6 +247,80 @@ class ReviewDialog(QDialog):
         )
 
 
+class TimetableDialog(QDialog):
+    """Shows the classes read from the timetable picture so they can be checked."""
+
+    def __init__(self, image: Image.Image, entries: list, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Check this week's timetable")
+        self.other_picture = ""
+        self.entries = list(entries)
+
+        preview = QLabel()
+        preview.setPixmap(pil_to_pixmap(image).scaledToWidth(520, Qt.TransformationMode.SmoothTransformation))
+        preview.setAlignment(Qt.AlignmentFlag.AlignTop)
+
+        self.table = QTableWidget(len(entries), 3)
+        self.table.setHorizontalHeaderLabels(["Day", "Time", "Student"])
+        self.table.verticalHeader().hide()
+        self.table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
+        hh = self.table.horizontalHeader()
+        hh.setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
+        hh.setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)
+        for r, e in enumerate(entries):
+            for c, text in enumerate([f"{e.day:%a} {e.day.day} {e.day:%b}", ampm(e.start), e.name]):
+                item = QTableWidgetItem(text)
+                if c < 2:
+                    item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEditable)
+                self.table.setItem(r, c, item)
+
+        info = QLabel(f"<b>{len(entries)} classes found.</b> Check the names — double-click a name to "
+                      "correct it. Select a wrong row and press Remove." if entries else
+                      "<b>No classes could be read from this picture.</b> Choose the timetable picture.")
+        info.setWordWrap(True)
+        remove = QPushButton("Remove row")
+        remove.clicked.connect(lambda: self.table.removeRow(self.table.currentRow()) if self.table.currentRow() >= 0 else None)
+        other = QPushButton("Choose another picture…")
+        other.clicked.connect(self._other)
+        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Save | QDialogButtonBox.StandardButton.Cancel)
+        buttons.accepted.connect(self.accept)
+        buttons.rejected.connect(self.reject)
+        buttons.button(QDialogButtonBox.StandardButton.Save).setEnabled(bool(entries))
+
+        row = QHBoxLayout()
+        row.addWidget(remove)
+        row.addWidget(other)
+        row.addStretch()
+        right = QVBoxLayout()
+        right.addWidget(info)
+        right.addWidget(self.table)
+        right.addLayout(row)
+        right.addWidget(buttons)
+        lay = QHBoxLayout(self)
+        lay.addWidget(preview)
+        lay.addLayout(right, 1)
+        self.resize(1150, 560)
+
+    def _other(self):
+        start = str(screenshot_dirs()[0]) if screenshot_dirs() else ""
+        f, _ = QFileDialog.getOpenFileName(self, "Timetable picture", start, "Images (*.png *.jpg *.jpeg *.bmp *.webp)")
+        if f:
+            self.other_picture = f
+            self.reject()
+
+    def values(self) -> list[tuple[str, str, str]]:
+        """Remaining rows as (day 'YYYY-MM-DD', start 'HH:MM', name), matched back by table order."""
+        out = []
+        labels = [(f"{e.day:%a} {e.day.day} {e.day:%b}", ampm(e.start), e) for e in self.entries]
+        for r in range(self.table.rowCount()):
+            day_txt, time_txt = self.table.item(r, 0).text(), self.table.item(r, 1).text()
+            name = self.table.item(r, 2).text().strip()
+            e = next(e for d, t, e in labels if d == day_txt and t == time_txt)
+            if name:
+                out.append((e.day.isoformat(), e.start, name))
+        return out
+
+
 # ====================================================================== main window
 
 class MainWindow(QMainWindow):
@@ -253,12 +342,16 @@ class MainWindow(QMainWindow):
         latest.clicked.connect(self.latest_screenshot)
         open_img = QPushButton("Open Image…")
         open_img.clicked.connect(self.open_image)
+        week = QPushButton("📅  Timetable")
+        week.setToolTip("Read this week's timetable from a picture (newest screenshot)")
+        week.clicked.connect(self.import_timetable)
         hint = QLabel("After class: Win+Shift+S → Ctrl+V here,\nor Win+PrtScn → Latest Screenshot")
         hint.setObjectName("key")
         top = QHBoxLayout()
         top.addWidget(paste)
         top.addWidget(latest)
         top.addWidget(open_img)
+        top.addWidget(week)
         top.addSpacing(12)
         top.addWidget(hint)
         top.addStretch()
@@ -360,6 +453,27 @@ class MainWindow(QMainWindow):
         right.addWidget(QLabel("<b>Last 5 stops</b>  <span style='color:#777'>(double-click to see screenshot)</span>"))
         right.addWidget(self.history)
 
+        self.today_title = QLabel()
+        self.today = QTableWidget(0, 4)
+        self.today.setHorizontalHeaderLabels(["Time", "Student", "Continue from", "Status"])
+        self.today.verticalHeader().hide()
+        self.today.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+        self.today.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
+        self.today.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        th = self.today.horizontalHeader()
+        th.setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
+        th.setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)
+        self.today.cellClicked.connect(lambda row, _c: self.refresh(select=self.today.item(row, 1).text()))
+        self.today_empty = QLabel("No classes in the timetable for today. "
+                                  "Take a screenshot of this week's timetable and click 📅 Timetable.")
+        self.today_empty.setObjectName("key")
+        today_box = QVBoxLayout()
+        today_box.addWidget(self.today_title)
+        today_box.addWidget(self.today)
+        today_box.addWidget(self.today_empty)
+        self.clock = QTimer(self, interval=60_000, timeout=self.refresh_today)
+        self.clock.start()
+
         body = QHBoxLayout()
         body.addLayout(left)
         body.addWidget(self.detail, 1)
@@ -368,12 +482,14 @@ class MainWindow(QMainWindow):
         root = QWidget()
         lay = QVBoxLayout(root)
         lay.addLayout(top)
-        lay.addLayout(body)
+        lay.addLayout(today_box)
+        lay.addLayout(body, 1)
         self.setCentralWidget(root)
 
         self.current_stop = None
         self.history_rows = []
         self.refresh()
+        self.refresh_today()
 
     # ---------------------------------------------------------------- list / detail
     def refresh(self, select: str | None = None):
@@ -392,6 +508,55 @@ class MainWindow(QMainWindow):
             self.list.setCurrentRow(0)
         self.list.blockSignals(False)
         self.show_student()
+
+    def refresh_today(self):
+        now = datetime.now()
+        classes = self.store.classes_on(now.date().isoformat())
+        self.today_title.setText(f"<b style='font-size:13pt'>Today — {now:%A} {now.day} {now:%b}</b>")
+        self.today.setVisible(bool(classes))
+        self.today_empty.setVisible(not classes)
+        self.today.setRowCount(len(classes))
+        highlight = tt.current_index([c["start"] for c in classes], now)
+        for r, c in enumerate(classes):
+            where = "—"
+            if c["stop_id"]:
+                name = PureWindowsPath(c["pdf_path"]).name
+                name = name if len(name) <= 38 else name[:35] + "…"
+                where = f"{name}  ·  p. {c['page'] or '?'} / {c['total'] or '?'}"
+                where += f"  ·  {c['point']}" if c["point"] else ""
+            cells = [ampm(c["start"]), c["name"], where, tt.class_status(c["page"], c["total"], bool(c["stop_id"]))]
+            for col, text in enumerate(cells):
+                item = QTableWidgetItem(text)
+                if r == highlight:
+                    item.setBackground(QColor("#FFE9A8"))
+                    f = item.font()
+                    f.setBold(True)
+                    item.setFont(f)
+                self.today.setItem(r, col, item)
+        self.today.resizeRowsToContents()
+        rows_h = sum(self.today.rowHeight(i) for i in range(len(classes)))
+        self.today.setFixedHeight(self.today.horizontalHeader().height() + rows_h + 4)
+
+    def import_timetable(self, path: Path | None = None):
+        path = path or newest_screenshot()
+        if path is None:
+            QMessageBox.information(self, APP, f"No screenshots found in:\n{SCREENSHOTS[0]}")
+            return
+        image = Image.open(path).convert("RGB")
+        entries, error = self.run_ocr("Reading timetable…", tt.read_timetable, image)
+        if error:
+            QMessageBox.warning(self, APP, error)
+            entries = []
+        dlg = TimetableDialog(image, entries or [], self)
+        result = dlg.exec()
+        if dlg.other_picture:
+            self.import_timetable(Path(dlg.other_picture))
+        elif result == QDialog.DialogCode.Accepted:
+            rows = dlg.values()
+            self.store.set_schedule(rows)
+            self.refresh()
+            self.refresh_today()
+            self.statusBar().showMessage(f"Timetable saved: {len(rows)} classes.", 5000)
 
     def show_student(self):
         item = self.list.currentItem()
@@ -490,13 +655,13 @@ class MainWindow(QMainWindow):
             QMessageBox.information(self, APP, f"No screenshots found in:\n{SCREENSHOTS[0]}")
             return
         newest = max(files, key=lambda p: p.stat().st_mtime)
-        self.process(Image.open(newest).convert("RGB"))
+        self.process(Image.open(newest).convert("RGB"), file_time(newest))
 
     def open_image(self):
         start = str(screenshot_dirs()[0]) if screenshot_dirs() else ""
         f, _ = QFileDialog.getOpenFileName(self, "Open screenshot", start, "Images (*.png *.jpg *.jpeg *.bmp *.webp)")
         if f:
-            self.process(Image.open(f).convert("RGB"))
+            self.process(Image.open(f).convert("RGB"), file_time(Path(f)))
 
     def dragEnterEvent(self, e):
         if e.mimeData().hasImage() or any(u.toLocalFile().lower().endswith(IMAGE_EXT) for u in e.mimeData().urls()):
@@ -511,40 +676,46 @@ class MainWindow(QMainWindow):
         if md.hasImage():
             self.process(qimage_to_pil(QImage(md.imageData())))
 
-    def process(self, image: Image.Image):
-        # OCR runs on a worker thread: Windows OCR deadlocks on Qt's UI (STA) thread,
-        # and the window stays responsive while reading.
+    def run_ocr(self, message: str, fn, *args, **kwargs):
+        """Runs OCR work on a worker thread (Windows OCR deadlocks on Qt's UI thread)
+        while the window stays responsive. Returns (result, error message)."""
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
-        self.statusBar().showMessage("Reading screenshot…")
-        known = self.store.known_paths()
-        future = self.pool.submit(reader.read_image, image, known, log_dir=str(self.store.dir))
+        self.statusBar().showMessage(message)
+        future = self.pool.submit(fn, *args, **kwargs)
         deadline = time.monotonic() + 60
         while not future.done() and time.monotonic() < deadline:
             QApplication.processEvents(QEventLoop.ProcessEventsFlag.ExcludeUserInputEvents, 50)
             time.sleep(0.02)
         QApplication.restoreOverrideCursor()
         self.statusBar().clearMessage()
-
-        r, error = reader.Reading(), ""
         if not future.done():
             self.pool = ThreadPoolExecutor(max_workers=1)  # leave the stuck worker behind
-            error = "Reading the screenshot took too long. Please fill in the details yourself."
-        elif future.exception():
+            return None, "Reading the picture took too long."
+        if future.exception():
             e = future.exception()
             log_error(e)
-            error = str(e) if isinstance(e, OcrError) else f"Could not read the screenshot ({e}).\nPlease fill in the details yourself."
-        else:
-            r = future.result()
+            return None, str(e) if isinstance(e, OcrError) else f"Could not read the picture ({e})."
+        return future.result(), ""
+
+    def process(self, image: Image.Image, taken: datetime | None = None):
+        r, error = self.run_ocr("Reading screenshot…", reader.read_image, image,
+                                self.store.known_paths(), log_dir=str(self.store.dir))
         if error:
-            QMessageBox.warning(self, APP, error)
+            QMessageBox.warning(self, APP, error + "\nPlease fill in the details yourself.")
+            r = reader.Reading()
 
         names = [s["name"] for s in self.store.students()]
         suggested = reader.suggest_student(r, names, self.store.last_path_owner())
+        taken = taken or datetime.now()
+        classes = [(c["start"], c["name"]) for c in self.store.classes_on(taken.date().isoformat())]
+        by_timetable = tt.class_for_screenshot(classes, taken, {suggested.lower()} if suggested else set())
+        suggested = by_timetable or suggested
         dlg = ReviewDialog(image, r, names, suggested or "", self)
         if dlg.exec() == QDialog.DialogCode.Accepted:
             v = dlg.values()
             self.store.add_stop(image=image, **v)
             self.refresh(select=v["student"])
+            self.refresh_today()
             self.statusBar().showMessage(f"Saved: {v['student']} — page {v['page'] or '?'}", 4000)
 
 

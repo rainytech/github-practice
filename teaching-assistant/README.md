@@ -41,10 +41,23 @@ Buttons: **Show in Folder** (Explorer with the file highlighted), **Copy File Pa
 
 You can also drag an image file onto the window, or use **Open Image…**.
 
+## Weekly timetable
+
+1. Take a screenshot of this week's timetable (a grid: times like `4.3` = 4:30 PM
+   across the top, `25 Fri` down the side, student names in the cells).
+2. Click **📅 Timetable**. It reads the newest screenshot and lists the classes.
+3. Check the names, press **Save**.
+
+The **Today** list at the top then shows each class with where to continue:
+🟢 Ready · 🟠 Prepare next PDF (80% done) · 🔴 PDF finished · ⚪ No stop saved yet.
+The current or next class is highlighted. After class, the screenshot is matched
+to the class that just ended, so the student is filled in for you.
+
 ## How the student is suggested
 
-1. The student who last used the same PDF, else
-2. a student whose name appears in the folder/file name (e.g. "Akhil sir" in
+1. The timetable class that just ended (if a timetable is saved), else
+2. the student who last used the same PDF, else
+3. a student whose name appears in the folder/file name (e.g. "Akhil sir" in
    `23 sept akhil sir`).
 
 Otherwise choose or type the name — new names are added automatically.

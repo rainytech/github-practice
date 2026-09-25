@@ -29,6 +29,12 @@ CREATE TABLE IF NOT EXISTS stops (
     shot       TEXT
 );
 CREATE INDEX IF NOT EXISTS stops_student ON stops(student_id, saved);
+CREATE TABLE IF NOT EXISTS schedule (
+    day        TEXT NOT NULL,
+    start      TEXT NOT NULL,
+    student_id INTEGER NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+    PRIMARY KEY (day, start)
+);
 """
 
 
@@ -121,6 +127,27 @@ class Store:
             self._remove_shot(old["shot"])
             with self.db:
                 self.db.execute("DELETE FROM stops WHERE id = ?", (old["id"],))
+
+    # ---- timetable
+    def set_schedule(self, entries: list[tuple[str, str, str]]) -> None:
+        """entries: [(day 'YYYY-MM-DD', start 'HH:MM', student name)]; replaces those days."""
+        ids = {name: self.student_id(name) for _d, _s, name in entries}
+        with self.db:
+            for day in {d for d, _s, _n in entries}:
+                self.db.execute("DELETE FROM schedule WHERE day = ?", (day,))
+            self.db.executemany("INSERT OR REPLACE INTO schedule(day, start, student_id) VALUES (?, ?, ?)",
+                                [(d, s, ids[n]) for d, s, n in entries])
+
+    def classes_on(self, day: str) -> list[sqlite3.Row]:
+        """That day's classes with each student's latest stop."""
+        return self.db.execute(
+            """SELECT c.start, s.id, s.name, t.pdf_path, t.page, t.total, t.point, t.id AS stop_id
+               FROM schedule c JOIN students s ON s.id = c.student_id
+               LEFT JOIN stops t ON t.id = (
+                   SELECT id FROM stops WHERE student_id = s.id ORDER BY saved DESC, id DESC LIMIT 1)
+               WHERE c.day = ? ORDER BY c.start""",
+            (day,),
+        ).fetchall()
 
     def shot_path(self, shot: str) -> Path | None:
         p = self.shots / shot if shot else None
