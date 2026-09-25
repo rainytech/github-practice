@@ -27,7 +27,7 @@ from PySide6.QtWidgets import (
 )
 
 import reader
-from ocr_engine import OcrError, read_screenshot
+from ocr_engine import OcrError
 from storage import Store, data_dir
 
 APP = "TeachMark"
@@ -141,6 +141,7 @@ class ReviewDialog(QDialog):
         self.page.setRange(0, 99999)
         self.page.setSpecialValueText("?")
         self.page.setValue(r.page or 0)
+        self.page.valueChanged.connect(self._check_page)
         self.total = QSpinBox()
         self.total.setRange(0, 99999)
         self.total.setSpecialValueText("?")
@@ -149,6 +150,9 @@ class ReviewDialog(QDialog):
         page_row.addWidget(self.page)
         page_row.addWidget(QLabel("/"))
         page_row.addWidget(self.total)
+        self.page_hint = QLabel("← please type the page")
+        self.page_hint.setStyleSheet("color: #CC0000; font-weight: bold;")
+        page_row.addWidget(self.page_hint)
         page_row.addStretch()
 
         self.point = QComboBox()
@@ -180,6 +184,10 @@ class ReviewDialog(QDialog):
         lay.addWidget(preview)
         lay.addLayout(right)
         self._check_path()
+        self._check_page()
+
+    def _check_page(self):
+        self.page_hint.setVisible(self.page.value() == 0)
 
     def _check_path(self):
         ok = os.path.isfile(self.path.text().strip())
@@ -486,7 +494,7 @@ class MainWindow(QMainWindow):
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         self.statusBar().showMessage("Reading screenshot…")
         known = self.store.known_paths()
-        future = self.pool.submit(lambda: reader.parse(read_screenshot(image), known_paths=known))
+        future = self.pool.submit(reader.read_image, image, known)
         deadline = time.monotonic() + 60
         while not future.done() and time.monotonic() < deadline:
             QApplication.processEvents(QEventLoop.ProcessEventsFlag.ExcludeUserInputEvents, 50)

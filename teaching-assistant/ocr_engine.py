@@ -103,13 +103,13 @@ def _windows_ocr(img: Image.Image) -> list[Line]:
     return lines
 
 
-def _tesseract_ocr(img: Image.Image) -> list[Line]:
+def _tesseract_ocr(img: Image.Image, psm: int = 11) -> list[Line]:
     try:
         import pytesseract
     except ImportError as e:
         raise OcrError("No OCR engine available (Windows OCR or Tesseract).") from e
 
-    d = pytesseract.image_to_data(img, output_type=pytesseract.Output.DICT, config="--psm 11")
+    d = pytesseract.image_to_data(img, output_type=pytesseract.Output.DICT, config=f"--psm {psm}")
     groups: dict[tuple, list[Word]] = {}
     for i, text in enumerate(d["text"]):
         if not text.strip():
@@ -121,13 +121,13 @@ def _tesseract_ocr(img: Image.Image) -> list[Line]:
     return [Line(ws) for ws in groups.values()]
 
 
-def _ocr(img: Image.Image) -> list[Line]:
+def _ocr(img: Image.Image, psm: int = 11) -> list[Line]:
     if os.name == "nt":
         try:
             return _windows_ocr(img)
         except ImportError:
             pass
-    return _tesseract_ocr(img)
+    return _tesseract_ocr(img, psm)
 
 
 def _shift(lines: list[Line], factor: float, dx: float, dy: float) -> list[Line]:
@@ -161,3 +161,21 @@ def read_screenshot(img: Image.Image) -> list[list[Line]]:
         _shift(_ocr(_enhance(top)), 2, 0, 0),
         _ocr(img),
     ]
+
+
+def ocr_number(img: Image.Image, box: tuple) -> int | None:
+    """Reads the right-most number inside box (x, y, w, h), zoomed and padded."""
+    import re
+
+    x, y, w, h = box
+    crop = img.convert("RGB").crop((int(x), int(y), int(x + w), int(y + h)))
+    g = ImageOps.grayscale(crop)
+    if ImageStat.Stat(g).mean[0] < 128:
+        g = ImageOps.invert(g)
+    scale = max(1, round(120 / max(g.height, 1)))
+    g = ImageOps.autocontrast(g).resize((g.width * scale, g.height * scale), Image.LANCZOS)
+    g = g.point(lambda v: 0 if v < 110 else 255)  # drop grey box borders, keep dark digits
+    g = ImageOps.expand(g, border=40, fill=255)
+    text = " ".join(ln.text for ln in _ocr(g, psm=7))
+    nums = re.findall(r"\d{1,4}", text)
+    return int(nums[-1]) if nums else None

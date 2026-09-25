@@ -113,3 +113,26 @@ def test_real_screenshot(desktop):
     r = reader.parse(read_screenshot(Image.open(SAMPLE)), search_roots=[str(desktop)])
     assert r.path_found and (r.page, r.total) == (8, 26)
     assert r.headings[0] == "Illustration 9"
+
+
+def test_page_with_box_border_junk():
+    r = reader.parse([[line(r"D:\a\b.pdf", 10), line("| 7 | / 9", 10, x=500)]], search_roots=[])
+    assert (r.page, r.total) == (7, 9)
+
+
+def test_page_box_when_number_missed():
+    lines = [line(r"D:\a\b.pdf", 980), line("/ 26", 980, x=975)]  # the "8" was not read
+    r = reader.parse([lines], search_roots=[])
+    assert r.page is None and r.page_box is not None
+    x, y, w, h = r.page_box
+    assert x + w <= 975 and x < 975 - 20
+
+
+@pytest.mark.skipif(not SAMPLE, reason="set TEACHMARK_SAMPLE to a screenshot to run")
+def test_second_look_reads_missed_page():
+    from ocr_engine import ocr_number
+
+    img = Image.open(SAMPLE)
+    # "/ 26" sits right of the page box at about x=978, y=972 on the 1920x1080 sample
+    box = reader._page_box([[Line([Word("/", 978, 972, 10, 24), Word("26", 992, 972, 24, 24)])]], 26)
+    assert ocr_number(img, box) == 8

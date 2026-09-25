@@ -11,7 +11,8 @@ from pathlib import Path, PureWindowsPath
 from ocr_engine import Line
 
 PATH_RE = re.compile(r"(\b[A-Za-z])\s*[:.;]\s*[\\/|]\s*(.*?\.\s*p\s*d\s*f)", re.I)
-PAGE_RE = re.compile(r"(?<![\d/.:])(\d{1,4})\s*(?:/|\bof\b)\s*(\d{1,4})(?![\d/])", re.I)
+PAGE_RE = re.compile(r"(?<![\d/.:])(\d{1,4})[\s|\[\]()]{0,4}(?:/|\bof\b)\s*(\d{1,4})(?![\d/])", re.I)
+SLASH_TOTAL_RE = re.compile(r"^[/|]\s*(\d{1,4})$")
 HEAD_RE = re.compile(
     r"\b(Illustration|Illus\.?|Question|Problem|Example|Exercise|Q\.\s*No\.?)"
     r"\s*[:.\-]?\s*(\d{1,3}[A-Za-z]?)\b",
@@ -28,6 +29,7 @@ class Reading:
     total: int | None = None
     headings: list[str] = field(default_factory=list)
     chapter: str = ""
+    page_box: tuple | None = None  # where the page number should be, if it could not be read
 
     @property
     def folder(self) -> str:
@@ -70,6 +72,34 @@ def _clean_path(drive: str, body: str) -> str:
     body = re.sub(r"\s*[\\/|]\s*", r"\\", body)
     body = re.sub(r"\s*\.\s*p\s*d\s*f$", ".pdf", body, flags=re.I)
     return f"{drive.upper()}:\\{body.strip()}"
+
+
+def _page_box(passes: list[list[Line]], total: int | None) -> tuple | None:
+    """Region just left of a "/ 26" token — the page-number box the OCR missed."""
+    for lines in passes:
+        for ln in lines:
+            ws = ln.words
+            for i, w in enumerate(ws):
+                m = SLASH_TOTAL_RE.match(w.text)
+                if not m and w.text in ("/", "|") and i + 1 < len(ws) and ws[i + 1].text.isdigit():
+                    m = SLASH_TOTAL_RE.match(w.text + ws[i + 1].text)
+                if not m or (total and int(m.group(1)) != total) or (not total and w.text[0] != "/"):
+                    continue
+                h = max(w.h, 8)
+                return (max(0, w.x - 2.2 * h), w.y - 0.4 * h, 2.2 * h, 1.8 * h)
+    return None
+
+
+def read_image(image, known_paths=()) -> Reading:
+    """Screenshot -> Reading, with a zoomed second look at a missed page number."""
+    from ocr_engine import ocr_number, read_screenshot
+
+    r = parse(read_screenshot(image), known_paths=known_paths)
+    if r.page is None and r.page_box:
+        n = ocr_number(image, r.page_box)
+        if n and (not r.total or 1 <= n <= r.total):
+            r.page = n
+    return r
 
 
 def pdf_page_count(path: str) -> int | None:
@@ -197,6 +227,8 @@ def parse(passes: list[list[Line]], search_roots: list[str] | None = None,
         r.page, r.total = best[1], best[2]
     if real_total:
         r.total = real_total
+    if r.page is None:
+        r.page_box = _page_box(passes, r.total)
 
     # 3. Headings (topmost first) and chapter — from the whole-image pass.
     content = passes[-1] if passes else []
