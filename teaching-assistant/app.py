@@ -14,7 +14,7 @@ import time
 import traceback
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
-from pathlib import PureWindowsPath
+from pathlib import Path, PureWindowsPath
 
 from PIL import Image
 from PySide6.QtCore import QBuffer, QByteArray, QEventLoop, QIODevice, Qt, QUrl
@@ -32,6 +32,13 @@ from storage import Store, data_dir
 
 APP = "TeachMark"
 IMAGE_EXT = (".png", ".jpg", ".jpeg", ".bmp", ".gif", ".webp")
+SCREENSHOTS = [Path.home() / "Pictures" / "Screenshots"]
+if os.environ.get("OneDrive"):
+    SCREENSHOTS.append(Path(os.environ["OneDrive"]) / "Pictures" / "Screenshots")
+
+
+def screenshot_dirs() -> list[Path]:
+    return [d for d in SCREENSHOTS if d.is_dir()]
 
 STYLE = """
 QWidget { font-size: 11pt; }
@@ -239,12 +246,17 @@ class MainWindow(QMainWindow):
         paste = QPushButton("📋  Paste Screenshot   (Ctrl+V)")
         paste.setObjectName("big")
         paste.clicked.connect(self.paste)
+        latest = QPushButton("🖼  Latest Screenshot")
+        latest.setObjectName("big")
+        latest.setToolTip("Loads the newest picture from your Screenshots folder")
+        latest.clicked.connect(self.latest_screenshot)
         open_img = QPushButton("Open Image…")
         open_img.clicked.connect(self.open_image)
-        hint = QLabel("After class: Win+Shift+S → select the PDF window → Ctrl+V here")
+        hint = QLabel("After class: Win+Shift+S → Ctrl+V here,\nor Win+PrtScn → Latest Screenshot")
         hint.setObjectName("key")
         top = QHBoxLayout()
         top.addWidget(paste)
+        top.addWidget(latest)
         top.addWidget(open_img)
         top.addSpacing(12)
         top.addWidget(hint)
@@ -335,8 +347,8 @@ class MainWindow(QMainWindow):
         hh.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
         self.history.cellDoubleClicked.connect(lambda row, _c: self.view_shot(self.history_rows[row]))
 
-        self.empty = QLabel("No students yet.\n\nAfter your next class, take a screenshot of the PDF "
-                            "window (Win+Shift+S) and press Ctrl+V here.")
+        self.empty = QLabel("No students yet.\n\nAfter your next class, take a screenshot of the PDF window,\n"
+                            "then press Ctrl+V here or click Latest Screenshot.")
         self.empty.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.empty.setObjectName("key")
 
@@ -470,8 +482,18 @@ class MainWindow(QMainWindow):
         QMessageBox.information(self, APP, "No screenshot on the clipboard.\n\n"
                                 "Press Win+Shift+S, select the PDF window, then press Ctrl+V here.")
 
+    def latest_screenshot(self):
+        files = [p for d in screenshot_dirs() for p in d.iterdir()
+                 if p.is_file() and p.suffix.lower() in IMAGE_EXT]
+        if not files:
+            QMessageBox.information(self, APP, f"No screenshots found in:\n{SCREENSHOTS[0]}")
+            return
+        newest = max(files, key=lambda p: p.stat().st_mtime)
+        self.process(Image.open(newest).convert("RGB"))
+
     def open_image(self):
-        f, _ = QFileDialog.getOpenFileName(self, "Open screenshot", "", "Images (*.png *.jpg *.jpeg *.bmp *.webp)")
+        start = str(screenshot_dirs()[0]) if screenshot_dirs() else ""
+        f, _ = QFileDialog.getOpenFileName(self, "Open screenshot", start, "Images (*.png *.jpg *.jpeg *.bmp *.webp)")
         if f:
             self.process(Image.open(f).convert("RGB"))
 

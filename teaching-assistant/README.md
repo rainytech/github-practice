@@ -33,6 +33,9 @@ Optional — a single `TeachMark.exe`: double-click **`build_exe.bat`**, then us
 |---|---|---|---|
 | 23 sept akhil sir | combined_akhil_sir_document Compressed.pdf | **8 / 26** | **Illustration 9** |
 
+Or click **Latest Screenshot** to load the newest picture from
+`Pictures\Screenshots` (e.g. after **Win + PrtScn**).
+
 Buttons: **Show in Folder** (Explorer with the file highlighted), **Copy File Path**,
 **View Screenshot**.
 
