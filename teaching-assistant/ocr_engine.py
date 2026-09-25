@@ -163,12 +163,11 @@ def read_screenshot(img: Image.Image) -> list[list[Line]]:
     ]
 
 
-def ocr_number(img: Image.Image, box: tuple) -> int | None:
-    """Reads the right-most number inside box (x, y, w, h), zoomed and padded."""
-    import re
-
+def ocr_text(img: Image.Image, box: tuple) -> str:
+    """Reads one line of text inside box (x, y, w, h): zoomed, black-and-white, padded."""
     x, y, w, h = box
-    crop = img.convert("RGB").crop((int(x), int(y), int(x + w), int(y + h)))
+    img = img.convert("RGB")
+    crop = img.crop((max(0, int(x)), max(0, int(y)), min(img.width, int(x + w)), min(img.height, int(y + h))))
     g = ImageOps.grayscale(crop)
     if ImageStat.Stat(g).mean[0] < 128:
         g = ImageOps.invert(g)
@@ -176,6 +175,22 @@ def ocr_number(img: Image.Image, box: tuple) -> int | None:
     g = ImageOps.autocontrast(g).resize((g.width * scale, g.height * scale), Image.LANCZOS)
     g = g.point(lambda v: 0 if v < 110 else 255)  # drop grey box borders, keep dark digits
     g = ImageOps.expand(g, border=40, fill=255)
-    text = " ".join(ln.text for ln in _ocr(g, psm=7))
-    nums = re.findall(r"\d{1,4}", text)
+    if os.name == "nt":  # Windows OCR limits image size
+        try:
+            from winrt.windows.media.ocr import OcrEngine
+
+            limit = OcrEngine.max_image_dimension
+            if max(g.size) > limit:
+                f = limit / max(g.size)
+                g = g.resize((int(g.width * f), int(g.height * f)), Image.LANCZOS)
+        except ImportError:
+            pass
+    return " ".join(ln.text for ln in sorted(_ocr(g, psm=7), key=lambda l: l.x))
+
+
+def ocr_number(img: Image.Image, box: tuple) -> int | None:
+    """Reads the right-most number inside box (x, y, w, h)."""
+    import re
+
+    nums = re.findall(r"\d{1,4}", ocr_text(img, box))
     return int(nums[-1]) if nums else None

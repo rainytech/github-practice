@@ -31,6 +31,7 @@ from ocr_engine import OcrError
 from storage import Store, data_dir
 
 APP = "TeachMark"
+VERSION = "1.3"
 IMAGE_EXT = (".png", ".jpg", ".jpeg", ".bmp", ".gif", ".webp")
 SCREENSHOTS = [Path.home() / "Pictures" / "Screenshots"]
 if os.environ.get("OneDrive"):
@@ -238,7 +239,7 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.store = store
         self.pool = ThreadPoolExecutor(max_workers=1)
-        self.setWindowTitle(f"{APP} — Where I Stopped Teaching")
+        self.setWindowTitle(f"{APP} {VERSION} — Where I Stopped Teaching")
         self.setAcceptDrops(True)
         self.resize(1100, 680)
 
@@ -516,7 +517,7 @@ class MainWindow(QMainWindow):
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         self.statusBar().showMessage("Reading screenshot…")
         known = self.store.known_paths()
-        future = self.pool.submit(reader.read_image, image, known)
+        future = self.pool.submit(reader.read_image, image, known, log_dir=str(self.store.dir))
         deadline = time.monotonic() + 60
         while not future.done() and time.monotonic() < deadline:
             QApplication.processEvents(QEventLoop.ProcessEventsFlag.ExcludeUserInputEvents, 50)

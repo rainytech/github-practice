@@ -12,7 +12,7 @@ from ocr_engine import Line
 
 PATH_RE = re.compile(r"(\b[A-Za-z])\s*[:.;]\s*[\\/|]\s*(.*?\.\s*p\s*d\s*f)", re.I)
 PAGE_RE = re.compile(r"(?<![\d/.:])(\d{1,4})[\s|\[\]()]{0,4}(?:/|\bof\b)\s*(\d{1,4})(?![\d/])", re.I)
-SLASH_TOTAL_RE = re.compile(r"^[/|]\s*(\d{1,4})$")
+SLASH_TOTAL_RE = re.compile(r"^[/|lI]\s*(\d{1,4})\D{0,3}$")  # "/9", "/9D", "|9>"
 HEAD_RE = re.compile(
     r"\b(Illustration|Illus\.?|Question|Problem|Example|Exercise|Q\.\s*No\.?)"
     r"\s*[:.\-]?\s*(\d{1,3}[A-Za-z]?)\b",
@@ -29,7 +29,8 @@ class Reading:
     total: int | None = None
     headings: list[str] = field(default_factory=list)
     chapter: str = ""
-    page_box: tuple | None = None  # where the page number should be, if it could not be read
+    page_box: tuple | None = None    # where the page number should be, if it could not be read
+    status_box: tuple | None = None  # the rest of the row right of the file path
 
     @property
     def folder(self) -> str:
@@ -81,7 +82,7 @@ def _page_box(passes: list[list[Line]], total: int | None) -> tuple | None:
             ws = ln.words
             for i, w in enumerate(ws):
                 m = SLASH_TOTAL_RE.match(w.text)
-                if not m and w.text in ("/", "|") and i + 1 < len(ws) and ws[i + 1].text.isdigit():
+                if not m and w.text in ("/", "|", "l", "I") and i + 1 < len(ws) and ws[i + 1].text[:1].isdigit():
                     m = SLASH_TOTAL_RE.match(w.text + ws[i + 1].text)
                 if not m or (total and int(m.group(1)) != total) or (not total and w.text[0] != "/"):
                     continue
@@ -90,15 +91,44 @@ def _page_box(passes: list[list[Line]], total: int | None) -> tuple | None:
     return None
 
 
-def read_image(image, known_paths=()) -> Reading:
-    """Screenshot -> Reading, with a zoomed second look at a missed page number."""
-    from ocr_engine import ocr_number, read_screenshot
+def page_from_text(text: str, total: int | None) -> int | None:
+    """Finds the page in loose OCR text such as "4d 6 /9D" (total 9 -> 6)."""
+    for m in PAGE_RE.finditer(text):
+        page, tot = int(m.group(1)), int(m.group(2))
+        if 1 <= page <= tot and (not total or tot == total):
+            return page
+    if total:
+        for m in re.finditer(rf"(?<!\d)(\d{{1,4}})\D{{1,6}}?{total}(?!\d)", text):
+            if 1 <= int(m.group(1)) <= total:
+                return int(m.group(1))
+    return None
 
-    r = parse(read_screenshot(image), known_paths=known_paths)
+
+def read_image(image, known_paths=(), passes=None, search_roots=None, log_dir=None) -> Reading:
+    """Screenshot -> Reading. If the page number was missed, looks again, zoomed in:
+    first at the box left of "/ 26", then at the whole row right of the file path."""
+    from ocr_engine import ocr_number, ocr_text, read_screenshot
+
+    passes = read_screenshot(image) if passes is None else passes
+    r = parse(passes, search_roots=search_roots, known_paths=known_paths)
+    extra = []
     if r.page is None and r.page_box:
         n = ocr_number(image, r.page_box)
+        extra.append(f"page box -> {n}")
         if n and (not r.total or 1 <= n <= r.total):
             r.page = n
+    if r.page is None and r.status_box:
+        text = ocr_text(image, r.status_box)
+        extra.append(f"status row -> {text!r}")
+        r.page = page_from_text(text, r.total)
+    if log_dir:
+        try:
+            with open(os.path.join(log_dir, "last_read.txt"), "w", encoding="utf-8") as f:
+                for i, lines in enumerate(passes):
+                    f.write(f"--- pass {i}\n" + "".join(f"  {_row_text(row)}\n" for row in _rows(lines)))
+                f.write("\n".join(extra) + f"\n{r}\n")
+        except OSError:
+            pass
     return r
 
 
@@ -199,6 +229,11 @@ def parse(passes: list[list[Line]], search_roots: list[str] | None = None,
             if m:
                 raw_paths.append(_clean_path(*m.groups()))
                 path_rows.append(text[m.end():])
+                if r.status_box is None:
+                    pdf_line = next((l for l in row if ".pdf" in l.text.lower().replace(" ", "")), row[0])
+                    right = max(w.x + w.w for w in pdf_line.words)
+                    h = max(pdf_line.h, 8)
+                    r.status_box = (right, pdf_line.y - 0.4 * h, 40 * h, 1.8 * h)
     for raw in dict.fromkeys(raw_paths):
         hit = resolve_pdf(raw, roots, known_paths)
         if hit:

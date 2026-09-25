@@ -136,3 +136,35 @@ def test_second_look_reads_missed_page():
     # "/ 26" sits right of the page box at about x=978, y=972 on the 1920x1080 sample
     box = reader._page_box([[Line([Word("/", 978, 972, 10, 24), Word("26", 992, 972, 24, 24)])]], 26)
     assert ocr_number(img, box) == 8
+
+
+SAMPLE2 = os.environ.get("TEACHMARK_SAMPLE2")  # Icecream screenshot showing page 6 / 9
+
+
+def test_slash_token_with_trailing_arrow():
+    lines = [Line([Word(r"D:\a\b.pdf", 12, 974, 700, 22)]), Line([Word("/9D", 985, 974, 45, 22)])]
+    r = reader.parse([lines], search_roots=[])
+    assert r.page is None and r.page_box is not None and r.status_box is not None
+
+
+def test_page_from_text():
+    assert reader.page_from_text("4d 6 /9D DI", 9) == 6
+    assert reader.page_from_text("<< < 6 | / 9 > >|", 9) == 6
+    assert reader.page_from_text("4d 6 /9D DI", None) == 6
+    assert reader.page_from_text("nothing", 9) is None
+
+
+@pytest.mark.skipif(not SAMPLE2, reason="set TEACHMARK_SAMPLE2")
+@pytest.mark.parametrize("tokens", [["/9D"], ["/", "9D"], []])
+def test_missed_digit_recovered_from_real_image(tokens, tmp_path):
+    """Simulates Windows OCR dropping the lone '6' (and maybe the '/ 9' too)."""
+    path = Word(r"C:\Users\Admin\Desktop\25", 12, 974, 300, 22), Word("sept", 320, 974, 50, 22), \
+        Word(r"thomas\branch_accounts_stock_and_debtors.pdf", 380, 974, 392, 22)
+    lines = [Line(list(path))]
+    x = 985
+    for t in tokens:
+        lines.append(Line([Word(t, x, 974, 12 * len(t), 22)]))
+        x += 12 * len(t) + 4
+    r = reader.read_image(Image.open(SAMPLE2), passes=[lines], search_roots=[], log_dir=str(tmp_path))
+    assert r.page == 6
+    assert (tmp_path / "last_read.txt").is_file()
