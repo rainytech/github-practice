@@ -238,6 +238,7 @@ instant, exact, nothing sent to Gemini. Type **help** for the list:
 | `make the pdf` · `open the pdf` · `show the code` · `show the preview` | the buttons, by typing |
 | `rename the document to Discounting — Set 1` | the sidebar name |
 | `remove Illustration 7` · `number it Illustration 6` · `rename illustration no. 10` | as above |
+| `remove the second question` · `remove the duplicate question` | by position; the later of two copies |
 | `change the book name to P.K. Lazar, Pg. 43` · `change the date to 25th sept` | as above |
 
 An answer or hint with no question named goes under the last question. A
@@ -314,6 +315,10 @@ document, so an earlier question that comes back word for word, with the same
 amounts, is left out and the chat says so. A question solved again by another
 method reads differently and is kept. You never need to ask for the merged
 document: every answer is added after the ones before it.
+
+An earlier question sent back re-worded — the same wording and amounts in the
+question, new words in the working — is a copy too, and is left out, unless
+you asked for another method or to solve it again.
 
 ### Why a second question used to cost more
 

@@ -311,7 +311,12 @@ r.check("a new question in the same words, other amounts, is kept",
 r.check("a question re-solved another way is kept",
         hs.drop_repeats(HELD, '<div class="page-block">' + _question(
             6, "66,550", "50,000", "Step 2: Look up the present value factor table for 10% and three "
-            "years, 0.7513, and multiply the future value by it instead.") + SEVEN + '</div>')[1], [])
+            "years, 0.7513, and multiply the future value by it instead.") + SEVEN + '</div>',
+                        resolve_wanted=True)[1], [])
+r.check("but re-solved unasked, alongside a new one, it is a copy",
+        hs.drop_repeats(HELD, '<div class="page-block">' + _question(
+            6, "66,550", "50,000", "Step 2: Multiply 1.21 by 1.10 to get 1.331.") + SEVEN + '</div>')[1],
+        ["Illustration 6"])
 r.check("a repeat on its own is kept — you may have asked for it",
         hs.drop_repeats(HELD, '<div class="page-block">' + SIX + '</div>')[1], [])
 r.check("both question numbers in one block are set at 20pt",

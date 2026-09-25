@@ -234,6 +234,21 @@ r.check("the chat explains the house style", "set by the house style" in chat_te
 r.check("a wording fix still goes to Gemini",
         app.prompts.style_request("fix the amount in the answer to Rs. 60,000"), False)
 
+# ── 9h. "display the full merged HTML": the earlier question re-solved in
+#        other words comes back with the new one — only the new one is added
+hs = app.hs
+old = hs.wrap_document([block(6, "50,000")])
+resolved = block(6, "50,000").replace("Present Value = Rs. 50,000",
+                                      "The present value works out to Rs. 50,000 in the end")
+body, dropped = hs.drop_repeats(old, resolved + block(7, "1,00,000"))
+r.check("an earlier question re-worded in its working is left out", dropped, ["Illustration 6"])
+r.check("and the new one is kept", "1,00,000" in body and "works out" not in body)
+alone, dropped = hs.drop_repeats(old, resolved)
+r.check("a re-solve sent alone is still kept", dropped, [])
+other = block(6, "50,000").replace("value of Rs. 50,000", "value of Rs. 70,000")
+body, dropped = hs.drop_repeats(old, other + block(7, "1,00,000"))
+r.check("the same number with other amounts is kept", dropped, [])
+
 # ── 10. reopening the document shows cards, not the whole answers ───────
 app.open_document(app.current_chapter, app.current_doc)
 text = chat_text()

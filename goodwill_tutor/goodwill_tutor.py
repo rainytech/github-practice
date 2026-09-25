@@ -1773,6 +1773,18 @@ def remove_question(text, target):
     spans = hs.block_spans(last_full_html)
     if target == "last":
         pick = [len(spans) - 1] if spans else []
+    elif target == "copy":
+        # The later of two questions with the same number and wording.
+        seen, pick = {}, []
+        for i, (a, b) in enumerate(spans):
+            key = hs._question_of(last_full_html[a:b])
+            key = (hs.question_label(last_full_html[a:b]), tuple(key[1]) if key else ())
+            if key in seen and key[0]:
+                pick.append(i)
+            seen.setdefault(key, i)
+        pick = pick[:1]
+    elif target[0] == "#":
+        pick = [target[1] - 1] if 1 <= target[1] <= len(spans) else []
     else:
         want = f"{target[0]} {target[1]}".lower()
         pick = [i for i, (a, b) in enumerate(spans)
@@ -1974,7 +1986,10 @@ def finish(answer, in_tok, out_tok, cached_tok, elapsed, model, verdict, v_cost=
 
         # "Add one more question" often comes back with the earlier question too.
         # The document already holds it, so it is left out rather than printed twice.
-        body, repeated = hs.drop_repeats(last_full_html, body)
+        asked = last_turn["text"] if last_turn else ""
+        resolve = bool(re.search(r"\b(?:method|another\s+way|other\s+way|again|re-?solve|"
+                                 r"alternative|also\s+solve|pvf|table)\b", asked, re.I))
+        body, repeated = hs.drop_repeats(last_full_html, body, resolve_wanted=resolve)
         if repeated:
             notes.append((f"Gemini sent {' and '.join(repeated)} again — this document "
                           f"already has it, so it was left out and only the new question "

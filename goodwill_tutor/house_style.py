@@ -1293,7 +1293,31 @@ def _same_work(new, old):
     return match.quick_ratio() >= 0.9 and match.ratio() >= 0.9
 
 
-def drop_repeats(existing_html, body):
+def _question_of(fragment):
+    """(words, figures) of the question text alone — not its solution."""
+    q = _Q_START.search(fragment)
+    end = _div_end(fragment, q.start()) if q else -1
+    if not q or end < 0:
+        return None
+    words = _words(fragment[q.start():end])
+    return words, _FIGURE.findall(words)
+
+
+def _same_question(new, old):
+    """True when two questions read the same and carry the same amounts.
+
+    Asked for "the full merged HTML", a model re-solves the earlier question in
+    its own words: the working differs, the question does not.
+    """
+    if not new or not old or new[1] != old[1] or not new[1]:
+        return False
+    a, b = new[0], old[0]
+    if not a or not b or len(a) < 30:
+        return False
+    return difflib.SequenceMatcher(None, a, b, autojunk=False).ratio() >= 0.85
+
+
+def drop_repeats(existing_html, body, resolve_wanted=False):
     """Leave out a question this document already holds.
 
     Asked for "one more question" with "the full merged HTML", a model sends
@@ -1302,6 +1326,9 @@ def drop_repeats(existing_html, body):
     when it matches a question already in the document almost word for word,
     and only when something new remains — a question re-solved by another
     method reads differently and is kept.
+
+    resolve_wanted : the teacher asked for another method or to solve again,
+    so the same question with different working is new work, not a copy.
 
     Returns (body, labels of what was left out).
     """
@@ -1312,9 +1339,12 @@ def drop_repeats(existing_html, body):
     parts = question_parts(body)
     if len(parts) < 2 or not old:
         return body, []
+    old_questions = [_question_of(existing_html[a:b]) for a, b in question_parts(existing_html)]
     repeats = [(a, b) for a, b in parts
                if _balanced(body[a:b])
-               and any(_same_work(_work(body[a:b]), o) for o in old)]
+               and (any(_same_work(_work(body[a:b]), o) for o in old)
+                    or (not resolve_wanted
+                        and any(_same_question(_question_of(body[a:b]), q) for q in old_questions)))]
     if not repeats or len(repeats) == len(parts):
         return body, []
     labels = []

@@ -492,6 +492,17 @@ _REMOVE_ONE = _re.compile(
     r"problem|exercise|example)\s*(?:no\.?\s*)?(\d+[a-z]?)\s*\.?\s*$", _re.I)
 
 
+_ORDINALS = {"first": 1, "second": 2, "third": 3, "fourth": 4, "fifth": 5, "sixth": 6,
+             "seventh": 7, "eighth": 8, "ninth": 9, "tenth": 10}
+_REMOVE_NTH = _re.compile(
+    r"^\s*(?:please\s+)?(?:remove|delete|drop)\s+(?:the\s+)?"
+    r"(first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|\d+(?:st|nd|rd|th))\s+"
+    rf"(?:{_THING}|block|one|answer)\s*\.?\s*$", _re.I)
+_REMOVE_COPY = _re.compile(
+    r"^\s*(?:please\s+)?(?:remove|delete|drop)\s+(?:the\s+)?(?:duplicate|repeated|extra|copy|"
+    rf"double)(?:\s+(?:{_THING}|block|one|answer|copy))?\s*\.?\s*$", _re.I)
+
+
 _PG_WORDS = (r"(?:book(?:\s+name)?|author|page(?:\s+(?:number|no\.?))?|pg\.?|"
              r"page\s+reference|reference|pgref)")
 _WHICH = r"(?:\s+(?:of|in|from|for)\s+(?:the\s+)?(illustration|question|problem|exercise|example)\s*(?:no\.?\s*)?(\d+[a-z]?))?"
@@ -633,6 +644,12 @@ def removal_target(text):
     """
     if _REMOVE_LAST.match(text or ""):
         return "last"
+    found = _REMOVE_NTH.match(text or "")
+    if found:
+        word = found.group(1).lower()
+        return ("#", _ORDINALS.get(word) or int(_re.match(r"\d+", word).group()))
+    if _REMOVE_COPY.match(text or ""):
+        return "copy"
     found = _REMOVE_ONE.match(text or "")
     if found:
         return (found.group(1).title(), found.group(2))

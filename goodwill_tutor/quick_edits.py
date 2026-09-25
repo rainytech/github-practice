@@ -118,6 +118,7 @@ HELP = """Free — done by the app, nothing sent to Gemini:
   remove the top bar
 
   remove Illustration 7  ·  remove the last question
+  remove the second question  ·  remove the duplicate question
   number it Illustration 6  ·  rename illustration no. 10
   change the book name to P.K. Lazar, Pg. 43  ·  remove the book name and page
   change the date to 25th sept

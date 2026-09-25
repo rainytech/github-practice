@@ -177,6 +177,17 @@ r.check("a new question in blue is still a new question",
 r.check("the status bar spans the window, not the Send row",
         app.status_label.master is app.status_bar)
 
+# ── removing by position, or the duplicate ──────────────────────────────
+before_count = len(app.hs.blocks_of(page()))
+dup = app.hs.blocks_of(page())[0]
+app.last_full_html = app.hs.append_block(page(), dup)
+ask("remove the duplicate question")
+r.check("the duplicate goes", len(app.hs.blocks_of(page())), before_count)
+ask("remove the 2nd question")
+r.check("the second question goes", len(app.hs.blocks_of(page())), before_count - 1)
+r.check("'remove the second question' is read",
+        app.prompts.removal_target("remove the second question"), ("#", 2))
+
 r.check("none of it was sent to Gemini", state["calls"], paid)
 r.check("each change kept a version", versions() > before)
 r.check("a real edit still goes to Gemini", ask("fix the working in Illustration 1"), "Will edit")
