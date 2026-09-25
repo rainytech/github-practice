@@ -105,3 +105,30 @@ def test_real_timetable_picture():
     assert ("2026-09-27", "17:30", "Renosh") in got
     assert ("2026-10-01", "19:30", "Mehul") in got
     assert not any(x.start == "16:30" for x in e)
+
+
+def test_timetable_name_links_to_existing_student(tmp_path):
+    s = Store(tmp_path)
+    s.add_stop("Akhil", r"C:\a.pdf", 15, 26, "pro-rata to start", "", "", None)
+    s.student_id("Akhil Sir")  # the look-alike an older version created from the timetable
+    s.set_schedule([("2026-09-25", "19:30", "Akhil Sir")])
+    rows = s.classes_on("2026-09-25")
+    assert [(r["name"], r["page"]) for r in rows] == [("Akhil", 15)]
+    assert [r["name"] for r in s.students()] == ["Akhil"]  # empty look-alike removed
+
+
+def test_rename_merges(tmp_path):
+    s = Store(tmp_path)
+    s.add_stop("Anu", r"C:\a.pdf", 3, 10, "", "", "", None)
+    s.db.execute("INSERT INTO students(name, created) VALUES ('Anu K', '')")
+    s.set_schedule([("2026-09-25", "18:30", "Anu K")])
+    anu_k = s.find("Anu K")
+    s.rename_student(anu_k, "anu")
+    assert [r["name"] for r in s.students()] == ["Anu"]
+    assert s.classes_on("2026-09-25")[0]["page"] == 3
+
+
+def test_titles_ignored():
+    from storage import name_key
+    assert name_key("Akhil Sir") == name_key("akhil") == "akhil"
+    assert name_key("Sir") == "sir"

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import os
+import re
 import sqlite3
 from datetime import datetime
 from pathlib import Path
@@ -9,6 +10,13 @@ from pathlib import Path
 from PIL import Image
 
 KEEP = 5  # stopping points kept per student
+TITLES = {"sir", "madam", "mam", "maam", "miss", "mr", "mrs", "ms", "teacher", "chechi", "chettan"}
+
+
+def name_key(name: str) -> str:
+    """'Akhil Sir' and 'akhil' -> 'akhil': case, punctuation and titles ignored."""
+    words = [w for w in re.findall(r"[a-z0-9]+", name.lower()) if w not in TITLES]
+    return " ".join(words) or name.strip().lower()
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS students (
@@ -66,8 +74,22 @@ class Store:
                ORDER BY s.name COLLATE NOCASE"""
         ).fetchall()
 
+    def match_student(self, name: str) -> str:
+        """The existing student this name means, else the name itself.
+        Among look-alikes the one with the most recent stop wins."""
+        key = name_key(name)
+        rows = self.db.execute(
+            """SELECT s.name, (SELECT MAX(saved) FROM stops WHERE student_id = s.id) AS last
+               FROM students s"""
+        ).fetchall()
+        same = [r for r in rows if name_key(r["name"]) == key]
+        if not same:
+            return name.strip()
+        same.sort(key=lambda r: (r["last"] or "", r["name"].lower() == name.strip().lower()), reverse=True)
+        return same[0]["name"]
+
     def student_id(self, name: str) -> int:
-        name = name.strip()
+        name = self.match_student(name)
         with self.db:
             self.db.execute(
                 "INSERT OR IGNORE INTO students(name, created) VALUES (?, ?)",
@@ -75,9 +97,20 @@ class Store:
             )
         return self.db.execute("SELECT id FROM students WHERE name = ?", (name,)).fetchone()[0]
 
+    def find(self, name: str) -> int | None:
+        row = self.db.execute("SELECT id FROM students WHERE name = ?", (name.strip(),)).fetchone()
+        return row[0] if row else None
+
     def rename_student(self, sid: int, name: str) -> None:
+        """Renames; if another student already has that name, merges this one into it."""
+        other = self.find(name)
         with self.db:
-            self.db.execute("UPDATE students SET name = ? WHERE id = ?", (name.strip(), sid))
+            if other is not None and other != sid:
+                self.db.execute("UPDATE stops SET student_id = ? WHERE student_id = ?", (other, sid))
+                self.db.execute("UPDATE schedule SET student_id = ? WHERE student_id = ?", (other, sid))
+                self.db.execute("DELETE FROM students WHERE id = ?", (sid,))
+            else:
+                self.db.execute("UPDATE students SET name = ? WHERE id = ?", (name.strip(), sid))
 
     def delete_student(self, sid: int) -> None:
         for row in self.stops(sid, limit=-1):
@@ -137,6 +170,9 @@ class Store:
                 self.db.execute("DELETE FROM schedule WHERE day = ?", (day,))
             self.db.executemany("INSERT OR REPLACE INTO schedule(day, start, student_id) VALUES (?, ?, ?)",
                                 [(d, s, ids[n]) for d, s, n in entries])
+            # drop empty look-alikes left behind (no stops, no classes)
+            self.db.execute("""DELETE FROM students WHERE id NOT IN (SELECT student_id FROM stops)
+                               AND id NOT IN (SELECT student_id FROM schedule)""")
 
     def classes_on(self, day: str) -> list[sqlite3.Row]:
         """That day's classes with each student's latest stop."""

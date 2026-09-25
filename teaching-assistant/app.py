@@ -32,7 +32,7 @@ from ocr_engine import OcrError
 from storage import Store, data_dir
 
 APP = "TeachMark"
-VERSION = "1.6"
+VERSION = "1.7"
 IMAGE_EXT = (".png", ".jpg", ".jpeg", ".bmp", ".gif", ".webp")
 SCREENSHOTS = [Path.home() / "Pictures" / "Screenshots"]
 if os.environ.get("OneDrive"):
@@ -509,7 +509,7 @@ class MainWindow(QMainWindow):
         f = timetable_file()
         if f is None:
             return
-        stamp = f"{f} {f.stat().st_mtime}"
+        stamp = f"{VERSION} {f} {f.stat().st_mtime}"  # a new version re-reads once
         seen = self.store.dir / "timetable_seen.txt"
         try:
             if seen.read_text(encoding="utf-8") == stamp:
@@ -645,12 +645,14 @@ class MainWindow(QMainWindow):
             return
         new, ok = QInputDialog.getText(self, APP, "New name:", text=name)
         if ok and new.strip() and new.strip() != name:
-            try:
-                self.store.rename_student(sid, new)
-            except Exception:
-                QMessageBox.warning(self, APP, f"A student called '{new}' already exists.")
+            other = self.store.find(new)
+            if other is not None and other != sid and QMessageBox.question(
+                    self, APP, f"'{new.strip()}' already exists.\n\nJoin {name} into {new.strip()}? "
+                    "Their saved stops and classes become one.") != QMessageBox.StandardButton.Yes:
                 return
+            self.store.rename_student(sid, new)
             self.refresh(select=new.strip())
+            self.refresh_today()
 
     def delete(self):
         sid, name = self.selected()
