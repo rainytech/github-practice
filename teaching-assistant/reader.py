@@ -107,7 +107,7 @@ def page_from_text(text: str, total: int | None) -> int | None:
 def read_image(image, known_paths=(), passes=None, search_roots=None, log_dir=None) -> Reading:
     """Screenshot -> Reading. If the page number was missed, looks again, zoomed in:
     first at the box left of "/ 26", then at the whole row right of the file path."""
-    from ocr_engine import ocr_number, ocr_text, read_screenshot
+    from ocr_engine import ocr_number, ocr_text, read_box_number, read_screenshot
 
     passes = read_screenshot(image) if passes is None else passes
     r = parse(passes, search_roots=search_roots, known_paths=known_paths)
@@ -117,6 +117,10 @@ def read_image(image, known_paths=(), passes=None, search_roots=None, log_dir=No
         extra.append(f"page box -> {n}")
         if n and (not r.total or 1 <= n <= r.total):
             r.page = n
+    if r.page is None and r.status_box:
+        n = read_box_number(image, r.status_box, r.total)
+        extra.append(f"page box in status row -> {n}")
+        r.page = n
     if r.page is None and r.status_box:
         text = ocr_text(image, r.status_box)
         extra.append(f"status row -> {text!r}")

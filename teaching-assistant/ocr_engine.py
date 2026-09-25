@@ -194,3 +194,93 @@ def ocr_number(img: Image.Image, box: tuple) -> int | None:
 
     nums = re.findall(r"\d{1,4}", ocr_text(img, box))
     return int(nums[-1]) if nums else None
+
+
+_rapid = None
+
+
+def _rapid_rec(img: Image.Image) -> tuple[str, float]:
+    """RapidOCR (offline, models ship with the package) recognising one small text crop."""
+    global _rapid
+    import numpy as np
+    from rapidocr import RapidOCR
+
+    if _rapid is None:
+        _rapid = RapidOCR()
+    out = _rapid(np.array(img.convert("RGB")), use_det=False, use_cls=False, use_rec=True)
+    if not out.txts:
+        return "", 0.0
+    return out.txts[0], float(out.scores[0])
+
+
+def find_boxes(img: Image.Image, box: tuple) -> list[tuple[int, int, int, int]]:
+    """Input boxes (a faint rectangle with text inside) within region box (x, y, w, h).
+
+    Finds e.g. the page-number box of a PDF viewer's status bar. Returns
+    [(left, top, right, bottom)] in image coordinates, left to right.
+    """
+    import numpy as np
+
+    x, y, w, h = box
+    x0, y0 = max(0, int(x)), max(0, int(y - h * 0.5))
+    x1, y1 = min(img.width, int(x + w)), min(img.height, int(y + h * 1.5))
+    if x1 - x0 < 10 or y1 - y0 < 10:
+        return []
+    a = np.asarray(ImageOps.grayscale(img.crop((x0, y0, x1, y1))), dtype=int)
+    d = np.abs(a - int(np.median(a)))
+    line = (d >= 10) & (d <= 90)  # faint border, not text or icons
+
+    runs = []  # per column: (longest vertical run of border pixels, where it starts)
+    for c in range(a.shape[1]):
+        best = cur = start = bstart = 0
+        for r, on in enumerate(line[:, c]):
+            if on:
+                start = r if cur == 0 else start
+                cur += 1
+                if cur > best:
+                    best, bstart = cur, start
+            else:
+                cur = 0
+        runs.append((best, bstart))
+
+    edges, prev = [], -2
+    for c, (run, _s) in enumerate(runs):
+        if run >= max(12, int(h * 0.6)):
+            if c - prev > 1:
+                edges.append(c)
+            prev = c
+    found = []
+    for left, right in zip(edges, edges[1:]):
+        if not h * 0.8 <= right - left <= h * 8:
+            continue
+        top = runs[left][1]
+        bottom = top + runs[left][0]
+        inner = d[top + 2:bottom - 2, left + 3:right - 2]
+        if inner.size and (inner > 100).sum() >= 10:  # something written inside
+            found.append((x0 + left, y0 + top, x0 + right, y0 + bottom))
+    return found
+
+
+def read_box_number(img: Image.Image, region: tuple, total: int | None) -> int | None:
+    """Finds input boxes in region and returns the first whole number read inside one."""
+    import re
+
+    img = img.convert("RGB")
+    for left, top, right, bottom in find_boxes(img, region):
+        inner = img.crop((left + 3, top + 3, right - 2, bottom - 2))
+        bg = inner.getpixel((1, 1))
+        inner = ImageOps.expand(inner.resize((inner.width * 2, inner.height * 2), Image.LANCZOS),
+                                border=16, fill=bg)
+        texts = []
+        try:
+            text, score = _rapid_rec(inner)
+            if score >= 0.8:
+                texts.append(text)
+        except ImportError:
+            pass
+        texts.append(ocr_text(img, (left + 3, top + 3, right - left - 5, bottom - top - 5)))
+        for text in texts:
+            t = text.strip()
+            if re.fullmatch(r"\d{1,4}", t) and 1 <= int(t) <= (total or 9999):
+                return int(t)
+    return None

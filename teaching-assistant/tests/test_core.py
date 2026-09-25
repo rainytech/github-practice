@@ -168,3 +168,23 @@ def test_missed_digit_recovered_from_real_image(tokens, tmp_path):
     r = reader.read_image(Image.open(SAMPLE2), passes=[lines], search_roots=[], log_dir=str(tmp_path))
     assert r.page == 6
     assert (tmp_path / "last_read.txt").is_file()
+
+
+SAMPLE3 = os.environ.get("TEACHMARK_SAMPLE3")  # Icecream screenshot showing page 1 / 26
+WINDOWS_CASES = [(SAMPLE, 836, 8), (SAMPLE2, 772, 6), (SAMPLE3, 836, 1)]
+
+
+@pytest.mark.parametrize("image,path_end,page", WINDOWS_CASES)
+def test_windows_ocr_output_from_log(image, path_end, page, monkeypatch, tmp_path):
+    """What Windows OCR gave on the teacher's PC: the path, but no "6 / 9" at all, and
+    the zoomed Windows re-read returned ''. The page box must still be found and read."""
+    import ocr_engine
+
+    if not image:
+        pytest.skip("sample screenshot not set")
+    pytest.importorskip("rapidocr")
+    monkeypatch.setattr(ocr_engine, "ocr_text", lambda img, box: "")
+    monkeypatch.setattr(ocr_engine, "ocr_number", lambda img, box: None)
+    path_line = Line([Word(r"C:\Users\Admin\Desktop\x\file.pdf", 12, 974, path_end - 12, 22)])
+    r = reader.read_image(Image.open(image), passes=[[path_line]], search_roots=[], log_dir=str(tmp_path))
+    assert r.page == page

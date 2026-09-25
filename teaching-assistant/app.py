@@ -31,7 +31,7 @@ from ocr_engine import OcrError
 from storage import Store, data_dir
 
 APP = "TeachMark"
-VERSION = "1.3"
+VERSION = "1.4"
 IMAGE_EXT = (".png", ".jpg", ".jpeg", ".bmp", ".gif", ".webp")
 SCREENSHOTS = [Path.home() / "Pictures" / "Screenshots"]
 if os.environ.get("OneDrive"):
