@@ -101,6 +101,15 @@ r.check("RULE 4 permits it", "break-inside: avoid" not in " ".join(
 r.check("the question number is kept with its first sentence",
         ".q > .qno + span {\n  break-before:      avoid;" in css)
 r.check("a quarter line under each sentence", ".wn-text > span { margin-bottom: 3pt; }" in css)
+white = ('<div class="page-block"><table class="wn" style="background:#fff;width:60%">'
+         '<tr bgcolor="white"><td style="background-color: white; text-align:right">1</td></tr></table></div>')
+clean = hs.strip_backgrounds(white)
+r.check("a background the model wrote is taken out",
+        any(w in clean.lower() for w in ("background", "bgcolor", "#fff", "white")), False)
+r.check("but widths and alignment stay", 'width:60%' in clean and "text-align:right" in clean)
+r.check("a stored page with a white table needs repair", hs.needs_restyle(hs.wrap_document([white])))
+r.check("the table and its rows are painted too",
+        ".page-block table tr { background-color: #C8C8C8 !important; }" in css)
 r.check("the last block leaves no gap on paper", ".page-block:last-child" in css)
 r.check("fraction lines have room above and below", "margin:          0.3em 0.15em;" in css)
 

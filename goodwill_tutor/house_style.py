@@ -279,6 +279,10 @@ table.wn th, table.wn td {
    an inline declaration that carries no !important. */
 table.wn td,
 .page-block table td { background-color: #C8C8C8 !important; }
+/* The table and its rows too: a model that paints a table white shows it
+   between the cells and round the edges, whatever the cells say. */
+.page-block table,
+.page-block table tr { background-color: #C8C8C8 !important; }
 
 table.wn th,
 .page-block table th {
@@ -397,7 +401,7 @@ def restyle(html):
     """
     if not html or not html.strip():
         return html
-    html = drop_echoes(mend_numerals(html))
+    html = strip_backgrounds(drop_echoes(mend_numerals(html)))
     if not _STYLE_BLOCK.search(html):
         blocks = re.findall(
             r'<div[^>]*class\s*=\s*"[^"]*page-block[^"]*"[^>]*>.*?</div>\s*(?=<div[^>]*class\s*=\s*"[^"]*page-block|</body>|\Z)',
@@ -413,7 +417,30 @@ def needs_restyle(html):
     if not found:
         return bool((html or "").strip())
     return (GOODWILL_CSS.strip() not in found.group(0)
-            or drop_echoes(mend_numerals(html)) != html)
+            or strip_backgrounds(drop_echoes(mend_numerals(html))) != html)
+
+
+_STYLE_ATTR = re.compile(r'(\sstyle\s*=\s*)(["\'])(.*?)\2', re.I | re.S)
+_BG_DECL = re.compile(r"background(?:-color|-image)?\s*:[^;]*;?", re.I)
+_BGCOLOR = re.compile(r'\sbgcolor\s*=\s*(["\']?)[^"\'\s>]*\1', re.I)
+
+
+def strip_backgrounds(html):
+    """Take out any background a model wrote into the page — the look belongs
+    to the stylesheet. Widths and every other inline setting are kept.
+
+    Only the body is read; the stylesheet is never touched.
+    """
+    if not html:
+        return html
+    body = re.search(r"<body[^>]*>", html, re.I)
+    start = body.end() if body else 0
+
+    def clean(m):
+        rest = _BG_DECL.sub("", m.group(3)).strip().strip(";").strip()
+        return f"{m.group(1)}{m.group(2)}{rest}{m.group(2)}" if rest else ""
+    tail = _STYLE_ATTR.sub(clean, html[start:])
+    return html[:start] + _BGCOLOR.sub("", tail)
 
 
 def mend_numerals(html):

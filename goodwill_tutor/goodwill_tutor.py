@@ -1941,6 +1941,7 @@ def finish(answer, in_tok, out_tok, cached_tok, elapsed, model, verdict, v_cost=
         # Slashes and carets are fixed here too; the block markers are comments
         # and pass through untouched.
         body, repairs = hs.repair_markup(body)
+        body = hs.strip_backgrounds(body)
         try:
             new_html, changed, removed = hs.apply_edits(last_full_html, body)
         except hs.EditError as exc:
@@ -1983,6 +1984,8 @@ def finish(answer, in_tok, out_tok, cached_tok, elapsed, model, verdict, v_cost=
             notes.append(("Repaired " + " and ".join(repairs)
                           + " — divisions are stacked fractions, powers are superscripts.",
                           "note"))
+        # A background written into the answer would print as a white table.
+        body = hs.strip_backgrounds(body)
 
         # "Add one more question" often comes back with the earlier question too.
         # The document already holds it, so it is left out rather than printed twice.
