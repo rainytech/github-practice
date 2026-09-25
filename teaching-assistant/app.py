@@ -32,7 +32,7 @@ from ocr_engine import OcrError
 from storage import Store, data_dir
 
 APP = "TeachMark"
-VERSION = "1.5"
+VERSION = "1.6"
 IMAGE_EXT = (".png", ".jpg", ".jpeg", ".bmp", ".gif", ".webp")
 SCREENSHOTS = [Path.home() / "Pictures" / "Screenshots"]
 if os.environ.get("OneDrive"):
@@ -41,6 +41,14 @@ if os.environ.get("OneDrive"):
 
 def screenshot_dirs() -> list[Path]:
     return [d for d in SCREENSHOTS if d.is_dir()]
+
+
+def timetable_file() -> Path | None:
+    """The timetable picture kept on the Desktop as tt.png."""
+    desktops = [Path.home() / "Desktop"]
+    if os.environ.get("OneDrive"):
+        desktops.append(Path(os.environ["OneDrive"]) / "Desktop")
+    return next((d / "tt.png" for d in desktops if (d / "tt.png").is_file()), None)
 
 
 def newest_screenshot() -> Path | None:
@@ -343,7 +351,7 @@ class MainWindow(QMainWindow):
         open_img = QPushButton("Open Image…")
         open_img.clicked.connect(self.open_image)
         week = QPushButton("📅  Timetable")
-        week.setToolTip("Read this week's timetable from a picture (newest screenshot)")
+        week.setToolTip("Check the timetable read from tt.png on your Desktop")
         week.clicked.connect(self.import_timetable)
         hint = QLabel("After class: Win+Shift+S → Ctrl+V here,\nor Win+PrtScn → Latest Screenshot")
         hint.setObjectName("key")
@@ -465,13 +473,13 @@ class MainWindow(QMainWindow):
         th.setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)
         self.today.cellClicked.connect(lambda row, _c: self.refresh(select=self.today.item(row, 1).text()))
         self.today_empty = QLabel("No classes in the timetable for today. "
-                                  "Take a screenshot of this week's timetable and click 📅 Timetable.")
+                                  "Keep this week's timetable on your Desktop as tt.png.")
         self.today_empty.setObjectName("key")
         today_box = QVBoxLayout()
         today_box.addWidget(self.today_title)
         today_box.addWidget(self.today)
         today_box.addWidget(self.today_empty)
-        self.clock = QTimer(self, interval=60_000, timeout=self.refresh_today)
+        self.clock = QTimer(self, interval=60_000, timeout=self.tick)
         self.clock.start()
 
         body = QHBoxLayout()
@@ -490,6 +498,33 @@ class MainWindow(QMainWindow):
         self.history_rows = []
         self.refresh()
         self.refresh_today()
+        QTimer.singleShot(300, self.check_timetable)
+
+    def tick(self):
+        self.check_timetable()
+        self.refresh_today()
+
+    def check_timetable(self):
+        """Reads Desktop\\tt.png again whenever it has changed — no clicks needed."""
+        f = timetable_file()
+        if f is None:
+            return
+        stamp = f"{f} {f.stat().st_mtime}"
+        seen = self.store.dir / "timetable_seen.txt"
+        try:
+            if seen.read_text(encoding="utf-8") == stamp:
+                return
+        except OSError:
+            pass
+        seen.write_text(stamp, encoding="utf-8")  # also stops retrying a picture that can't be read
+        entries, error = self.run_ocr("Reading timetable (tt.png)…", tt.read_timetable, Image.open(f).convert("RGB"))
+        if error or not entries:
+            self.statusBar().showMessage("Could not read the timetable in tt.png — click 📅 Timetable to check.", 10000)
+            return
+        self.store.set_schedule([(e.day.isoformat(), e.start, e.name) for e in entries])
+        self.refresh()
+        self.refresh_today()
+        self.statusBar().showMessage(f"Timetable updated from tt.png: {len(entries)} classes.", 8000)
 
     # ---------------------------------------------------------------- list / detail
     def refresh(self, select: str | None = None):
@@ -538,7 +573,7 @@ class MainWindow(QMainWindow):
         self.today.setFixedHeight(self.today.horizontalHeader().height() + rows_h + 4)
 
     def import_timetable(self, path: Path | None = None):
-        path = path or newest_screenshot()
+        path = path or timetable_file() or newest_screenshot()
         if path is None:
             QMessageBox.information(self, APP, f"No screenshots found in:\n{SCREENSHOTS[0]}")
             return

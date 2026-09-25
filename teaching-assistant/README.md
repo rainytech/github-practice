@@ -43,10 +43,10 @@ You can also drag an image file onto the window, or use **Open Image…**.
 
 ## Weekly timetable
 
-1. Take a screenshot of this week's timetable (a grid: times like `4.3` = 4:30 PM
-   across the top, `25 Fri` down the side, student names in the cells).
-2. Click **📅 Timetable**. It reads the newest screenshot and lists the classes.
-3. Check the names, press **Save**.
+Keep this week's timetable on your Desktop as **`tt.png`** (a grid: times like
+`4.3` = 4:30 PM across the top, `25 Fri` down the side, student names in the cells).
+TeachMark reads it by itself when it starts and whenever the file changes.
+Click **📅 Timetable** to see and correct what was read.
 
 The **Today** list at the top then shows each class with where to continue:
 🟢 Ready · 🟠 Prepare next PDF (80% done) · 🔴 PDF finished · ⚪ No stop saved yet.
