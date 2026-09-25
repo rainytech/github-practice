@@ -2353,6 +2353,18 @@ def on_mode_change(_evt=None):
 #  WINDOW
 # ═══════════════════════════════════════════════════════════════
 
+# Windows groups taskbar icons by the program that runs them — pythonw.exe
+# for every Python app on the machine — so this app's pin opened another
+# Python app instead. Its own ID keeps it apart; make_shortcut.py gives the
+# shortcut the same one.
+APP_ID = "GoodwillTuitionCentre.GeminiTutor"
+if os.name == "nt":
+    try:
+        import ctypes
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(APP_ID)
+    except Exception:
+        pass
+
 root = tk.Tk()
 def installed_version():
     """The version update.py installed, e.g. "c6a1c5e" — or "" if unknown."""

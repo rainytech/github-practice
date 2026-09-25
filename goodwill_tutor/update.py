@@ -42,6 +42,7 @@ FILES = [
     "pdf_export.py",
     "quick_edits.py",
     "update.py",
+    "make_shortcut.py",
     "requirements.txt",
     "README.md",
     "tests/support.py",
