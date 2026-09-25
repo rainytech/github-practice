@@ -18,7 +18,7 @@ from pathlib import PureWindowsPath
 
 from PIL import Image
 from PySide6.QtCore import QBuffer, QByteArray, QEventLoop, QIODevice, Qt, QUrl
-from PySide6.QtGui import QDesktopServices, QFont, QGuiApplication, QImage, QKeySequence, QPixmap, QShortcut
+from PySide6.QtGui import QColor, QDesktopServices, QFont, QGuiApplication, QImage, QKeySequence, QPalette, QPixmap, QShortcut
 from PySide6.QtWidgets import (
     QAbstractItemView, QApplication, QComboBox, QDialog, QDialogButtonBox, QFileDialog, QFormLayout,
     QFrame, QGridLayout, QHBoxLayout, QHeaderView, QInputDialog, QLabel, QLineEdit, QListWidget,
@@ -43,8 +43,15 @@ QLabel#name { font-size: 18pt; font-weight: bold; color: #00008B; }
 QLabel#page { font-size: 24pt; font-weight: bold; color: #CC0000; }
 QLabel#point { font-size: 14pt; font-weight: bold; color: #6A0DAD; }
 QLabel#key { color: #555; }
-QFrame#card { background: #F4F6FA; border: 1px solid #D0D5DD; border-radius: 8px; }
+QFrame#card { background: #FAF9F5; border: 1px solid #DDD8C8; border-radius: 8px; }
+QMainWindow, QDialog, QStatusBar { background: #F0EEE6; }
+QListWidget, QTableWidget { background: #FAF9F5; border: 1px solid #DDD8C8; }
+QListWidget::item:selected { background: #E3DACB; color: #000; }
+QHeaderView::section { background: #EAE6DA; border: none; border-right: 1px solid #DDD8C8; padding: 4px; }
 """
+
+# Claude-style warm beige
+BEIGE, PAPER = "#F0EEE6", "#FAF9F5"
 
 
 def log_error(e: BaseException) -> None:
@@ -515,6 +522,11 @@ def main():
     app = QApplication(sys.argv)
     app.setApplicationName(APP)
     app.setFont(QFont("Segoe UI", 10))
+    pal = app.palette()
+    for role, color in ((QPalette.ColorRole.Window, BEIGE), (QPalette.ColorRole.Base, PAPER),
+                        (QPalette.ColorRole.AlternateBase, BEIGE), (QPalette.ColorRole.Button, PAPER)):
+        pal.setColor(role, QColor(color))
+    app.setPalette(pal)
     app.setStyleSheet(STYLE)
     win = MainWindow(Store())
     win.show()
