@@ -52,6 +52,9 @@ class OcrError(RuntimeError):
 
 def _windows_ocr(img: Image.Image) -> list[Line]:
     import asyncio
+    import ctypes
+
+    ctypes.windll.ole32.CoInitializeEx(None, 0)  # this worker thread joins the MTA
 
     from winrt.windows.globalization import Language
     from winrt.windows.graphics.imaging import BitmapDecoder

@@ -10,11 +10,14 @@ import io
 import os
 import subprocess
 import sys
+import time
+import traceback
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from pathlib import PureWindowsPath
 
 from PIL import Image
-from PySide6.QtCore import QBuffer, QByteArray, QIODevice, Qt, QUrl
+from PySide6.QtCore import QBuffer, QByteArray, QEventLoop, QIODevice, Qt, QUrl
 from PySide6.QtGui import QDesktopServices, QFont, QGuiApplication, QImage, QKeySequence, QPixmap, QShortcut
 from PySide6.QtWidgets import (
     QAbstractItemView, QApplication, QComboBox, QDialog, QDialogButtonBox, QFileDialog, QFormLayout,
@@ -25,7 +28,7 @@ from PySide6.QtWidgets import (
 
 import reader
 from ocr_engine import OcrError, read_screenshot
-from storage import Store
+from storage import Store, data_dir
 
 APP = "TeachMark"
 IMAGE_EXT = (".png", ".jpg", ".jpeg", ".bmp", ".gif", ".webp")
@@ -42,6 +45,15 @@ QLabel#point { font-size: 14pt; font-weight: bold; color: #6A0DAD; }
 QLabel#key { color: #555; }
 QFrame#card { background: #F4F6FA; border: 1px solid #D0D5DD; border-radius: 8px; }
 """
+
+
+def log_error(e: BaseException) -> None:
+    try:
+        with open(data_dir() / "error.log", "a", encoding="utf-8") as f:
+            f.write(f"\n--- {datetime.now():%Y-%m-%d %H:%M:%S}\n")
+            f.write("".join(traceback.format_exception(type(e), e, e.__traceback__)))
+    except OSError:
+        pass
 
 
 def pretty_date(iso: str) -> str:
@@ -203,6 +215,7 @@ class MainWindow(QMainWindow):
     def __init__(self, store: Store):
         super().__init__()
         self.store = store
+        self.pool = ThreadPoolExecutor(max_workers=1)
         self.setWindowTitle(f"{APP} — Where I Stopped Teaching")
         self.setAcceptDrops(True)
         self.resize(1100, 680)
@@ -461,19 +474,29 @@ class MainWindow(QMainWindow):
             self.process(qimage_to_pil(QImage(md.imageData())))
 
     def process(self, image: Image.Image):
+        # OCR runs on a worker thread: Windows OCR deadlocks on Qt's UI (STA) thread,
+        # and the window stays responsive while reading.
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         self.statusBar().showMessage("Reading screenshot…")
-        QApplication.processEvents()
-        try:
-            r = reader.parse(read_screenshot(image), known_paths=self.store.known_paths())
-        except OcrError as e:
-            r = reader.Reading()
-            error = str(e)
+        known = self.store.known_paths()
+        future = self.pool.submit(lambda: reader.parse(read_screenshot(image), known_paths=known))
+        deadline = time.monotonic() + 60
+        while not future.done() and time.monotonic() < deadline:
+            QApplication.processEvents(QEventLoop.ProcessEventsFlag.ExcludeUserInputEvents, 50)
+            time.sleep(0.02)
+        QApplication.restoreOverrideCursor()
+        self.statusBar().clearMessage()
+
+        r, error = reader.Reading(), ""
+        if not future.done():
+            self.pool = ThreadPoolExecutor(max_workers=1)  # leave the stuck worker behind
+            error = "Reading the screenshot took too long. Please fill in the details yourself."
+        elif future.exception():
+            e = future.exception()
+            log_error(e)
+            error = str(e) if isinstance(e, OcrError) else f"Could not read the screenshot ({e}).\nPlease fill in the details yourself."
         else:
-            error = ""
-        finally:
-            QApplication.restoreOverrideCursor()
-            self.statusBar().clearMessage()
+            r = future.result()
         if error:
             QMessageBox.warning(self, APP, error)
 
@@ -488,6 +511,7 @@ class MainWindow(QMainWindow):
 
 
 def main():
+    sys.excepthook = lambda t, e, tb: log_error(e)
     app = QApplication(sys.argv)
     app.setApplicationName(APP)
     app.setFont(QFont("Segoe UI", 10))
