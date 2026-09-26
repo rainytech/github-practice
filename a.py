@@ -4,6 +4,7 @@ Builds names like:  26 Sept Renosh fm textbook illustrations author Sony.pdf
 
 Usage:
   double-click a.py / python a.py               window with subject dropdown
+  (rename to a.pyw so no black window opens behind it)
   python a.py --text                            questions in the black window
   python a.py Renosh fm textbook illustrations Sony   quick mode
   python a.py --rename old.pdf                  interactive, then rename file
@@ -91,7 +92,8 @@ def copy_to_clipboard(text):
     for cmd in cmds:
         try:
             subprocess.run(cmd, input=text.encode("utf-16" if cmd == ["clip"] else "utf-8"),
-                           check=True)
+                           check=True,
+                           creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
             return True
         except (OSError, subprocess.CalledProcessError):
             continue
