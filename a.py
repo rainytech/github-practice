@@ -12,6 +12,7 @@ import datetime
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 
@@ -60,6 +61,15 @@ def build(date, v):
         author = f"author {author}"
     parts = [date, v["name"], v["subject"], v["source"], v["content"], author]
     return clean(" ".join(p for p in parts if p)) + ".pdf"
+
+
+def desktop():
+    home = os.path.expanduser("~")
+    for sub in ("OneDrive/Desktop", "Desktop"):
+        path = os.path.join(home, sub)
+        if os.path.isdir(path):
+            return path
+    return home
 
 
 def copy_to_clipboard(text):
@@ -117,12 +127,23 @@ def main():
     else:
         print("Clipboard not available (pip install pyperclip).")
 
+    if not rename and not args:
+        path = input("\nPDF to rename (drag it here, or Enter to skip): ")
+        path = path.strip().strip('"').strip("'")
+        if path:
+            if not os.path.isfile(path):
+                sys.exit(f"File not found: {path}")
+            rename = path
+
     if rename:
-        target = os.path.join(os.path.dirname(os.path.abspath(rename)), filename)
+        folder = os.path.dirname(os.path.abspath(rename))
+        if input("Move to Desktop? [Y/n]: ").strip().lower() not in ("n", "no"):
+            folder = desktop()
+        target = os.path.join(folder, filename)
         if os.path.exists(target):
             sys.exit(f"Already exists, not renamed: {target}")
-        os.rename(rename, target)
-        print(f"Renamed to: {target}")
+        shutil.move(rename, target)
+        print(f"Saved as: {target}")
 
 
 if __name__ == "__main__":
