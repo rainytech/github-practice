@@ -3,7 +3,7 @@
 Builds names like:  26 Sept Renosh fm textbook illustrations author Sony.pdf
 
 Usage:
-  double-click a.py / python a.py               window with subject dropdown
+  double-click a.py / python a.py               window with subject and author dropdowns
   (rename to a.pyw so no black window opens behind it)
   python a.py --text                            questions in the black window
   python a.py Renosh fm textbook illustrations Sony   quick mode
@@ -23,7 +23,9 @@ MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "June",
           "July", "Aug", "Sept", "Oct", "Nov", "Dec"]
 FIELDS = [("name", "Student name"), ("subject", "Subject"),
           ("source", "Source"), ("content", "Content"), ("author", "Author")]
-SUBJECTS = ["accounts", "costing", "income tax", "FM"]
+DROPDOWNS = {"subject": ["accounts", "costing", "income tax", "FM"],
+             "author": ["Grewal", "Sony", "Jayan", "Lazar"]}
+TAG = "Goodwill tuition centre 9567902805"
 
 
 def today():
@@ -62,7 +64,7 @@ def build(date, v):
     author = v["author"]
     if author and not author.lower().startswith("author"):
         author = f"author {author}"
-    parts = [date, v["name"], v["subject"], v["source"], v["content"], author]
+    parts = [date, v["name"], v["subject"], v["source"], v["content"], author, TAG]
     return clean(" ".join(p for p in parts if p)) + ".pdf"
 
 
@@ -113,9 +115,10 @@ def gui():
     root.option_add("*TCombobox*Listbox.font", big)
 
     memory = load_memory()
-    subject = memory.get("subject", "")
-    match = [s for s in SUBJECTS if s.lower() == subject.lower()]
-    memory["subject"] = match[0] if match else SUBJECTS[0]
+    for key, options in DROPDOWNS.items():
+        old = memory.get(key, "").lower()
+        match = [o for o in options if o.lower() == old]
+        memory[key] = match[0] if match else options[0]
 
     date_var = tk.StringVar(value=today())
     vars_ = {k: tk.StringVar(value=memory.get(k, "")) for k, _ in FIELDS}
@@ -125,8 +128,9 @@ def gui():
     for r, (label, var) in enumerate(rows):
         tk.Label(root, text=label, font=big).grid(row=r, column=0, sticky="w",
                                                   padx=12, pady=6)
-        if var is vars_["subject"]:
-            box = ttk.Combobox(root, textvariable=var, values=SUBJECTS,
+        key = next((k for k, v in vars_.items() if v is var), None)
+        if key in DROPDOWNS:
+            box = ttk.Combobox(root, textvariable=var, values=DROPDOWNS[key],
                                state="readonly", font=big, width=30)
         else:
             box = tk.Entry(root, textvariable=var, font=big, width=32)
