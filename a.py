@@ -3,7 +3,8 @@
 Builds names like:  26 Sept Renosh fm textbook illustrations author Sony.pdf
 
 Usage:
-  python a.py                                   interactive (Enter = default)
+  double-click a.py / python a.py               window with subject dropdown
+  python a.py --text                            questions in the black window
   python a.py Renosh fm textbook illustrations Sony   quick mode
   python a.py --rename old.pdf                  interactive, then rename file
   python a.py --rename old.pdf Renosh fm textbook illustrations Sony
@@ -21,6 +22,7 @@ MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "June",
           "July", "Aug", "Sept", "Oct", "Nov", "Dec"]
 FIELDS = [("name", "Student name"), ("subject", "Subject"),
           ("source", "Source"), ("content", "Content"), ("author", "Author")]
+SUBJECTS = ["accounts", "costing", "income tax", "FM"]
 
 
 def today():
@@ -96,8 +98,112 @@ def copy_to_clipboard(text):
     return False
 
 
+def gui():
+    import tkinter as tk
+    from tkinter import filedialog, messagebox, ttk
+    import tkinter.font as tkfont
+
+    root = tk.Tk()
+    root.title("PDF Name Maker")
+    for name in ("TkDefaultFont", "TkTextFont", "TkMenuFont"):
+        tkfont.nametofont(name).configure(size=14)
+    big = ("Segoe UI", 14)
+    root.option_add("*TCombobox*Listbox.font", big)
+
+    memory = load_memory()
+    subject = memory.get("subject", "")
+    match = [s for s in SUBJECTS if s.lower() == subject.lower()]
+    memory["subject"] = match[0] if match else SUBJECTS[0]
+
+    date_var = tk.StringVar(value=today())
+    vars_ = {k: tk.StringVar(value=memory.get(k, "")) for k, _ in FIELDS}
+    desk_var = tk.BooleanVar(value=memory.get("to_desktop", True))
+
+    rows = [("Date", date_var)] + [(label, vars_[k]) for k, label in FIELDS]
+    for r, (label, var) in enumerate(rows):
+        tk.Label(root, text=label, font=big).grid(row=r, column=0, sticky="w",
+                                                  padx=12, pady=6)
+        if var is vars_["subject"]:
+            box = ttk.Combobox(root, textvariable=var, values=SUBJECTS,
+                               state="readonly", font=big, width=30)
+        else:
+            box = tk.Entry(root, textvariable=var, font=big, width=32)
+        box.grid(row=r, column=1, sticky="we", padx=12, pady=6)
+
+    preview = tk.Label(root, font=("Segoe UI", 14, "bold"), fg="#0057B8",
+                       wraplength=520, justify="left")
+    preview.grid(row=len(rows), column=0, columnspan=2, padx=12, pady=10,
+                 sticky="w")
+    status = tk.Label(root, font=big, fg="#008000", wraplength=520,
+                      justify="left")
+
+    def values():
+        return {k: v.get().strip() for k, v in vars_.items()}
+
+    def filename():
+        return build(clean(date_var.get()), values())
+
+    def remember():
+        data = values()
+        data["to_desktop"] = desk_var.get()
+        save_memory(data)
+
+    def refresh(*_):
+        preview.config(text=filename())
+
+    for var in [date_var] + list(vars_.values()):
+        var.trace_add("write", refresh)
+    refresh()
+
+    def copy_name(*_):
+        remember()
+        name = filename()
+        if not copy_to_clipboard(name):
+            root.clipboard_clear()
+            root.clipboard_append(name)
+        status.config(text="Copied. Paste with Ctrl + V.")
+
+    def pick_pdf():
+        remember()
+        start = os.path.join(os.path.expanduser("~"), "Downloads")
+        path = filedialog.askopenfilename(
+            title="Choose the PDF to rename", initialdir=start,
+            filetypes=[("PDF files", "*.pdf"), ("All files", "*.*")])
+        if not path:
+            return
+        folder = desktop() if desk_var.get() else os.path.dirname(path)
+        target = os.path.join(folder, filename())
+        if os.path.exists(target):
+            messagebox.showerror("Already exists",
+                                 f"A file with this name already exists:\n{target}")
+            return
+        shutil.move(path, target)
+        status.config(text=f"Saved as:\n{target}")
+
+    buttons = tk.Frame(root)
+    buttons.grid(row=len(rows) + 1, column=0, columnspan=2, pady=6)
+    tk.Button(buttons, text="Copy Name", font=big, width=14,
+              command=copy_name).pack(side="left", padx=8)
+    tk.Button(buttons, text="Pick PDF and Rename", font=big, width=20,
+              command=pick_pdf).pack(side="left", padx=8)
+    tk.Checkbutton(root, text="Move renamed PDF to Desktop", font=big,
+                   variable=desk_var).grid(row=len(rows) + 2, column=0,
+                                           columnspan=2, pady=4)
+    status.grid(row=len(rows) + 3, column=0, columnspan=2, padx=12, pady=8)
+    root.bind("<Return>", copy_name)
+    root.mainloop()
+
+
 def main():
     args = sys.argv[1:]
+    if not args:
+        try:
+            gui()
+            return
+        except Exception:
+            pass  # no window support: fall back to questions
+    if "--text" in args:
+        args.remove("--text")
     rename = None
     if "--rename" in args:
         i = args.index("--rename")
