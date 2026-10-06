@@ -1,0 +1,6 @@
+{
+  "name": "goodwill",
+  "owner": { "name": "Goodwill Tuition Centre" },
+  "description": "Claude Code mods for Goodwill Tuition Centre worksheets.",
+  "plugins": [{ "name": "goodwill-guard", "source": "./goodwill-guard" }]
+}
