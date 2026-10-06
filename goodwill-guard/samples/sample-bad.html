@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Sample Bad</title>
+<style>
+@page { size: A4; margin: 0.5in; }
+body {
+  background: #FFFFFF;
+  font-family: "Times New Roman", Times, serif;
+  padding: 0.25cm;
+}
+.page-block {
+  background: #EEEEEE;
+  break-after: page;
+  break-inside: avoid;
+}
+tr { break-inside: avoid; }
+.q span { display: block; }
+.notes span { display: block; }
+table.wn { width: 100%; border-collapse: collapse; }
+</style>
+</head>
+<body>
+<div class="header">
+  <div>GOODWILL TUITION CENTRE FOR ACCOUNTANCY &amp; INCOME TAX ONLINE</div>
+  <div>Ernakulam, Kerala | Ph: 9567902805</div>
+  <div>24 August 2026</div>
+</div>
+<div class="page-block" style="page-break-before: always">
+  <div class="q"><span>Profit is shared in the ratio 3 ÷ 4.</span></div>
+  <table class="wn">
+    <thead><tr><th>Particulars</th><th>₹</th></tr></thead>
+    <tbody><tr><td>Cash</td><td>1,000</td></tr></tbody>
+    <tfoot><tr><td>Total</td><td>1,000</td></tr></tfoot>
+  </table>
+</div>
+</body>
+</html>

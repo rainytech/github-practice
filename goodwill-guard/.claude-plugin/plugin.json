@@ -1,0 +1,6 @@
+{
+  "name": "goodwill-guard",
+  "version": "0.1.0",
+  "description": "Checks Goodwill HTML worksheets against the house rules after every edit, and blocks full-file rewrites of existing .html files.",
+  "types": "./types/index.d.ts"
+}
