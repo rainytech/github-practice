@@ -159,6 +159,31 @@ object PageTrim {
     }
 
     /**
+     * Insets (left, top, right, bottom as fractions) that remove a long dark line
+     * hugging an edge, such as the edge of the page stack. Only the outer 3% is
+     * examined and a line must cover most of that edge, so print is not touched.
+     */
+    fun edgeLines(px: IntArray, w: Int, h: Int): FloatArray {
+        val dark = paper(px, w, h).lum * 0.6f
+        fun isDark(x: Int, y: Int) = lum(px[y * w + x]) < dark
+        fun inset(size: Int, length: Int, darkAt: (Int, Int) -> Boolean): Int {
+            var last = -1
+            for (k in 0 until max(2, size * 3 / 100)) {
+                var d = 0
+                for (j in 0 until length) if (darkAt(k, j)) d++
+                if (d > length * 0.6f) last = k
+            }
+            // One extra pixel clears the line's soft edge.
+            return if (last < 0) 0 else last + 2
+        }
+        val left = inset(w, h) { k, j -> isDark(k, j) }
+        val right = inset(w, h) { k, j -> isDark(w - 1 - k, j) }
+        val top = inset(h, w) { k, j -> isDark(j, k) }
+        val bottom = inset(h, w) { k, j -> isDark(j, h - 1 - k) }
+        return floatArrayOf(left.toFloat() / w, top.toFloat() / h, (w - right).toFloat() / w, (h - bottom).toFloat() / h)
+    }
+
+    /**
      * Background connected to the border: coloured (table, skin) or dark (page stack).
      * Thin parts are dropped so text or ruled lines touching the edge stay.
      * Returns null when there is nothing to remove or the result looks unsafe.

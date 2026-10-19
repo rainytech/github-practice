@@ -85,7 +85,10 @@ object ImageOps {
         val (l, r) = PageTrim.sideCuts(px, w, h)
         val x0 = (l * b.width).roundToInt().coerceIn(0, b.width - 1)
         val x1 = (r * b.width).roundToInt().coerceIn(x0 + 1, b.width)
-        val cut = if (x0 > 0 || x1 < b.width) Bitmap.createBitmap(b, x0, 0, x1 - x0, b.height) else b
+        val sides = if (x0 > 0 || x1 < b.width) Bitmap.createBitmap(b, x0, 0, x1 - x0, b.height) else b
+        val (epx, ew, eh) = analysis(sides)
+        val e = PageTrim.edgeLines(epx, ew, eh)
+        val cut = if (e[0] > 0f || e[1] > 0f || e[2] < 1f || e[3] < 1f) crop(sides, CropBox(e[0], e[1], e[2], e[3])) else sides
         val (spx, sw, sh) = analysis(cut)
         val mask = PageTrim.backgroundMask(spx, sw, sh) ?: return cut
         val fill = PageTrim.paper(spx, sw, sh).color

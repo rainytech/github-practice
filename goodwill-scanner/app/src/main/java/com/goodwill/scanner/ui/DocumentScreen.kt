@@ -135,14 +135,17 @@ fun DocumentScreen(vm: AppViewModel, id: String, onBack: () -> Unit, onPage: (In
     ) { pad ->
         Column(Modifier.padding(pad).fillMaxSize()) {
         Row(Modifier.fillMaxWidth().padding(10.dp, 8.dp, 10.dp, 0.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Button(onClick = { aiDialog = true }, modifier = Modifier.weight(1.5f),
-                contentPadding = PaddingValues(horizontal = 10.dp)) {
+            // Send to AI takes the width it needs; the others share the rest, so large
+            // system font sizes still fit without labels breaking mid-word.
+            val tight = PaddingValues(horizontal = 8.dp)
+            Button(onClick = { aiDialog = true }, contentPadding = PaddingValues(horizontal = 12.dp)) {
                 Icon(Icons.AutoMirrored.Filled.Send, null, Modifier.size(18.dp))
-                Text(" Send to AI", maxLines = 1)
+                Text(" Send to AI", maxLines = 1, softWrap = false)
             }
             OutlinedButton(onClick = { vm.exportPdf(id) { Exporter.saveToDrive(context, it) } },
-                modifier = Modifier.weight(1f)) { Text("Drive") }
-            OutlinedButton(onClick = { vm.ocr(id) { ocrText = it } }, modifier = Modifier.weight(1f)) { Text("Text") }
+                modifier = Modifier.weight(1f), contentPadding = tight) { Text("Drive", maxLines = 1, softWrap = false) }
+            OutlinedButton(onClick = { vm.ocr(id) { ocrText = it } }, modifier = Modifier.weight(1f),
+                contentPadding = tight) { Text("Text", maxLines = 1, softWrap = false) }
         }
         LazyVerticalGrid(
             columns = GridCells.Fixed(3),
