@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
@@ -134,9 +135,10 @@ fun DocumentScreen(vm: AppViewModel, id: String, onBack: () -> Unit, onPage: (In
     ) { pad ->
         Column(Modifier.padding(pad).fillMaxSize()) {
         Row(Modifier.fillMaxWidth().padding(10.dp, 8.dp, 10.dp, 0.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Button(onClick = { aiDialog = true }, modifier = Modifier.weight(1.4f)) {
-                Icon(Icons.AutoMirrored.Filled.Send, null)
-                Text(" Send to AI")
+            Button(onClick = { aiDialog = true }, modifier = Modifier.weight(1.5f),
+                contentPadding = PaddingValues(horizontal = 10.dp)) {
+                Icon(Icons.AutoMirrored.Filled.Send, null, Modifier.size(18.dp))
+                Text(" Send to AI", maxLines = 1)
             }
             OutlinedButton(onClick = { vm.exportPdf(id) { Exporter.saveToDrive(context, it) } },
                 modifier = Modifier.weight(1f)) { Text("Drive") }

@@ -120,9 +120,12 @@ fun PageScreen(vm: AppViewModel, id: String, start: Int, onBack: () -> Unit) {
                         }
                     } else {
                         Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            // Trim changes the page outline, so any manual crop is cleared with it.
+                            FilterChip(page.trim, { vm.editPage(id, index) { it.copy(trim = !it.trim, crop = null) } },
+                                { Text("Trim edges") })
                             PageFilter.entries.forEach { f ->
                                 FilterChip(page.filter == f,
-                                    { if (page.filter != f) vm.editPage(id, index, f, page.rotation, page.crop) },
+                                    { if (page.filter != f) vm.editPage(id, index) { it.copy(filter = f) } },
                                     { Text(f.label) })
                             }
                         }
@@ -136,12 +139,12 @@ fun PageScreen(vm: AppViewModel, id: String, start: Int, onBack: () -> Unit) {
                                 ActionSlot(Icons.Default.Edit, "Crop", true, slot) { cropBox = FULL_BOX; cropping = true }
                             } else {
                                 ActionSlot(Icons.Default.Close, "Undo crop", true, slot) {
-                                    vm.editPage(id, index, page.filter, page.rotation, null)
+                                    vm.editPage(id, index) { it.copy(crop = null) }
                                 }
                             }
                             // Rotating clears the crop, which was drawn for the old orientation.
                             ActionSlot(Icons.Default.Refresh, "Rotate", true, slot) {
-                                vm.editPage(id, index, page.filter, page.rotation + 90, null)
+                                vm.editPage(id, index) { it.copy(rotation = it.rotation + 90, crop = null) }
                             }
                             ActionSlot(Icons.AutoMirrored.Filled.KeyboardArrowRight, "Move right",
                                 index < doc.pages.lastIndex, slot) { moveTo(index + 1) }

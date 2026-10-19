@@ -31,6 +31,8 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     val bookMode: StateFlow<Boolean> = _bookMode
     private val _autoClean = MutableStateFlow(prefs.getBoolean("auto_clean", true))
     val autoClean: StateFlow<Boolean> = _autoClean
+    private val _smartTrim = MutableStateFlow(prefs.getBoolean("smart_trim", true))
+    val smartTrim: StateFlow<Boolean> = _smartTrim
     private val _aiPrompt = MutableStateFlow(prefs.getString("ai_prompt", null) ?: DEFAULT_PROMPT)
     val aiPrompt: StateFlow<String> = _aiPrompt
 
@@ -76,6 +78,11 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         prefs.edit().putBoolean("auto_clean", on).apply()
     }
 
+    fun setSmartTrim(on: Boolean) {
+        _smartTrim.value = on
+        prefs.edit().putBoolean("smart_trim", on).apply()
+    }
+
     private fun saveAiPrompt(prompt: String) {
         _aiPrompt.value = prompt
         prefs.edit().putString("ai_prompt", prompt).apply()
@@ -86,7 +93,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
             val existing = targetId?.let { repo.load(it) }
             val target = existing ?: repo.create(defaultName(), folder)
             val filter = if (_autoClean.value) PageFilter.CLEAN else PageFilter.ORIGINAL
-            val doc = repo.addPages(target, uris, _bookMode.value, filter)
+            val doc = repo.addPages(target, uris, _bookMode.value, filter, _smartTrim.value)
             if (existing == null) {
                 // Name a new scan after the question and page number found on its first page.
                 val first = doc.pages.firstOrNull()
@@ -110,14 +117,12 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         repo.loadAll().filter { it.folder == name }.forEach { repo.save(it.copy(folder = "")) }
     })
 
-    fun editPage(id: String, index: Int, filter: PageFilter, rotation: Int, crop: CropBox?) =
-        work("Applying…", { repo.renderPage(id, index, filter, rotation, crop) })
+    fun editPage(id: String, index: Int, change: (Page) -> Page) =
+        work("Applying…", { repo.renderPage(id, index, change) })
 
     /** [box] is drawn on the page as currently shown, which may already be cropped. */
-    fun cropPage(id: String, index: Int, box: CropBox) = work("Cropping…", {
-        val page = doc(id).pages[index]
-        repo.renderPage(id, index, page.filter, page.rotation, box.inside(page.crop))
-    })
+    fun cropPage(id: String, index: Int, box: CropBox) =
+        work("Cropping…", { repo.renderPage(id, index) { it.copy(crop = box.inside(it.crop)) } })
 
     fun deletePage(id: String, index: Int) = work("Deleting page…", { repo.deletePage(id, index) })
 

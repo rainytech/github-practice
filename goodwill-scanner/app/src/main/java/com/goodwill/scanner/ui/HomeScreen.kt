@@ -61,6 +61,7 @@ fun HomeScreen(vm: AppViewModel, onOpen: (String) -> Unit) {
     val folders by vm.folders.collectAsState()
     val bookMode by vm.bookMode.collectAsState()
     val autoClean by vm.autoClean.collectAsState()
+    val smartTrim by vm.smartTrim.collectAsState()
     var selected by rememberSaveable { mutableStateOf<String?>(null) }
     var menu by remember { mutableStateOf(false) }
     var newFolder by remember { mutableStateOf(false) }
@@ -98,6 +99,8 @@ fun HomeScreen(vm: AppViewModel, onOpen: (String) -> Unit) {
             }
             SettingRow("Book mode", "Split a two-page spread into left and right pages",
                 bookMode, vm::setBookMode)
+            SettingRow("Smart trim", "Cut off the neighbouring page and table edges",
+                smartTrim, vm::setSmartTrim)
             SettingRow("Clean text automatically", "White page, dark text, spine shadow removed",
                 autoClean, vm::setAutoClean)
             HorizontalDivider()

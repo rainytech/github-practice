@@ -58,14 +58,46 @@ object ImageOps {
         return out
     }
 
-    /** A landscape capture of an open book becomes left page then right page. */
+    private fun analysis(b: Bitmap): Triple<IntArray, Int, Int> {
+        val s = PageTrim.ANALYSIS_SIDE.toFloat() / max(b.width, b.height)
+        val small = if (s >= 1f) b else Bitmap.createScaledBitmap(b,
+            max(1, (b.width * s).roundToInt()), max(1, (b.height * s).roundToInt()), true)
+        val px = IntArray(small.width * small.height)
+        small.getPixels(px, 0, small.width, 0, 0, small.width, small.height)
+        return Triple(px, small.width, small.height)
+    }
+
+    /** A landscape capture of an open book becomes left page then right page, split at the spine. */
     fun splitSpread(b: Bitmap): List<Bitmap> {
         if (b.width <= b.height) return listOf(b)
-        val half = b.width / 2
+        val (px, w, h) = analysis(b)
+        val at = PageTrim.findSpine(px, w, h, 0.3f, 0.7f) ?: 0.5f
+        val cut = (b.width * at).roundToInt().coerceIn(1, b.width - 1)
         return listOf(
-            Bitmap.createBitmap(b, 0, 0, half, b.height),
-            Bitmap.createBitmap(b, half, 0, b.width - half, b.height),
+            Bitmap.createBitmap(b, 0, 0, cut, b.height),
+            Bitmap.createBitmap(b, cut, 0, b.width - cut, b.height),
         )
+    }
+
+    /** Cuts off a neighbouring-page strip and paints border background (table, fingers) as paper. */
+    fun smartTrim(b: Bitmap): Bitmap {
+        val (px, w, h) = analysis(b)
+        val (l, r) = PageTrim.sideCuts(px, w, h)
+        val x0 = (l * b.width).roundToInt().coerceIn(0, b.width - 1)
+        val x1 = (r * b.width).roundToInt().coerceIn(x0 + 1, b.width)
+        val cut = if (x0 > 0 || x1 < b.width) Bitmap.createBitmap(b, x0, 0, x1 - x0, b.height) else b
+        val (spx, sw, sh) = analysis(cut)
+        val mask = PageTrim.backgroundMask(spx, sw, sh) ?: return cut
+        val fill = PageTrim.paper(spx, sw, sh).color
+        val cw = cut.width
+        val ch = cut.height
+        val out = IntArray(cw * ch)
+        cut.getPixels(out, 0, cw, 0, 0, cw, ch)
+        for (y in 0 until ch) {
+            val row = min(y * sh / ch, sh - 1) * sw
+            for (x in 0 until cw) if (mask[row + min(x * sw / cw, sw - 1)]) out[y * cw + x] = fill
+        }
+        return Bitmap.createBitmap(out, cw, ch, Bitmap.Config.ARGB_8888)
     }
 
     fun crop(b: Bitmap, box: CropBox?): Bitmap {
