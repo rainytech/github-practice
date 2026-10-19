@@ -6,6 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -19,6 +20,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Refresh
@@ -27,6 +29,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -41,8 +44,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -121,27 +126,25 @@ fun PageScreen(vm: AppViewModel, id: String, start: Int, onBack: () -> Unit) {
                                     { Text(f.label) })
                             }
                         }
-                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-                            IconButton(enabled = index > 0, onClick = { moveTo(index - 1) }) {
-                                Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, "Move page left")
+                        // Four equal slots so the row never overflows on narrow screens.
+                        Row(Modifier.fillMaxWidth()) {
+                            val slot = Modifier.weight(1f)
+                            ActionSlot(Icons.AutoMirrored.Filled.KeyboardArrowLeft, "Move left", index > 0, slot) {
+                                moveTo(index - 1)
                             }
-                            TextButton(onClick = { cropBox = FULL_BOX; cropping = true }) {
-                                Icon(Icons.Default.Edit, null)
-                                Text(" Crop")
-                            }
-                            if (page.crop != null) {
-                                TextButton(onClick = { vm.editPage(id, index, page.filter, page.rotation, null) }) {
-                                    Text("Undo crop")
+                            if (page.crop == null) {
+                                ActionSlot(Icons.Default.Edit, "Crop", true, slot) { cropBox = FULL_BOX; cropping = true }
+                            } else {
+                                ActionSlot(Icons.Default.Close, "Undo crop", true, slot) {
+                                    vm.editPage(id, index, page.filter, page.rotation, null)
                                 }
                             }
                             // Rotating clears the crop, which was drawn for the old orientation.
-                            TextButton(onClick = { vm.editPage(id, index, page.filter, page.rotation + 90, null) }) {
-                                Icon(Icons.Default.Refresh, null)
-                                Text(" Rotate")
+                            ActionSlot(Icons.Default.Refresh, "Rotate", true, slot) {
+                                vm.editPage(id, index, page.filter, page.rotation + 90, null)
                             }
-                            IconButton(enabled = index < doc.pages.lastIndex, onClick = { moveTo(index + 1) }) {
-                                Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, "Move page right")
-                            }
+                            ActionSlot(Icons.AutoMirrored.Filled.KeyboardArrowRight, "Move right",
+                                index < doc.pages.lastIndex, slot) { moveTo(index + 1) }
                         }
                     }
                 }
@@ -175,6 +178,17 @@ fun PageScreen(vm: AppViewModel, id: String, start: Int, onBack: () -> Unit) {
     if (confirmDelete) {
         ConfirmDialog("Delete page", "Delete page ${index + 1}?", "Delete", { confirmDelete = false }) {
             vm.deletePage(id, index)
+        }
+    }
+}
+
+@Composable
+private fun ActionSlot(icon: ImageVector, label: String, enabled: Boolean, modifier: Modifier, onClick: () -> Unit) {
+    TextButton(onClick = onClick, enabled = enabled, modifier = modifier,
+        contentPadding = PaddingValues(horizontal = 2.dp, vertical = 4.dp)) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Icon(icon, null)
+            Text(label, style = MaterialTheme.typography.labelSmall, maxLines = 1)
         }
     }
 }
