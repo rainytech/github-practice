@@ -29,6 +29,10 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     val busy: StateFlow<String?> = _busy
     private val _bookMode = MutableStateFlow(prefs.getBoolean("book_mode", false))
     val bookMode: StateFlow<Boolean> = _bookMode
+    private val _autoClean = MutableStateFlow(prefs.getBoolean("auto_clean", true))
+    val autoClean: StateFlow<Boolean> = _autoClean
+    private val _aiPrompt = MutableStateFlow(prefs.getString("ai_prompt", null) ?: DEFAULT_PROMPT)
+    val aiPrompt: StateFlow<String> = _aiPrompt
 
     init {
         viewModelScope.launch(Dispatchers.IO) { reload() }
@@ -67,10 +71,29 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         prefs.edit().putBoolean("book_mode", on).apply()
     }
 
+    fun setAutoClean(on: Boolean) {
+        _autoClean.value = on
+        prefs.edit().putBoolean("auto_clean", on).apply()
+    }
+
+    private fun saveAiPrompt(prompt: String) {
+        _aiPrompt.value = prompt
+        prefs.edit().putString("ai_prompt", prompt).apply()
+    }
+
     fun importScan(targetId: String?, uris: List<Uri>, folder: String, onDone: (String) -> Unit) =
         work("Saving pages…", {
-            val target = targetId?.let { repo.load(it) } ?: repo.create(defaultName(), folder)
-            repo.addPages(target, uris, _bookMode.value).id
+            val existing = targetId?.let { repo.load(it) }
+            val target = existing ?: repo.create(defaultName(), folder)
+            val filter = if (_autoClean.value) PageFilter.CLEAN else PageFilter.ORIGINAL
+            val doc = repo.addPages(target, uris, _bookMode.value, filter)
+            if (existing == null) {
+                // Name a new scan after the question and page number found on its first page.
+                val first = doc.pages.firstOrNull()
+                val name = first?.let { runCatching { Naming.suggest(Ocr.read(doc.fileOf(it))) }.getOrNull() }
+                if (name != null) repo.update(doc.id) { it.copy(name = name) }
+            }
+            doc.id
         }, onDone)
 
     fun rename(id: String, name: String) = work("Saving…", { repo.update(id) { it.copy(name = name) } })
@@ -87,8 +110,14 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         repo.loadAll().filter { it.folder == name }.forEach { repo.save(it.copy(folder = "")) }
     })
 
-    fun editPage(id: String, index: Int, filter: PageFilter, rotation: Int) =
-        work("Applying…", { repo.renderPage(id, index, filter, rotation) })
+    fun editPage(id: String, index: Int, filter: PageFilter, rotation: Int, crop: CropBox?) =
+        work("Applying…", { repo.renderPage(id, index, filter, rotation, crop) })
+
+    /** [box] is drawn on the page as currently shown, which may already be cropped. */
+    fun cropPage(id: String, index: Int, box: CropBox) = work("Cropping…", {
+        val page = doc(id).pages[index]
+        repo.renderPage(id, index, page.filter, page.rotation, box.inside(page.crop))
+    })
 
     fun deletePage(id: String, index: Int) = work("Deleting page…", { repo.deletePage(id, index) })
 
@@ -97,8 +126,24 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
 
     fun ocr(id: String, onDone: (String) -> Unit) = work("Reading text…", {
         val d = doc(id)
-        Ocr.recognize(d.pages.map { d.fileOf(it) })
+        Ocr.text(d.pages.map { d.fileOf(it) })
     }, onDone)
+
+    /** Prepares a whole document, one page ([pageIndex]) or a cropped part of it for an AI chat app. */
+    fun sendToAi(
+        id: String, pageIndex: Int?, crop: CropBox?, asPdf: Boolean, prompt: String,
+        onDone: (List<File>, String) -> Unit,
+    ) {
+        saveAiPrompt(prompt)
+        work("Preparing for AI…", {
+            val d = doc(id)
+            if (asPdf) listOf(Exporter.pdf(getApplication(), d)) to "application/pdf"
+            else {
+                val pages = if (pageIndex == null) d.pages else listOf(d.pages[pageIndex])
+                Exporter.aiImages(getApplication(), d, pages, crop) to "image/jpeg"
+            }
+        }, { (files, mime) -> onDone(files, mime) })
+    }
 
     fun exportPdf(id: String, onDone: (File) -> Unit) =
         work("Creating PDF…", { Exporter.pdf(getApplication(), doc(id)) }, onDone)
@@ -108,11 +153,18 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
 
     fun exportText(id: String, onDone: (File) -> Unit) = work("Reading text…", {
         val d = doc(id)
-        Exporter.text(getApplication(), d.name, Ocr.recognize(d.pages.map { d.fileOf(it) }))
+        Exporter.text(getApplication(), d.name, Ocr.text(d.pages.map { d.fileOf(it) }))
     }, onDone)
 
     fun savePdfTo(id: String, uri: Uri) =
         work("Saving PDF…", { Exporter.copyPdfTo(getApplication(), doc(id), uri) }, { toast("PDF saved") })
+
+    companion object {
+        const val DEFAULT_PROMPT =
+            "Solve the question in the attached textbook page. " +
+                "Read every figure carefully from the image. " +
+                "Show working notes step by step and state the final answer clearly."
+    }
 
     private fun defaultName() =
         "Scan " + SimpleDateFormat("d MMM yyyy, HH:mm", Locale.ENGLISH).format(Date())

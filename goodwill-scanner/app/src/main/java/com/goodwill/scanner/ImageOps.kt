@@ -11,24 +11,40 @@ import android.graphics.Paint
 import android.net.Uri
 import java.io.File
 import java.io.FileOutputStream
+import java.io.InputStream
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.pow
 import kotlin.math.roundToInt
 
 object ImageOps {
     /** Longest side kept for stored pages (about 300 dpi for A4 width). */
     const val MAX_SIDE = 2480
 
-    fun decode(context: Context, uri: Uri, maxSide: Int = MAX_SIDE): Bitmap? {
+    /** Claude scales larger images down to about this size, so AI uploads use it directly. */
+    const val AI_SIDE = 1568
+
+    fun decode(context: Context, uri: Uri, maxSide: Int = MAX_SIDE): Bitmap? =
+        decode(maxSide) { context.contentResolver.openInputStream(uri) }
+
+    fun decodeFile(file: File, maxSide: Int = MAX_SIDE): Bitmap? =
+        decode(maxSide) { file.inputStream() }
+
+    private fun decode(maxSide: Int, open: () -> InputStream?): Bitmap? {
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-        context.contentResolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, bounds) }
+        open()?.use { BitmapFactory.decodeStream(it, null, bounds) }
         if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null
         var sample = 1
         while (max(bounds.outWidth, bounds.outHeight) / (sample * 2) >= maxSide) sample *= 2
         val opts = BitmapFactory.Options().apply { inSampleSize = sample }
-        val bmp = context.contentResolver.openInputStream(uri)
-            ?.use { BitmapFactory.decodeStream(it, null, opts) } ?: return null
+        val bmp = open()?.use { BitmapFactory.decodeStream(it, null, opts) } ?: return null
         return fit(bmp, maxSide)
+    }
+
+    /** Writes a copy of [src] sized for AI chat apps, optionally cropped. */
+    fun writeForAi(src: File, out: File, box: CropBox? = null) {
+        val full = decodeFile(src) ?: error("Cannot read page image")
+        saveJpeg(fit(crop(full, box), AI_SIDE), out, 85)
     }
 
     private fun fit(b: Bitmap, maxSide: Int): Bitmap {
@@ -52,6 +68,15 @@ object ImageOps {
         )
     }
 
+    fun crop(b: Bitmap, box: CropBox?): Bitmap {
+        if (box == null) return b
+        val x = (box.l * b.width).roundToInt().coerceIn(0, b.width - 1)
+        val y = (box.t * b.height).roundToInt().coerceIn(0, b.height - 1)
+        val w = ((box.r - box.l) * b.width).roundToInt().coerceIn(1, b.width - x)
+        val h = ((box.b - box.t) * b.height).roundToInt().coerceIn(1, b.height - y)
+        return Bitmap.createBitmap(b, x, y, w, h)
+    }
+
     fun rotate(b: Bitmap, degrees: Int): Bitmap {
         if (degrees % 360 == 0) return b
         val m = Matrix().apply { postRotate(degrees.toFloat()) }
@@ -60,6 +85,7 @@ object ImageOps {
 
     fun applyFilter(b: Bitmap, filter: PageFilter): Bitmap = when (filter) {
         PageFilter.ORIGINAL -> b
+        PageFilter.CLEAN -> cleanText(b)
         PageFilter.GREY -> withMatrix(b, ColorMatrix().apply { setSaturation(0f) })
         PageFilter.MAGIC -> withMatrix(b, magic())
         PageFilter.BW -> adaptiveBw(b)
@@ -88,12 +114,7 @@ object ImageOps {
     private fun adaptiveBw(b: Bitmap): Bitmap {
         val w = b.width
         val h = b.height
-        val px = IntArray(w * h)
-        b.getPixels(px, 0, w, 0, 0, w, h)
-        for (i in px.indices) {
-            val c = px[i]
-            px[i] = (((c shr 16) and 0xFF) * 77 + ((c shr 8) and 0xFF) * 150 + (c and 0xFF) * 29) shr 8
-        }
+        val px = grey(b)
         // Max sum is 255 * MAX_SIDE², which fits in an Int.
         val iw = w + 1
         val integral = IntArray(iw * (h + 1))
@@ -119,6 +140,73 @@ object ImageOps {
             }
         }
         return Bitmap.createBitmap(px, w, h, Bitmap.Config.ARGB_8888)
+    }
+
+    private fun grey(b: Bitmap): IntArray {
+        val px = IntArray(b.width * b.height)
+        b.getPixels(px, 0, b.width, 0, 0, b.width, b.height)
+        for (i in px.indices) {
+            val c = px[i]
+            px[i] = (((c shr 16) and 0xFF) * 77 + ((c shr 8) and 0xFF) * 150 + (c and 0xFF) * 29) shr 8
+        }
+        return px
+    }
+
+    /**
+     * Divides each pixel by the local paper brightness, which removes the
+     * dark shadow near the book spine and uneven lighting, then darkens text.
+     * Keeps grey edges on letters, which reads better than hard black and white.
+     */
+    private fun cleanText(b: Bitmap): Bitmap {
+        val w = b.width
+        val h = b.height
+        val px = grey(b)
+        // Paper estimate: brightest pixel per 8x8 block (drops thin text), then smooth.
+        val cell = 8
+        val sw = (w + cell - 1) / cell
+        val sh = (h + cell - 1) / cell
+        var paper = IntArray(sw * sh)
+        for (y in 0 until h) for (x in 0 until w) {
+            val i = (y / cell) * sw + x / cell
+            if (px[y * w + x] > paper[i]) paper[i] = px[y * w + x]
+        }
+        paper = neighbourhood(paper, sw, sh, 2, useMax = true)
+        paper = neighbourhood(paper, sw, sh, 3, useMax = false)
+        for (y in 0 until h) {
+            val fy = ((y + 0.5f) / cell - 0.5f).coerceIn(0f, (sh - 1).toFloat())
+            val y0 = fy.toInt()
+            val y1 = min(y0 + 1, sh - 1)
+            val ty = fy - y0
+            for (x in 0 until w) {
+                val fx = ((x + 0.5f) / cell - 0.5f).coerceIn(0f, (sw - 1).toFloat())
+                val x0 = fx.toInt()
+                val x1 = min(x0 + 1, sw - 1)
+                val tx = fx - x0
+                val top = paper[y0 * sw + x0] * (1 - tx) + paper[y0 * sw + x1] * tx
+                val bottom = paper[y1 * sw + x0] * (1 - tx) + paper[y1 * sw + x1] * tx
+                val bg = max(top * (1 - ty) + bottom * ty, 1f)
+                val v = px[y * w + x] * 255f / bg
+                val g = if (v >= 230f) 255 else (255f * (v / 230f).pow(1.6f)).toInt().coerceIn(0, 255)
+                px[y * w + x] = (0xFF shl 24) or (g shl 16) or (g shl 8) or g
+            }
+        }
+        return Bitmap.createBitmap(px, w, h, Bitmap.Config.ARGB_8888)
+    }
+
+    /** Square max filter or mean blur of radius [r] on a small grid. */
+    private fun neighbourhood(src: IntArray, w: Int, h: Int, r: Int, useMax: Boolean): IntArray {
+        val out = IntArray(src.size)
+        for (y in 0 until h) for (x in 0 until w) {
+            var acc = 0
+            var n = 0
+            for (yy in max(0, y - r)..min(h - 1, y + r)) for (xx in max(0, x - r)..min(w - 1, x + r)) {
+                val v = src[yy * w + xx]
+                if (useMax) { if (v > acc) acc = v } else acc += v
+                n++
+            }
+            out[y * w + x] = if (useMax) acc else acc / n
+        }
+        return out
     }
 
     fun saveJpeg(b: Bitmap, file: File, quality: Int = 90) {

@@ -10,9 +10,19 @@ import java.util.UUID
 
 enum class PageFilter(val label: String) {
     ORIGINAL("Original"),
+    CLEAN("Clean text"),
     MAGIC("Magic colour"),
     GREY("Greyscale"),
     BW("B & W"),
+}
+
+/** Crop rectangle as fractions (0..1) of the image width and height. */
+data class CropBox(val l: Float, val t: Float, val r: Float, val b: Float) {
+    /** Maps a box drawn on an already-cropped image back onto the full image. */
+    fun inside(outer: CropBox?) = if (outer == null) this else CropBox(
+        outer.l + l * (outer.r - outer.l), outer.t + t * (outer.b - outer.t),
+        outer.l + r * (outer.r - outer.l), outer.t + b * (outer.b - outer.t),
+    )
 }
 
 /** [original] is never modified; [file] is what is shown and exported. */
@@ -21,6 +31,7 @@ data class Page(
     val file: String,
     val filter: PageFilter = PageFilter.ORIGINAL,
     val rotation: Int = 0,
+    val crop: CropBox? = null,
 )
 
 data class ScanDoc(
@@ -58,6 +69,10 @@ class Repository(context: Context) {
                 filter = runCatching { PageFilter.valueOf(p.optString("filter")) }
                     .getOrDefault(PageFilter.ORIGINAL),
                 rotation = p.optInt("rotation", 0),
+                crop = p.optJSONArray("crop")?.let {
+                    CropBox(it.getDouble(0).toFloat(), it.getDouble(1).toFloat(),
+                        it.getDouble(2).toFloat(), it.getDouble(3).toFloat())
+                },
             )
         }
         ScanDoc(dir.name, json.getString("name"), json.optString("folder", ""),
@@ -67,11 +82,15 @@ class Repository(context: Context) {
     fun save(doc: ScanDoc) {
         val pages = JSONArray()
         doc.pages.forEach {
-            pages.put(JSONObject()
+            val page = JSONObject()
                 .put("original", it.original)
                 .put("file", it.file)
                 .put("filter", it.filter.name)
-                .put("rotation", it.rotation))
+                .put("rotation", it.rotation)
+            it.crop?.let { c ->
+                page.put("crop", JSONArray().put(c.l.toDouble()).put(c.t.toDouble()).put(c.r.toDouble()).put(c.b.toDouble()))
+            }
+            pages.put(page)
         }
         val json = JSONObject()
             .put("name", doc.name)
@@ -94,16 +113,24 @@ class Repository(context: Context) {
 
     fun delete(id: String) = File(root, id).deleteRecursively()
 
-    /** Copies scanner output into app storage; book mode splits landscape spreads in two. */
-    fun addPages(doc: ScanDoc, uris: List<Uri>, bookMode: Boolean): ScanDoc {
+    /**
+     * Copies scanner output into app storage; book mode splits landscape spreads in two.
+     * [filter] is applied straight away (the original is still kept).
+     */
+    fun addPages(doc: ScanDoc, uris: List<Uri>, bookMode: Boolean, filter: PageFilter): ScanDoc {
         val added = mutableListOf<Page>()
         for (uri in uris) {
             val bmp = ImageOps.decode(context, uri) ?: continue
             val parts = if (bookMode) ImageOps.splitSpread(bmp) else listOf(bmp)
             for (part in parts) {
-                val name = "orig_${UUID.randomUUID()}.jpg"
-                ImageOps.saveJpeg(part, File(doc.dir, name))
-                added += Page(name, name)
+                val original = "orig_${UUID.randomUUID()}.jpg"
+                ImageOps.saveJpeg(part, File(doc.dir, original))
+                val shown = if (filter == PageFilter.ORIGINAL) original else {
+                    "page_${UUID.randomUUID()}.jpg".also {
+                        ImageOps.saveJpeg(ImageOps.applyFilter(part, filter), File(doc.dir, it))
+                    }
+                }
+                added += Page(original, shown, filter)
                 if (part !== bmp) part.recycle()
             }
             bmp.recycle()
@@ -111,29 +138,29 @@ class Repository(context: Context) {
         return doc.copy(pages = doc.pages + added).also(::save)
     }
 
-    /** Re-renders a page from its untouched original with the given filter and rotation. */
-    fun renderPage(id: String, index: Int, filter: PageFilter, rotation: Int): ScanDoc? {
+    /** Re-renders a page from its untouched original: filter, then rotation, then crop. */
+    fun renderPage(id: String, index: Int, filter: PageFilter, rotation: Int, crop: CropBox?): ScanDoc? {
         val doc = load(id) ?: return null
         val old = doc.pages.getOrNull(index) ?: return doc
         val rot = ((rotation % 360) + 360) % 360
-        val page = if (filter == PageFilter.ORIGINAL && rot == 0) {
-            old.copy(file = old.original, filter = filter, rotation = 0)
+        val page = if (filter == PageFilter.ORIGINAL && rot == 0 && crop == null) {
+            old.copy(file = old.original, filter = filter, rotation = 0, crop = null)
         } else {
             val src = BitmapFactory.decodeFile(File(doc.dir, old.original).path) ?: return doc
-            val out = ImageOps.rotate(ImageOps.applyFilter(src, filter), rot)
+            val out = ImageOps.crop(ImageOps.rotate(ImageOps.applyFilter(src, filter), rot), crop)
             val name = "page_${UUID.randomUUID()}.jpg"
             ImageOps.saveJpeg(out, File(doc.dir, name))
-            old.copy(file = name, filter = filter, rotation = rot)
+            old.copy(file = name, filter = filter, rotation = rot, crop = crop)
         }
-        if (old.file != old.original && old.file != page.file) File(doc.dir, old.file).delete()
+        if (old.file != old.original && old.file != page.file) deleteImage(File(doc.dir, old.file))
         return doc.copy(pages = doc.pages.toMutableList().also { it[index] = page }).also(::save)
     }
 
     fun deletePage(id: String, index: Int): ScanDoc? {
         val doc = load(id) ?: return null
         val page = doc.pages.getOrNull(index) ?: return doc
-        File(doc.dir, page.file).delete()
-        File(doc.dir, page.original).delete()
+        deleteImage(File(doc.dir, page.file))
+        deleteImage(File(doc.dir, page.original))
         return doc.copy(pages = doc.pages.filterIndexed { i, _ -> i != index }).also(::save)
     }
 
@@ -142,6 +169,11 @@ class Repository(context: Context) {
         val list = doc.pages.toMutableList()
         list.add(to, list.removeAt(from))
         doc.copy(pages = list)
+    }
+
+    private fun deleteImage(file: File) {
+        file.delete()
+        Ocr.cacheFile(file).delete()
     }
 
     fun loadFolders(): List<String> = runCatching {

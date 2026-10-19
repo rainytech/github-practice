@@ -20,10 +20,13 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -69,6 +72,8 @@ fun DocumentScreen(vm: AppViewModel, id: String, onBack: () -> Unit, onPage: (In
     var move by remember { mutableStateOf(false) }
     var delete by remember { mutableStateOf(false) }
     var ocrText by remember { mutableStateOf<String?>(null) }
+    var aiDialog by remember { mutableStateOf(false) }
+    val aiPrompt by vm.aiPrompt.collectAsState()
     val scan = rememberScanner { uris -> vm.importScan(id, uris, doc.folder) {} }
     val savePdf = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/pdf")) { uri ->
         if (uri != null) vm.savePdfTo(id, uri)
@@ -86,7 +91,7 @@ fun DocumentScreen(vm: AppViewModel, id: String, onBack: () -> Unit, onPage: (In
                     Box {
                         IconButton(onClick = { shareMenu = true }) { Icon(Icons.Default.Share, "Share") }
                         DropdownMenu(shareMenu, { shareMenu = false }) {
-                            DropdownMenuItem(text = { Text("Share as PDF") }, onClick = {
+                            DropdownMenuItem(text = { Text("Share as searchable PDF") }, onClick = {
                                 shareMenu = false
                                 vm.exportPdf(id) { Exporter.share(context, listOf(it), "application/pdf") }
                             })
@@ -107,6 +112,10 @@ fun DocumentScreen(vm: AppViewModel, id: String, onBack: () -> Unit, onPage: (In
                                 menu = false
                                 vm.ocr(id) { ocrText = it }
                             })
+                            DropdownMenuItem(text = { Text("Save PDF to Google Drive") }, onClick = {
+                                menu = false
+                                vm.exportPdf(id) { Exporter.saveToDrive(context, it) }
+                            })
                             DropdownMenuItem(text = { Text("Save PDF to phone") }, onClick = {
                                 menu = false
                                 savePdf.launch(Exporter.safeName(doc.name) + ".pdf")
@@ -123,9 +132,19 @@ fun DocumentScreen(vm: AppViewModel, id: String, onBack: () -> Unit, onPage: (In
             ExtendedFloatingActionButton(onClick = scan, icon = { Icon(Icons.Default.Add, null) }, text = { Text("Add pages") })
         },
     ) { pad ->
+        Column(Modifier.padding(pad).fillMaxSize()) {
+        Row(Modifier.fillMaxWidth().padding(10.dp, 8.dp, 10.dp, 0.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Button(onClick = { aiDialog = true }, modifier = Modifier.weight(1.4f)) {
+                Icon(Icons.AutoMirrored.Filled.Send, null)
+                Text(" Send to AI")
+            }
+            OutlinedButton(onClick = { vm.exportPdf(id) { Exporter.saveToDrive(context, it) } },
+                modifier = Modifier.weight(1f)) { Text("Drive") }
+            OutlinedButton(onClick = { vm.ocr(id) { ocrText = it } }, modifier = Modifier.weight(1f)) { Text("Text") }
+        }
         LazyVerticalGrid(
             columns = GridCells.Fixed(3),
-            modifier = Modifier.padding(pad).fillMaxSize(),
+            modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(10.dp, 10.dp, 10.dp, 96.dp),
             horizontalArrangement = Arrangement.spacedBy(10.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
@@ -141,6 +160,13 @@ fun DocumentScreen(vm: AppViewModel, id: String, onBack: () -> Unit, onPage: (In
                     Text("${i + 1}")
                 }
             }
+        }
+        }
+    }
+
+    if (aiDialog) {
+        AiSendDialog(aiPrompt, allowPdf = true, onDismiss = { aiDialog = false }) { prompt, asPdf ->
+            vm.sendToAi(id, null, null, asPdf, prompt) { files, mime -> Exporter.shareToAi(context, files, mime, prompt) }
         }
     }
 

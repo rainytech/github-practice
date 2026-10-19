@@ -31,7 +31,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -61,6 +60,7 @@ fun HomeScreen(vm: AppViewModel, onOpen: (String) -> Unit) {
     val docs by vm.docs.collectAsState()
     val folders by vm.folders.collectAsState()
     val bookMode by vm.bookMode.collectAsState()
+    val autoClean by vm.autoClean.collectAsState()
     var selected by rememberSaveable { mutableStateOf<String?>(null) }
     var menu by remember { mutableStateOf(false) }
     var newFolder by remember { mutableStateOf(false) }
@@ -96,15 +96,10 @@ fun HomeScreen(vm: AppViewModel, onOpen: (String) -> Unit) {
                 item { FilterChip(selected == null, { selected = null }, { Text("All") }) }
                 items(folders) { f -> FilterChip(selected == f, { selected = f }, { Text(f) }) }
             }
-            Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
-                verticalAlignment = Alignment.CenterVertically) {
-                Column(Modifier.weight(1f)) {
-                    Text("Book mode", fontWeight = FontWeight.Bold)
-                    Text("Split a two-page spread into left and right pages",
-                        style = MaterialTheme.typography.bodySmall)
-                }
-                Switch(bookMode, vm::setBookMode)
-            }
+            SettingRow("Book mode", "Split a two-page spread into left and right pages",
+                bookMode, vm::setBookMode)
+            SettingRow("Clean text automatically", "White page, dark text, spine shadow removed",
+                autoClean, vm::setAutoClean)
             HorizontalDivider()
             if (shown.isEmpty()) {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
