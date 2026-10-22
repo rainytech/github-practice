@@ -1206,7 +1206,8 @@ def current_intent():
         return intent_override
     if not attachments and is_free(text):
         return "free"
-    return prompts.read_request(text, has_document(), bool(attachments))
+    return prompts.read_request(text, has_document(), bool(attachments),
+                                quoted=hs.quotes_page(text, last_full_html))
 
 
 def is_free(text):

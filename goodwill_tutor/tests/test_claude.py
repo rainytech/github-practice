@@ -223,6 +223,51 @@ r.check("'solve the next question' names a number", read("solve the next questio
 r.check("a theory question names none", read("explain the treatment of goodwill"), False)
 r.check("'5 marks' is not a question number", read("explain goodwill for 5 marks"), False)
 
+# ── 9e2. a line copied from the page, and what is wrong with it, edits ─
+solved = app.hs.wrap_document([
+    '<div class="page-block"><div class="top-bar"><span class="title">ADMISSION OF A PARTNER</span></div>'
+    '<div class="q"><span class="qno">Illustration <span class="num">3</span>.</span>'
+    '<span>A and B are partners sharing profits in the ratio of 3:2.</span>'
+    '<span>They admit C for a quarter share.</span></div>'
+    '<div class="sol-label">Solution:-</div>'
+    '<div class="wn-text"><span>If the new partner brings the amount into the business, '
+    'the entry is Bank A/c Dr. to Premium for Goodwill A/c.</span>'
+    '<span>This ratio is primarily used to distribute the premium among the sacrificing partners.</span></div>'
+    '<div class="final-ans">C brings Rs. 50,000 as his share of goodwill.</div></div>'])
+quotes = app.hs.quotes_page
+r.check("a copied line is found on the page",
+        quotes("This ratio is primarily used to distribute the premium — remove it", solved))
+r.check("a copy keeps working across line breaks",
+        quotes("If the new partner brings\nthe amount into the business", solved))
+r.check("the question's own words are not a copy",
+        quotes("A and B are partners sharing profits in the ratio of 5:3", solved), False)
+r.check("a few common words are not a copy", quotes("the entry is wrong", solved), False)
+
+
+def reads(message, files=False):
+    return app.prompts.read_request(message, True, files, quoted=quotes(message, solved))
+
+
+for message in [
+        "C brings Rs. 50,000 as his share of goodwill. the answer should be 60,000 not 50,000",
+        "add a new line after: This ratio is primarily used to distribute the premium",
+        "This ratio is primarily used to distribute the premium among the sacrificing partners"
+        " — this line is not needed",
+        "in solution, new partner should be C not D",
+        "write it as table",
+        "explain it in more detail",
+        "this line is not needed",
+]:
+    r.check(f"edits: {message[:38]}", reads(message), "edit")
+for message in [
+        "solve Illustration 7",
+        "A and B are partners sharing profits in the ratio of 5:3. They admit D for 1/4 share.",
+        "explain the treatment of goodwill in detail",
+        "add one more question",
+]:
+    r.check(f"adds: {message[:38]}", reads(message), "add")
+r.check("a new page saying 'explain this' adds", reads("explain this", files=True), "add")
+
 # ── 9f. the header date is changed here, free ──────────────────────────
 import datetime
 calls = state["calls"]

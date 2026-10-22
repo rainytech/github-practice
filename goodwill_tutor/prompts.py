@@ -443,6 +443,16 @@ _EDIT = _re.compile(
     r"\b(?:change|fix|correct|remove|delete|replace|rename|update|modify|edit|"
     r"rewrite|reformat|move|swap|shorten|split|merge|drop|undo|str_replace|"
     r"instead|wrong|mistake|in place)\b|\bmake (?:it|the|this|that|all)\b", _re.I)
+# Corrections worded without "change" or "fix": "the answer should be 60,000
+# not 50,000", "this line is not needed", "write it as a table". Read only when
+# no page is attached — with a new page, "explain this" means the new question.
+_CORRECT = _re.compile(
+    r"\bshould\s+(?:be|read)\b[^.?\n]{0,40}?\bnot\b|\b(?:it|this|that)\s+should\s+(?:be|read)\b"
+    r"|\bnot\s+(?:needed|required|necessary|wanted)\b|\bunnecessary\b"
+    r"|\b(?:write|explain|show|present|redo|convert|turn|expand|elaborate)\s+(?:it|this|that|them)\b",
+    _re.I)
+# A message that asks for a new question, even if it quotes the page.
+_NEW = _re.compile(rf"\bsolve\b|\b(?:one more|another|next|new)\s+{_THING}", _re.I)
 _ADD_WORD = _re.compile(r"\b(?:add|put|insert|include|show)\b", _re.I)
 _TARGET = _re.compile(
     r"\b(?:to|in|of|on|under|below|above|into)\s+(?:the\s+)?(?:illustration|"
@@ -453,12 +463,14 @@ _SHOW = _re.compile(
     r"whole|entire|final)\b.{0,25}\b(?:html|artifact|document|file|code|canvas)\b", _re.I)
 
 
-def read_request(text, has_document, has_files=False):
+def read_request(text, has_document, has_files=False, quoted=False):
     """"add", "edit" or "show" — what this message wants done with the document.
 
     add   a new question goes at the end of the document
     edit  the page as it stands is changed in place
     show  only the full HTML is wanted; nothing is sent to the model
+
+    quoted : the message repeats a line from a solution on the page.
     """
     text = text or ""
     if not has_document:
@@ -466,11 +478,15 @@ def read_request(text, has_document, has_files=False):
     if (top_bar_request(text) or number_request(text) or removal_target(text)
             or _DATE_ASK.match(text) or (_EDIT.search(text) and style_request(text))):
         return "edit"                     # done by the app itself, free
+    if quoted and not has_files and not _NEW.search(text):
+        return "edit"                     # a line copied from the page: a correction
     if _ADD.search(text):
         return "add"
     if style_request(text):
         return "edit"                     # a look, answered by the app
     if _EDIT.search(text):
+        return "edit"
+    if not has_files and _CORRECT.search(text):
         return "edit"
     if _ADD_WORD.search(text) and _TARGET.search(text):
         return "edit"                     # "add a hint to Illustration 6"

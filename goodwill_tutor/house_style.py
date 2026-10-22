@@ -1564,6 +1564,46 @@ def question_label(fragment):
     return f"{found.group(1).title()} {found.group(2)}" if found else ""
 
 
+# Six words in a row: long enough that a phrase like "the entry is wrong" is
+# never taken for a copy, short enough for a single copied line.
+QUOTE_RUN = 6
+_quote_cache = {"html": None, "runs": frozenset()}
+
+
+def _solution_runs(html, run):
+    """Every run of `run` words in the solutions on the page.
+
+    The question text is left out: a new question typed in often opens with the
+    same words as an earlier one ("A and B are partners sharing profits ...").
+    """
+    if _quote_cache["html"] == html:
+        return _quote_cache["runs"]
+    text = []
+    for block in blocks_of(html):
+        for q in reversed(list(_Q_START.finditer(block))):
+            end = _div_end(block, q.start())
+            if end > 0:
+                block = block[:q.start()] + block[end:]
+        text.append(_plain(block))
+    words = re.findall(r"[a-z0-9]+", " ".join(text).lower())
+    runs = frozenset(tuple(words[i:i + run]) for i in range(len(words) - run + 1))
+    _quote_cache.update(html=html, runs=runs)
+    return runs
+
+
+def quotes_page(text, html, run=QUOTE_RUN):
+    """True when the message repeats a line from a solution on the page.
+
+    Copying a line from the page into the chat and saying what is wrong with it
+    is how a correction is asked for on Claude.ai, whatever words go with it.
+    """
+    words = re.findall(r"[a-z0-9]+", (text or "").lower())
+    if len(words) < run or not html:
+        return False
+    runs = _solution_runs(html, run)
+    return any(tuple(words[i:i + run]) in runs for i in range(len(words) - run + 1))
+
+
 def numbered_body(html):
     """The document's blocks, each after a <!-- block N --> comment.
 
