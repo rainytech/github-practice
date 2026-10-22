@@ -55,6 +55,7 @@ FILES = [
     "tests/test_window.py",
     "tests/test_claude.py",
     "tests/test_quick.py",
+    "tests/test_midflight.py",
     "tests/test_pdf.py",
     "tests/test_update.py",
 ]

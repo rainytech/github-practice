@@ -442,10 +442,23 @@ def save_current(html=None, blocks=None, conversation=None, title=None, model=No
     return LIB.html_path(current_chapter, current_doc)
 
 
+def still_answering():
+    """True while an answer is on its way, and the teacher is told so.
+
+    The answer is written into whichever document is open when it lands, so
+    opening another one mid-answer used to put the question in the wrong place.
+    """
+    if busy:
+        set_status("Wait for the answer to finish, or press Stop.", RED)
+    return busy
+
+
 def open_document(chapter_id, doc_id):
     """Load a stored document into the editor and the chat."""
     global current_chapter, current_doc, conversation_history, doc_blocks
     global last_full_html, verify_report, version_at
+    if still_answering():
+        return
     try:
         data = LIB.read_document(chapter_id, doc_id)
     except library.LibraryError as exc:
@@ -536,6 +549,8 @@ def new_chapter():
 def new_document():
     """Start a fresh document in the selected chapter."""
     global current_chapter, current_doc
+    if still_answering():
+        return
     kind, cid, _ = selected_node()
     if cid is None:
         chapters = LIB.list_chapters()
@@ -611,6 +626,8 @@ def pin_selected():
 
 def delete_selected():
     global current_chapter, current_doc
+    if still_answering():
+        return
     kind, cid, did = selected_node()
     if kind == "c":
         name = next((c["name"] for c in LIB.list_chapters() if c["id"] == cid), cid)
@@ -916,6 +933,8 @@ def step_version(step):
 def apply_edited_html():
     """Take what is in the editor as the document and re-check it."""
     global last_full_html, doc_blocks
+    if still_answering():
+        return
     edited = editor.get("1.0", tk.END).rstrip()
     if not edited.strip():
         set_status("The editor is empty — nothing to apply.", RED)
@@ -1411,6 +1430,9 @@ def submit(text, files, intent, local=True):
                 thinking_budget=SETTINGS.get("thinking_budget"),
             )
             conversation_history.append({"role": "model", "parts": [{"text": answer}]})
+            # Stop pressed, or a loop cut off, before the answer was finished.
+            # What arrived is only part of an answer and must not reach the page.
+            stopped = stop_event.is_set()
 
             verdict, v_cost = "", None
             check = SETTINGS.get("verify") and active_mode_key() == "solve"
@@ -1422,7 +1444,7 @@ def submit(text, files, intent, local=True):
                     check = hs.figures(edited) != hs.figures(snapshot_html)
                 except hs.EditError:
                     check = False
-            if check and not stop_event.is_set():
+            if check and not stopped:
                 checker = verify_model_for(model)
                 note = ("Verifying..." if checker == model
                         else f"Verifying with {checker}...")
@@ -1435,8 +1457,9 @@ def submit(text, files, intent, local=True):
                     verdict = f"Verification could not run: {exc}"
 
             elapsed = (datetime.now() - started).total_seconds()
-            if looped[0]:
-                post(lambda n=len(answer.split()): loop_stopped(n, intent))
+            if stopped:
+                post(lambda n=len(answer.split()), by=not looped[0]:
+                     loop_stopped(n, intent, by_teacher=by))
                 return
             post(lambda: finish(answer, in_tok, out_tok, cached_tok,
                                 elapsed, model, verdict, v_cost, intent))
@@ -2087,18 +2110,27 @@ def name_document_from(block):
     auto_titles[current_doc] = title
 
 
-def loop_stopped(words, intent="add"):
-    """The model went round in circles and was cut off."""
+def loop_stopped(words, intent="add", by_teacher=False):
+    """The answer was cut off — by Stop, or because the model went in circles.
+
+    Either way only part of an answer arrived, so the page is left as it was.
+    """
     global busy
     busy = False
     send_btn.config(state=tk.NORMAL)
     stop_btn.config(state=tk.DISABLED, bg=BORDER)
     put_card("Nothing changed" if intent == "edit" else "Nothing added")
-    say(f"The model kept repeating itself — {words} words and no document — so "
-        "it was stopped. Nothing was added. Press Retry, or choose "
-        "a model that follows instructions; Gemini 3.1 Flash-Lite is about 10 "
-        "paise a question.", "bad")
-    set_status("Stopped — the model was going in circles.", RED)
+    if by_teacher:
+        say(f"Stopped after {words} words. A part-written answer is never put "
+            "into the document, so the page is as it was. Press Retry to ask "
+            "again.", "note")
+        set_status("Stopped — nothing was changed.", ACCENT)
+    else:
+        say(f"The model kept repeating itself — {words} words and no document — so "
+            "it was stopped. Nothing was added. Press Retry, or choose "
+            "a model that follows instructions; Gemini 3.1 Flash-Lite is about 10 "
+            "paise a question.", "bad")
+        set_status("Stopped — the model was going in circles.", RED)
     save_current(conversation=strip_binary(conversation_history))
     put_retry()
 
@@ -2124,6 +2156,8 @@ def stop_generation():
 
 def clear_chat():
     global conversation_history, last_turn
+    if still_answering():
+        return
     conversation_history = []
     last_turn = None
     _drop_retry()
@@ -2137,6 +2171,8 @@ def clear_chat():
 def remove_last_block():
     """Drop the last question from the open document, keeping any manual edits above it."""
     global last_full_html
+    if still_answering():
+        return
     if not doc_blocks:
         set_status("No blocks to remove.", "#CC0000")
         return
