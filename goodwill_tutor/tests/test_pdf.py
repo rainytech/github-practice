@@ -169,6 +169,24 @@ shot = pdf_export.html_to_png(html, os.path.join(folder, "copy.png"), width=794,
 words = json.load(open(shot + ".json", encoding="utf-8"))
 everything = pdf_export.words_text(words, 0, len(words) - 1)
 r.check("the Preview knows where every word is", len(words) > 20)
+# Zoomed, Chromium draws the page at the larger size — sharp, not stretched.
+import struct
+big = pdf_export.html_to_png(html, os.path.join(folder, "big.png"), width=794,
+                             scale=2.0, media="print")
+with open(big, "rb") as fh:
+    r.check("a zoomed Preview is drawn at twice the pixels",
+            struct.unpack(">I", fh.read()[16:20])[0], 1588)
+# A long chapter drawn large is held to a size the screen can afford.
+capped = pdf_export.html_to_png(html, os.path.join(folder, "capped.png"), width=794,
+                                scale=2.0, media="print", lines=True, max_pixels=1_500_000)
+with open(capped, "rb") as fh:
+    head = fh.read(24)
+across, down = struct.unpack(">II", head[16:24])
+r.check("a picture too big for the screen is drawn smaller", across < 1588)
+r.check("and stays within the limit", across * down <= 1_500_000 * 1.01)
+boxes = json.load(open(capped + ".json", encoding="utf-8"))
+r.check("its words are still found where they are drawn",
+        max(b["x"] + b["w"] for b in boxes) <= across + 1)
 r.check("the whole page can be copied", "Present Value = Rs. 50,000" in everything)
 r.check("lines break where the page breaks them",
         "GOODWILL TUITION CENTRE" in everything.splitlines()[0])

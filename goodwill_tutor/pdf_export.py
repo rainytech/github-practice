@@ -200,7 +200,7 @@ def hit_word(words, x, y):
 
 
 def html_to_png(html_path, png_path=None, width=880, wait_ms=300, scale=1.0, media="screen",
-                lines=False):
+                lines=False, max_pixels=None):
     """Render an HTML file to a full-page PNG through the same Chromium that
     makes the PDF, so the preview cannot disagree with the printed page.
 
@@ -209,6 +209,8 @@ def html_to_png(html_path, png_path=None, width=880, wait_ms=300, scale=1.0, med
     so the Preview can select and copy text as a browser does.
     scale shrinks the picture, not the layout: the page is laid out at the
     same width and drawn smaller, so it wraps where the print does.
+    max_pixels caps the picture: a long chapter drawn large is drawn only as
+    large as fits, rather than taking hundreds of megabytes on screen.
 
     Returns the png path. Raises PdfExportError on failure.
     """
@@ -231,10 +233,21 @@ def html_to_png(html_path, png_path=None, width=880, wait_ms=300, scale=1.0, med
         with sync_playwright() as p:
             browser = p.chromium.launch()
             try:
-                page = browser.new_page(viewport={"width": width, "height": 1000},
-                                        device_scale_factor=scale)
-                page.emulate_media(media=media)
-                page.goto(pathlib.Path(html_path).as_uri(), wait_until="load")
+                def load(at):
+                    page = browser.new_page(viewport={"width": width, "height": 1000},
+                                            device_scale_factor=at)
+                    page.emulate_media(media=media)
+                    page.goto(pathlib.Path(html_path).as_uri(), wait_until="load")
+                    return page
+
+                page = load(scale)
+                if max_pixels:
+                    tall = max(1, page.evaluate("document.documentElement.scrollHeight"))
+                    most = (max_pixels / (width * tall)) ** 0.5
+                    if scale > most:
+                        scale = max(0.4, most)
+                        page.close()
+                        page = load(scale)
                 page.wait_for_timeout(wait_ms)
                 page.screenshot(path=png_path, full_page=True)
                 if lines:

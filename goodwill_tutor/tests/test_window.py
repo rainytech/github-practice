@@ -79,6 +79,40 @@ app.show_tab("preview")
 app.root.update()
 r.check("Preview shows the page", bool(app.preview_frame.winfo_ismapped()))
 
+# ── the Preview fills its panel and can be made bigger ──────────────────
+# It was never drawn wider than A4's own 794px, so on a screen set to 150% the
+# page was two-thirds the size of everything around it, and soft.
+r.check("a panel exactly A4 wide draws the page at its own size",
+        app.preview_scale(794 + 24), 1.0)
+r.check("a wider panel draws the page bigger, not capped at A4",
+        app.preview_scale(1191 + 24), 1.5)
+r.check("a narrow panel still fits the page", app.preview_scale(500) < 1)
+r.check("zoom makes it bigger again", app.preview_scale(794 + 24, 2.0), 2.0)
+r.check("but not so big a long chapter cannot be drawn",
+        app.preview_scale(5000, 3.0), app.PREVIEW_MAX_SCALE)
+r.check("the size starts at 100%", app.zoom_label.cget("text"), "100%")
+app.zoom_preview(1)
+r.check("+ makes it 125%", app.zoom_label.cget("text"), "125%")
+r.check("and the size is remembered", app.load_settings()["preview_zoom"], 1.25)
+for _ in range(20):
+    app.zoom_preview(1)
+r.check("+ stops at the largest size", app.SETTINGS["preview_zoom"], max(app.ZOOM_STEPS))
+for _ in range(20):
+    app.zoom_preview(-1)
+r.check("− stops at the smallest size", app.SETTINGS["preview_zoom"], min(app.ZOOM_STEPS))
+app.zoom_preview(0, reset=True)
+r.check("and it can go back to 100%", app.zoom_label.cget("text"), "100%")
+app.root.geometry("1200x780")
+app.root.tk.call("tk", "scaling", 2.0)
+app.root.update()
+app.split.sash_place(0, 1200 - 240 - 440, 0)
+app.root.update()
+r.check("the size buttons stay on screen at 150% on a narrow panel",
+        [n for n in ("zoom_out_btn", "zoom_label", "zoom_in_btn")
+         if not inside(getattr(app, n), app.right)], [])
+app.root.tk.call("tk", "scaling", 1.333)
+app.root.update()
+
 # ── what Send will do is said above it ──────────────────────────────────
 r.check("Send's intent sits above Send",
         app.intent_label.winfo_rooty() < app.send_btn.winfo_rooty())

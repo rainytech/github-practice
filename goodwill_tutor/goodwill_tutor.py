@@ -69,6 +69,20 @@ PASTED_DIR = os.path.join(APP_DIR, "pasted")
 # wraps it. At 880px the institute name fitted on one line in Preview and broke
 # onto two in the PDF.
 PREVIEW_WIDTH = 794
+# The Preview fills its panel, then grows by the teacher's zoom. It was never
+# drawn wider than A4's own 794px, so on a screen set to 150% the page was
+# two-thirds the size of everything around it, and soft to read.
+ZOOM_STEPS = (0.75, 1.0, 1.25, 1.5, 1.75, 2.0)
+PREVIEW_MAX_SCALE = 2.5
+# 40 million pixels is about 160 MB on screen. A long chapter zoomed past that
+# is drawn as large as fits instead.
+PREVIEW_MAX_PIXELS = 40_000_000
+
+
+def preview_scale(panel_width, zoom=1.0):
+    """How much larger than A4 at 96dpi the Preview is drawn, for this panel."""
+    fit = (panel_width - 24) / PREVIEW_WIDTH
+    return round(max(0.4, min(PREVIEW_MAX_SCALE, fit * zoom)), 3)
 
 for _d in (APP_DIR, CONVERSATIONS_DIR, SOLUTIONS_DIR, PREVIEW_DIR, PASTED_DIR):
     os.makedirs(_d, exist_ok=True)
@@ -121,6 +135,7 @@ DEFAULT_SETTINGS = {
     "verify": True,
     "charts": False,
     "auto_pdf": True,         # make the PDF straight after each answer
+    "preview_zoom": 1.0,      # 1.0 = the page as wide as the Preview panel
 }
 
 
@@ -782,7 +797,7 @@ def show_tab(which):
 # thread, one at a time, and a change made meanwhile renders once more after.
 preview_running = False
 preview_again = False
-preview_shown_for = None      # (html, width) of the picture on screen
+preview_shown_for = None      # (html, width, zoom) of the picture on screen
 preview_lines = []            # where each line of text sits in the picture
 current_tab = "preview"
 
@@ -813,13 +828,14 @@ def refresh_preview():
                         "The HTML is in the Code tab.")
         return
     width = max(300, preview_canvas.winfo_width())
-    if preview_shown_for == (html, width):
+    zoom = float(SETTINGS.get("preview_zoom", 1.0))
+    if preview_shown_for == (html, width, zoom):
         return
     if preview_running:
         preview_again = True
         return
     preview_running = True
-    scale = max(0.4, min(1.0, (width - 24) / PREVIEW_WIDTH))
+    scale = preview_scale(width, zoom)
 
     def work():
         try:
@@ -828,8 +844,9 @@ def refresh_preview():
                 fh.write(html)
             png = pdf_export.html_to_png(tmp_html, os.path.join(PREVIEW_DIR, "preview.png"),
                                          width=PREVIEW_WIDTH, scale=scale,
-                                         media="print", lines=True)
-            post(lambda: preview_done(png, (html, width)))
+                                         media="print", lines=True,
+                                         max_pixels=PREVIEW_MAX_PIXELS)
+            post(lambda: preview_done(png, (html, width, zoom)))
         except Exception as exc:
             post(lambda e=str(exc): preview_failed(e))
 
@@ -2974,10 +2991,52 @@ tab_body.pack(fill=tk.BOTH, expand=True, padx=14, pady=(4, 12))
 preview_frame = tk.Frame(tab_body, bg=ARTIFACT_BG)
 preview_scroll = tk.Scrollbar(preview_frame, orient=tk.VERTICAL)
 preview_scroll.pack(side=tk.RIGHT, fill=tk.Y)
+# Under the page: its size, and a sideways scrollbar for when it is zoomed
+# wider than the panel. Not in the row above, which is full at 150% text.
+zoom_row = tk.Frame(preview_frame, bg=ARTIFACT_BG)
+zoom_row.pack(side=tk.BOTTOM, fill=tk.X)
+
+
+def _zoom_button(text, step):
+    button = tk.Button(zoom_row, text=text, command=lambda: zoom_preview(step),
+                       font=("Arial", 11, "bold"), bg=SIDEBAR, fg=TEXT, relief=tk.FLAT,
+                       padx=9, pady=0, cursor="hand2", activebackground=BORDER)
+    button.pack(side=tk.RIGHT, padx=(2, 0), pady=(4, 0))
+    return button
+
+
+zoom_in_btn = _zoom_button("+", 1)
+zoom_label = tk.Label(zoom_row, text=f"{round(SETTINGS.get('preview_zoom', 1.0) * 100)}%",
+                      font=("Arial", 9), bg=ARTIFACT_BG, fg=TEXT, width=5, cursor="hand2")
+zoom_label.pack(side=tk.RIGHT, pady=(4, 0))
+zoom_label.bind("<Button-1>", lambda _e: zoom_preview(0, reset=True))
+zoom_out_btn = _zoom_button("\u2212", -1)
+tk.Label(zoom_row, text="Size", font=("Arial", 9), bg=ARTIFACT_BG,
+         fg=MUTED).pack(side=tk.RIGHT, padx=(8, 4), pady=(4, 0))
+preview_xscroll = tk.Scrollbar(zoom_row, orient=tk.HORIZONTAL)
+preview_xscroll.pack(side=tk.LEFT, fill=tk.X, expand=True, pady=(4, 0))
 preview_canvas = tk.Canvas(preview_frame, bg=ARTIFACT_BG, highlightthickness=0, bd=0,
-                           yscrollcommand=preview_scroll.set)
+                           yscrollcommand=preview_scroll.set,
+                           xscrollcommand=preview_xscroll.set)
 preview_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 preview_scroll.config(command=preview_canvas.yview)
+preview_xscroll.config(command=preview_canvas.xview)
+
+
+def zoom_preview(step, reset=False):
+    """Draw the Preview bigger (+1) or smaller (-1); 100% fills the panel."""
+    now = float(SETTINGS.get("preview_zoom", 1.0))
+    if reset:
+        new = 1.0
+    else:
+        at = min(range(len(ZOOM_STEPS)), key=lambda i: abs(ZOOM_STEPS[i] - now))
+        new = ZOOM_STEPS[max(0, min(len(ZOOM_STEPS) - 1, at + step))]
+    zoom_label.config(text=f"{round(new * 100)}%")
+    if new == now:
+        return
+    SETTINGS["preview_zoom"] = new
+    save_settings()
+    _preview_resized()          # redrawn once the clicking stops
 
 
 def _preview_wheel(event):
@@ -2987,6 +3046,21 @@ def _preview_wheel(event):
 
 for _seq in ("<MouseWheel>", "<Button-4>", "<Button-5>"):
     preview_canvas.bind(_seq, _preview_wheel)
+
+
+def _preview_zoom_wheel(event):
+    """Ctrl + mouse wheel sizes the page, as in a browser."""
+    zoom_preview(1 if (getattr(event, "delta", 0) > 0 or event.num == 4) else -1)
+    return "break"
+
+
+for _seq in ("<Control-MouseWheel>", "<Control-Button-4>", "<Control-Button-5>"):
+    preview_canvas.bind(_seq, _preview_zoom_wheel)
+for _seq in ("<Control-plus>", "<Control-equal>", "<Control-KP_Add>"):
+    preview_canvas.bind(_seq, lambda _e: zoom_preview(1) or "break")
+for _seq in ("<Control-minus>", "<Control-KP_Subtract>"):
+    preview_canvas.bind(_seq, lambda _e: zoom_preview(-1) or "break")
+preview_canvas.bind("<Control-Key-0>", lambda _e: zoom_preview(0, reset=True) or "break")
 
 # Selecting text in the Preview, as in a browser. The picture has no text in
 # it, so Chromium also records where every word was drawn; the panel then does
