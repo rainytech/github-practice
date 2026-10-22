@@ -72,7 +72,8 @@ PREVIEW_WIDTH = 794
 # The Preview fills its panel, then grows by the teacher's zoom. It was never
 # drawn wider than A4's own 794px, so on a screen set to 150% the page was
 # two-thirds the size of everything around it, and soft to read.
-ZOOM_STEPS = (0.75, 1.0, 1.25, 1.5, 1.75, 2.0)
+# 140%: on the teacher's 150% screen, 125 read small and 150 big.
+ZOOM_STEPS = (0.75, 1.0, 1.25, 1.4, 1.5, 1.75, 2.0)
 PREVIEW_MAX_SCALE = 2.5
 # 40 million pixels is about 160 MB on screen. A long chapter zoomed past that
 # is drawn as large as fits instead.

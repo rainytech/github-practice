@@ -94,6 +94,8 @@ r.check("the size starts at 100%", app.zoom_label.cget("text"), "100%")
 app.zoom_preview(1)
 r.check("+ makes it 125%", app.zoom_label.cget("text"), "125%")
 r.check("and the size is remembered", app.load_settings()["preview_zoom"], 1.25)
+app.zoom_preview(1)
+r.check("then 140%, between 125 and 150", app.zoom_label.cget("text"), "140%")
 for _ in range(20):
     app.zoom_preview(1)
 r.check("+ stops at the largest size", app.SETTINGS["preview_zoom"], max(app.ZOOM_STEPS))
