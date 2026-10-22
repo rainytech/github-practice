@@ -209,6 +209,20 @@ r.check("renumbered to Illustration 9", 'Illustration <span class="num">9</span>
 r.check("the old number is gone", 'Illustration <span class="num">8</span>.' in app.last_full_html, False)
 r.check("still no call", state["calls"], calls + 1)
 
+# A typed theory question has no number to leave out, so no warning.
+warned = chat_text().count("left out the question number")
+state["reply"] = block(10, "3,00,000").replace(
+    '<span class="qno">Illustration <span class="num">10</span>.</span>', "")
+ask("what is goodwill treatment in admission of a partner")
+r.check("a theory question is not told off for a number",
+        chat_text().count("left out the question number"), warned)
+read = app.prompts.names_numbered_question
+r.check("'solve Illustration 6' names a number", read("solve Illustration 6"))
+r.check("'do Q.5' names a number", read("do Q.5"))
+r.check("'solve the next question' names a number", read("solve the next question"))
+r.check("a theory question names none", read("explain the treatment of goodwill"), False)
+r.check("'5 marks' is not a question number", read("explain goodwill for 5 marks"), False)
+
 # ── 9f. the header date is changed here, free ──────────────────────────
 import datetime
 calls = state["calls"]

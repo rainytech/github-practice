@@ -2041,7 +2041,11 @@ def finish(answer, in_tok, out_tok, cached_tok, elapsed, model, verdict, v_cost=
         body = hs.teacher_pgrefs(body, last_turn["text"] if last_turn else "")
         last_body = body
         title = card_title(body, "added")
-        if active_mode_key() == "solve" and not hs.question_label(body):
+        # Only a question from a page or a book has a number to leave out; a
+        # typed theory question was being told off for one it never had.
+        from_book = bool(last_turn and (last_turn["files"]
+                                        or prompts.names_numbered_question(last_turn["text"])))
+        if active_mode_key() == "solve" and from_book and not hs.question_label(body):
             notes.append(("Gemini left out the question number. Type, for example,  "
                           "number it Illustration 6  and it is put in — free.", "bad"))
 

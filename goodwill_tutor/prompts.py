@@ -568,6 +568,22 @@ def number_request(text):
     return (_WORD_OF.get(word, word.title()), found.group(2))
 
 
+# "Illustration 6", "Q.5", "question no. 3", "the next question": the teacher
+# is pointing at a numbered question in a book.
+_NUMBERED = _re.compile(
+    r"\b(?:illustrations?|illus|ill|questions?|q|problems?|exercises?|examples?|ex|sums?)"
+    r"\s*\.?\s*(?:no\.?\s*)?\d"
+    r"|\bnext\s+(?:question|illustration|problem|sum|example|exercise|one)\b", _re.I)
+
+
+def names_numbered_question(text):
+    """True when the message points at a numbered question in a book.
+
+    A typed theory question, "what is goodwill", has no number to leave out.
+    """
+    return bool(_NUMBERED.search(text or ""))
+
+
 _MONTHS = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"]
 _DATE_ASK = _re.compile(
     r"^\s*(?:please\s+)?(?:change|set|make|put|update|correct|fix)\s+(?:the\s+)?"
