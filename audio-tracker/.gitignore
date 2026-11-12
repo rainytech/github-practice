@@ -1,0 +1,5 @@
+data/
+__pycache__/
+*.pyc
+tests/samples/
+tests/_testhome/

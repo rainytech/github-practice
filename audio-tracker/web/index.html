@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Audio Equipment Catalogue</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<header class="topbar">
+  <h1>Audio Equipment Catalogue</h1>
+  <div class="actions">
+    <button id="btn-scan" type="button">Scan for new screenshots</button>
+    <button id="btn-backup" type="button">Backup</button>
+    <button id="btn-export" type="button">Export JSON</button>
+  </div>
+</header>
+
+<div id="message" class="message" hidden></div>
+<div id="scan-status" class="scan-status" hidden></div>
+
+<section class="filters" aria-label="Filters">
+  <label>Search <input id="f-search" type="search" placeholder="title, seller, notes…"></label>
+  <label>Category <select id="f-category"><option value="">All</option></select></label>
+  <label>Status <select id="f-status"><option value="">All shown</option></select></label>
+  <label>Location <select id="f-location"><option value="">All</option></select></label>
+  <label>Price ₹ <input id="f-min" type="number" min="0" placeholder="from"> – <input id="f-max" type="number" min="0" placeholder="to"></label>
+  <label>Sort
+    <select id="f-sort">
+      <option value="checked">Oldest "last checked" first</option>
+      <option value="drop">Biggest price drop</option>
+      <option value="added">Newest added</option>
+      <option value="price">Lowest price</option>
+      <option value="deal">Best deal score</option>
+    </select>
+  </label>
+  <label class="check"><input id="f-hidden" type="checkbox"> Show Sold-Gone / Rejected</label>
+  <label class="check"><input id="f-needs" type="checkbox"> Needs checking only</label>
+  <span id="count" class="count"></span>
+</section>
+
+<section id="dups" class="dups" hidden>
+  <h2>Possible duplicates <span class="hint">— is this new screenshot the same listing as an item you already have?</span></h2>
+  <div id="dup-list"></div>
+</section>
+
+<main id="cards" class="cards"></main>
+<p id="empty" class="empty" hidden></p>
+
+<div id="lightbox" class="lightbox" hidden>
+  <img id="lightbox-img" alt="Screenshot">
+  <p class="lightbox-hint">Click anywhere to close</p>
+</div>
+
+<footer class="footer" id="footer"></footer>
+<script src="/app.js"></script>
+</body>
+</html>
