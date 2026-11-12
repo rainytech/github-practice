@@ -75,7 +75,7 @@ def wrap(draw, text, fnt, width):
 
 
 def screenshot(path, *, photo, title, price, old_price=None, listed, condition, description, seller,
-               joined, clock="08:30", scroll=0):
+               joined, clock="08:30", scroll=0, header_title=""):
     W, H = 1080, 2400
     im = Image.new("RGB", (W, H), "white")
     d = ImageDraw.Draw(im)
@@ -83,13 +83,6 @@ def screenshot(path, *, photo, title, price, old_price=None, listed, condition, 
 
     y_photo = 170 - scroll
     im.paste(photo, (0, y_photo))
-    # status bar + top bar (drawn after the photo so they stay on top when scrolled)
-    d.rectangle([0, 0, W, 160], fill="white")
-    d.text((40, 22), clock, font=font("bold", 36), fill=dark)
-    d.text((W - 200, 22), "4G  76%", font=font("regular", 34), fill=dark)
-    d.line([(50, 115), (80, 90)], fill=dark, width=6)
-    d.line([(50, 115), (80, 140)], fill=dark, width=6)
-    d.ellipse([W - 100, 92, W - 60, 132], outline=dark, width=5)
 
     for i in range(4):
         d.ellipse([480 + i * 36, y_photo + 1100, 496 + i * 36, y_photo + 1116],
@@ -144,6 +137,15 @@ def screenshot(path, *, photo, title, price, old_price=None, listed, condition, 
     d.ellipse([40, y, 140, y + 100], fill=(170, 180, 200))
     d.text((170, y + 8), seller, font=font("bold", 38), fill=dark)
     d.text((170, y + 58), joined, font=font("regular", 32), fill=grey)
+    # status bar + top bar, drawn last so they stay on top when the page is scrolled
+    d.rectangle([0, 0, W, 160], fill="white")
+    d.text((40, 22), clock, font=font("bold", 36), fill=dark)
+    d.text((W - 200, 22), "4G  76%", font=font("regular", 34), fill=dark)
+    d.line([(50, 115), (80, 90)], fill=dark, width=6)
+    d.line([(50, 115), (80, 140)], fill=dark, width=6)
+    if header_title:                       # Facebook Lite shows the listing name in the top bar
+        d.text((120, 92), header_title, font=font("bold", 36), fill=dark)
+    d.ellipse([W - 100, 92, W - 60, 132], outline=dark, width=5)
     OUT.mkdir(parents=True, exist_ok=True)
     im.save(OUT / path, "JPEG", quality=88)
     return OUT / path
@@ -166,6 +168,14 @@ def main():
                    description="Pair of 4 inch full range drivers, 8 ohm. Both working, no rub. "
                                "Removed from a bookshelf build. Pickup only.",
                    seller="Arun Mathew", joined="Joined Facebook in 2014", clock="08:30", scroll=40),
+        # the same first listing scrolled down a minute later: description and seller only
+        screenshot("Screenshot_20261105-191600_Facebook.jpg", photo=speakers,
+                   title="Tang Band 4 inch full range speaker pair", price="₹1,250",
+                   listed="Listed 2 days ago in Kochi, KL", condition="Used - good",
+                   description="Pair of 4 inch full range drivers, 8 ohm. Both working, no rub. "
+                               "Removed from a bookshelf build. Pickup only.",
+                   seller="Arun Mathew", joined="Joined Facebook in 2014", clock="19:16", scroll=1400,
+                   header_title="Tang Band 4 inch full range sp..."),
         screenshot("Screenshot_20261110-210500_Facebook.jpg", photo=amp,
                    title="TPA3116D2 2x50W amplifier board with Bluetooth", price="₹650",
                    listed="Listed 5 hours ago in Aluva, KL", condition="Used - like new",

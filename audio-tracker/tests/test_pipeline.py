@@ -46,11 +46,11 @@ def main():
         settings.make_dirs()
         db.init(settings.db_path)
 
-        print("\nFirst scan (4 sample screenshots):")
+        print("\nFirst scan (5 sample screenshots):")
         s = pipeline.scan(settings)
         print("  " + s["message"])
-        check(s["new"] == 2 and s["updated"] == 1 and s["duplicates"] == 1 and not s["errors"],
-              "2 new items, 1 price update, 1 possible duplicate, no errors")
+        check(s["new"] == 2 and s["updated"] == 1 and s["pages"] == 1 and s["duplicates"] == 1 and not s["errors"],
+              "2 new items, 1 price update, 1 extra page, 1 possible duplicate, no errors")
 
         with db.connect(settings.db_path) as con:
             items = {i["title"]: i for i in db.list_items(con)}
@@ -64,7 +64,8 @@ def main():
                 check(spk["last_checked"] == "2026-11-12 08:30:00", "last checked = date of the newest screenshot")
                 check(spk["location"] == "Kochi, KL" and spk["seller"] == "Arun Mathew", "location and seller read")
                 check(spk["category"] == "Speakers and full-range drivers", "category suggested")
-                check(len(spk["screenshots"]) == 2, "one item, two screenshots (no duplicate item)")
+                check(len(spk["screenshots"]) == 3, "one item, three screenshots (no duplicate item)")
+                check(not spk["needs_checking"], "scrolled-down screenshot did not create a 'Needs checking' item")
 
                 added = db.add_price(con, spk["id"], 950, "2026-11-13 09:00:00", "manual edit")
                 check(not added, "same price again does not add a history line")
@@ -95,8 +96,8 @@ def main():
 
         print("\nSecond scan (nothing new):")
         s = pipeline.scan(settings)
-        check(s["new"] == 0 and s["updated"] == 0 and s["skipped"] == 4, "already-processed files are skipped")
-        check(len(list(samples.iterdir())) == 4, "original screenshots untouched (still 4 files)")
+        check(s["new"] == 0 and s["updated"] == 0 and s["skipped"] == 5, "already-processed files are skipped")
+        check(len(list(samples.iterdir())) == 5, "original screenshots untouched (still 5 files)")
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
 

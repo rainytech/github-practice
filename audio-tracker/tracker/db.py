@@ -1,5 +1,6 @@
 """SQLite storage: items, price history, categories, screenshots, possible duplicates."""
 import json
+import re
 import sqlite3
 from contextlib import contextmanager
 from datetime import datetime
@@ -294,6 +295,52 @@ def apply_repeat_screenshot(con, item_id, parsed, shot):
         touch_last_checked(con, item_id, shot["observed_at"])
         flag(con, item_id, "Price on the latest screenshot was not readable")
     con.execute("UPDATE screenshots SET item_id = ?, state = 'item' WHERE id = ?", (item_id, shot["id"]))
+
+
+def apply_extra_page(con, item_id, parsed, shot):
+    """A scrolled-down screenshot of a listing (no title, no price): fill in its details only."""
+    item = con.execute("SELECT * FROM items WHERE id = ?", (item_id,)).fetchone()
+    fill = {}
+    for field, key in (("seller", "seller"), ("location", "location"), ("condition_notes", "condition"),
+                       ("listed_ago", "listed_ago")):
+        if not item[field] and parsed.get(key):
+            fill[field] = parsed[key]
+    desc = parsed.get("description", "")
+    if desc and desc not in (item["description"] or ""):
+        fill["description"] = ((item["description"] or "") + "\n" + desc).strip()
+    reasons = [r for r in (item["check_reasons"] or "").split("; ") if r]
+    if fill.get("location"):
+        reasons = [r for r in reasons if r != "Location not found"]
+    fill["check_reasons"] = "; ".join(reasons)
+    fill["needs_checking"] = 1 if reasons else 0
+    cols = ", ".join(f"{k} = ?" for k in fill)
+    con.execute(f"UPDATE items SET {cols} WHERE id = ?", (*fill.values(), item_id))
+    touch_last_checked(con, item_id, shot["observed_at"])
+    con.execute("UPDATE screenshots SET item_id = ?, state = 'item' WHERE id = ?", (item_id, shot["id"]))
+
+
+def _letters(text):
+    return re.sub(r"[^a-z0-9]+", "", (text or "").lower())
+
+
+def find_listing_for_extra_page(con, parsed, observed_at, minutes=15):
+    """Which item does a scrolled-down screenshot belong to? By the name in the top bar, else by time."""
+    head = _letters(parsed.get("header_title"))
+    if len(head) >= 8:
+        for r in con.execute("SELECT id, title FROM items ORDER BY last_checked DESC"):
+            t = _letters(r["title"])
+            if t and (t.startswith(head) or head.startswith(t[:max(8, len(head))])):
+                return r["id"]
+    row = con.execute(
+        """SELECT item_id, observed_at FROM screenshots
+           WHERE state = 'item' AND item_id IS NOT NULL AND observed_at <= ?
+           ORDER BY observed_at DESC LIMIT 1""", (observed_at,)).fetchone()
+    if row:
+        gap = datetime.strptime(observed_at, "%Y-%m-%d %H:%M:%S") - \
+            datetime.strptime(row["observed_at"], "%Y-%m-%d %H:%M:%S")
+        if gap.total_seconds() <= minutes * 60:
+            return row["item_id"]
+    return None
 
 
 def flag(con, item_id, reason):

@@ -64,6 +64,11 @@ def process_file(settings, path: Path, file_hash: str):
             con, file_hash=file_hash, path=path, observed_at=observed_at, date_source=date_source,
             state="processing", raw_text=raw_text, parsed=parsed, photo_hash=p_hash, thumb=thumb)
         shot = db.get_screenshot(con, shot_id)
+        if parsed["price"] is None and not parsed["title"] and rows:
+            owner = db.find_listing_for_extra_page(con, parsed, observed_at)
+            if owner is not None:
+                db.apply_extra_page(con, owner, parsed, shot)
+                return "page"
         verdict, item_id, score, reasons = matcher.best_match(parsed, p_hash, db.match_candidates(con))
         if verdict == "same":
             db.apply_repeat_screenshot(con, item_id, parsed, shot)
@@ -78,7 +83,7 @@ def process_file(settings, path: Path, file_hash: str):
 
 def scan(settings, on_progress=None):
     """Find and process every screenshot not seen before. Never raises for a single bad file."""
-    summary = {"new": 0, "updated": 0, "duplicates": 0, "skipped": 0, "errors": [], "message": ""}
+    summary = {"new": 0, "updated": 0, "duplicates": 0, "pages": 0, "skipped": 0, "errors": [], "message": ""}
     folder = settings.screenshot_folder
     if not folder.exists():
         summary["message"] = (f"The screenshot folder was not found: {folder}. "
@@ -121,7 +126,7 @@ def scan(settings, on_progress=None):
             on_progress(n - 1, len(todo), p.name)
         try:
             result = process_file(settings, p, h)
-            summary[{"new": "new", "updated": "updated", "duplicate": "duplicates"}[result]] += 1
+            summary[{"new": "new", "updated": "updated", "duplicate": "duplicates", "page": "pages"}[result]] += 1
         except Exception as exc:                    # one bad file must never stop the rest
             msg = str(exc) if isinstance(exc, ValueError) else f"unexpected problem ({exc.__class__.__name__}: {exc})"
             log.exception("Failed to process %s", p)
@@ -139,7 +144,8 @@ def scan(settings, on_progress=None):
         summary["message"] = "No new screenshots."
     else:
         summary["message"] = (f"Processed {len(todo)} screenshot(s): {summary['new']} new item(s), "
-                              f"{summary['updated']} price update(s), {summary['duplicates']} possible duplicate(s), "
+                              f"{summary['updated']} price update(s), {summary['pages']} extra page(s) of a listing, "
+                              f"{summary['duplicates']} possible duplicate(s), "
                               f"{len(summary['errors'])} problem(s).")
     log.info(summary["message"])
     return summary

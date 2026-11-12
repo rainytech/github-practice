@@ -26,7 +26,8 @@ STOP_HEADINGS = (
 SELLER_HEADINGS = ("seller information", "seller details", "seller info")
 SELLER_SKIP = re.compile(
     r"^(see profile|seller details|seller information|joined facebook|highly rated|very responsive|"
-    r"responsive|usually responds|\(\d+\)|[\d.]+\s*★|★|follow|message)", re.I)
+    r"responsive|usually responds|\(\d+\)|[\d.]+\s*★|★|follow|message|details|description|condition|"
+    r"location|listed|about|see all|more|share|save|alert)\b", re.I)
 NOISE_LINES = re.compile(r"^(see more|see less|see translation|hide translation)$", re.I)
 BUTTON_WORDS = {"message", "save", "share", "send", "saved", "more", "hi, is this available?", "is this available?"}
 
@@ -99,9 +100,20 @@ def _starts(text, prefixes):
 def parse(rows, width, height):
     out = {"title": "", "price": None, "price_raw": "", "price_note": "", "listed_ago": "",
            "location": "", "seller": "", "description": "", "condition": "", "problems": [],
-           "photo_bottom": None}
+           "photo_bottom": None, "header_title": ""}
     problems = out["problems"]
     body = [r for r in rows if r["yc"] > 0.035 * height]          # drop the phone status bar
+
+    # Facebook Lite repeats the listing name in the top bar ("SONY HI FI SPEAKER...")
+    for r in body:
+        if r["yc"] > 0.10 * height:
+            break
+        parts = sorted(re.split(r"\s{2,}", r["text"].strip()), key=len, reverse=True)   # drop icons
+        t = re.sub(r"[.…]+$", "", parts[0].strip())
+        t = re.sub(r"^[^A-Za-z0-9]+\s*", "", t)
+        if sum(c.isalpha() for c in t) >= 6:
+            out["header_title"] = t
+            break
 
     # ---- price
     price_idx = None
