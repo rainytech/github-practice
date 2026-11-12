@@ -1,0 +1,24 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; font-family: "Inter", sans-serif; color: #fff; }
+    #hook-logo { position: absolute; left: 70px; top: 190px; width: 150px; height: 150px; }
+    #hook-tag { position: absolute; left: 240px; top: 247px; font-size: 30px; font-weight: 700; letter-spacing: 6px; color: #F5B700; }
+    #hook-line1 { position: absolute; left: 70px; top: 520px; width: 860px; font-family: "Archivo Black", sans-serif; font-size: 104px; line-height: 1.05; }
+    #hook-line1 .amt { color: #F5B700; }
+    #hook-line2 { position: absolute; left: 70px; top: 930px; width: 860px; font-family: "Archivo Black", sans-serif; font-size: 92px; line-height: 1.1; }
+    #hook-line2 .hl { background: #F5B700; color: #0B1B3F; padding: 0 16px; }
+  </style>
+  <div id="root" data-composition-id="hook" data-width="1080" data-height="1920">
+    <img id="hook-logo" class="clip" src="assets/img/logo.png" alt="Goodwill Tuition logo" data-start="0" data-duration="5.2" data-track-index="3">
+    <div id="hook-tag" class="clip" data-start="0" data-duration="5.2" data-track-index="0">GOODWILL TUITION CENTRE</div>
+    <div id="hook-line1" class="clip" data-start="0" data-duration="5.2" data-track-index="1">Rent <span class="amt" data-var-text="amount">₹10,000</span> received in cash.</div>
+    <div id="hook-line2" class="clip" data-start="3.1" data-duration="2.1" data-track-index="2">Which A/c is <span class="hl">DEBIT?</span></div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    tl.fromTo("#hook-line1", { scale: 1 }, { scale: 1.04, duration: 5.2, ease: "none", transformOrigin: "left center" }, 0);
+    tl.fromTo("#hook-line2", { opacity: 0, y: 60 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 3.1);
+    tl.fromTo("#hook-line2 .hl", { scale: 0.6 }, { scale: 1, duration: 0.5, ease: "back.out(2.5)" }, 3.35);
+    window.__timelines["hook"] = tl;
+  </script>
+</template>
