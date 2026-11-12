@@ -19,15 +19,22 @@ def _indian(n: int) -> str:
     return "₹" + ",".join(parts + [tail])
 
 
-def score(current, first, target, new_price):
-    """Return (score 1-10 or None, list of plain-English reasons)."""
+def score(current, first, target, new_price, total=None):
+    """Return (score 1-10 or None, list of plain-English reasons).
+
+    Target and new-price comparisons use the total cost (price + Porter transport) when known.
+    """
     if current is None:
         return None, ["No price yet."]
     if target is None and not new_price:
         return None, ["Set a target price or the new price to get a deal score."]
 
+    asking = current
     points = 5.0
     reasons = []
+    if total is not None:
+        reasons.append(f"Compared using total cost {_indian(total)} (price + transport)")
+        current = total
 
     if target is not None:
         if current <= target * 0.85:
@@ -64,8 +71,8 @@ def score(current, first, target, new_price):
             points -= 3
             reasons.append(f"Costs more than new ({_indian(new_price)}) (-3)")
 
-    if first and current < first:
-        drop = 1 - current / first
+    if first and asking < first:
+        drop = 1 - asking / first
         if drop >= 0.20:
             points += 1
             reasons.append(f"Price dropped {round(drop * 100)}% since first seen (+1)")

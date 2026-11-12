@@ -85,6 +85,9 @@ def load() -> Settings:
 
     open_browser = _clean(sec.get("open_browser", "yes")).lower() in ("yes", "y", "true", "1", "on")
 
+    from . import transport
+    transport.configure(parser["transport"] if parser.has_section("transport") else None)
+
     return Settings(
         settings_file=settings_file,
         screenshot_folder=Path(folder_text),

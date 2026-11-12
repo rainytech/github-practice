@@ -68,8 +68,25 @@ def main():
 
                 added = db.add_price(con, spk["id"], 950, "2026-11-13 09:00:00", "manual edit")
                 check(not added, "same price again does not add a history line")
+                tr = spk["transport"]
+                check(tr["km"] is not None and 8 <= tr["km"] <= 12, f"Kochi is about {tr['km']} km from home")
+                check(tr["vehicle"] == "two_wheeler" and tr["cost"] is not None,
+                      f"Porter two-wheeler estimate {tr['cost']} ({tr['cost_source']})")
+                check(spk["total_cost"] == 950 + tr["cost"], f"total cost = ₹950 + transport = {spk['total_cost']}")
                 db.update_item(con, spk["id"], {"target_price": "₹1,000"})
-                check(db.get_item(con, spk["id"])["target_reached"], "target ₹1,000 -> 'At or below target'")
+                check(not db.get_item(con, spk["id"])["target_reached"],
+                      "target ₹1,000 is NOT reached once transport is added")
+                db.update_item(con, spk["id"], {"target_price": "₹1,200"})
+                check(db.get_item(con, spk["id"])["target_reached"], "target ₹1,200 -> 'At or below target'")
+                db.update_item(con, spk["id"], {"porter_fare": "140"})
+                it = db.get_item(con, spk["id"])
+                check(it["transport"]["cost"] == 140 and it["total_cost"] == 1090, "typed Porter fare ₹140 is used")
+                check("4 real fares" in db.fare_formulas(con)["two_wheeler"]["text"],
+                      "typed fare is learned: formula now uses 4 real fares")
+                db.update_item(con, spk["id"], {"distance_km": "15", "vehicle": "three_wheeler", "porter_fare": ""})
+                it = db.get_item(con, spk["id"])
+                check(it["transport"]["km"] == 15 and it["transport"]["vehicle"] == "three_wheeler"
+                      and it["transport"]["rough"], "typed km and vehicle are used (three-wheeler marked rough)")
             dups = db.pending_duplicates(con)
             check(len(dups) == 1, "similar amplifier listing waits in 'Possible duplicate'")
             if dups:

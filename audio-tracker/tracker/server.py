@@ -8,7 +8,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlparse, unquote
 
-from . import backup, config, db, pipeline
+from . import backup, config, db, pipeline, transport
 
 log = logging.getLogger("tracker")
 
@@ -86,6 +86,10 @@ def make_handler(settings):
                         "screenshot_folder": str(settings.screenshot_folder),
                         "folder_exists": settings.screenshot_folder.exists(),
                         "data_folder": str(settings.data_dir),
+                        "vehicles": transport.VEHICLES,
+                        "home": transport.CONFIG.home_name,
+                        "formulas": {k: v["text"] for k, v in db.fare_formulas(con).items()},
+                        "warnings": transport.CONFIG.warnings,
                     })
             if path == "/api/duplicates":
                 with db.connect(settings.db_path) as con:

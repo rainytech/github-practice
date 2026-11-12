@@ -5,7 +5,7 @@ from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
 
-from . import dealscore
+from . import dealscore, transport
 
 STATUSES = ["Watching", "Negotiating", "Bought", "Sold-Gone", "Rejected"]
 HIDDEN_STATUSES = ["Sold-Gone", "Rejected"]
@@ -23,7 +23,7 @@ EDITABLE_TEXT = [
     "title", "brand_model", "seller", "seller_profile", "location",
     "listed_ago", "description", "condition_notes", "notes",
 ]
-EDITABLE_PRICE = ["new_price", "target_price"]
+EDITABLE_PRICE = ["new_price", "target_price", "porter_fare"]
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS categories (
@@ -53,7 +53,10 @@ CREATE TABLE IF NOT EXISTS items (
     last_checked     TEXT NOT NULL,
     screenshot_path  TEXT NOT NULL DEFAULT '',
     thumb            TEXT NOT NULL DEFAULT '',
-    photo_hash       TEXT NOT NULL DEFAULT ''
+    photo_hash       TEXT NOT NULL DEFAULT '',
+    distance_km      REAL,
+    vehicle          TEXT NOT NULL DEFAULT '',
+    porter_fare      INTEGER
 );
 
 CREATE TABLE IF NOT EXISTS screenshots (
@@ -119,9 +122,21 @@ def connect(db_path: Path):
         con.close()
 
 
+# Columns added after the first version - added to older databases automatically.
+NEW_ITEM_COLUMNS = {
+    "distance_km": "REAL",
+    "vehicle": "TEXT NOT NULL DEFAULT ''",
+    "porter_fare": "INTEGER",
+}
+
+
 def init(db_path: Path) -> None:
     with connect(db_path) as con:
         con.executescript(SCHEMA)
+        have = {r["name"] for r in con.execute("PRAGMA table_info(items)")}
+        for col, decl in NEW_ITEM_COLUMNS.items():
+            if col not in have:
+                con.execute(f"ALTER TABLE items ADD COLUMN {col} {decl}")
         for name in CATEGORIES:
             con.execute("INSERT OR IGNORE INTO categories(name) VALUES (?)", (name,))
 
@@ -300,8 +315,24 @@ def update_item(con, item_id, changes: dict):
         if key in EDITABLE_TEXT:
             sets[key] = ("" if value is None else str(value)).strip()
         elif key in EDITABLE_PRICE:
-            label = "Target price" if key == "target_price" else "New price"
+            label = {"target_price": "Target price", "new_price": "New price", "porter_fare": "Porter fare"}[key]
             sets[key] = parse_rupees(value, label)
+        elif key == "distance_km":
+            text = ("" if value is None else str(value)).strip().lower().replace("km", "").strip()
+            if text == "":
+                sets[key] = None
+            else:
+                try:
+                    km = float(text)
+                except ValueError:
+                    raise UserError(f"Distance must be a number of km, for example 12 (you typed '{value}').")
+                if not 0 < km < 2000:
+                    raise UserError(f"Distance looks wrong: {value} km.")
+                sets[key] = round(km, 1)
+        elif key == "vehicle":
+            if value not in ("", None) and value not in transport.VEHICLES:
+                raise UserError(f"Unknown vehicle '{value}'.")
+            sets[key] = value or ""
         elif key == "status":
             if value not in STATUSES:
                 raise UserError(f"Unknown status '{value}'.")
@@ -341,7 +372,21 @@ def _history(con, item_id):
     )]
 
 
-def item_dict(con, row):
+def fare_formulas(con):
+    """Fare formulas learned from settings.ini fares plus every Porter fare typed on a card."""
+    user = []
+    for r in con.execute("SELECT * FROM items WHERE porter_fare IS NOT NULL"):
+        d = dict(r)
+        cat = con.execute("SELECT name FROM categories WHERE id = ?", (d["category_id"],)).fetchone() \
+            if d["category_id"] else None
+        d["category"] = cat["name"] if cat else ""
+        est = transport.estimate(dict(d, porter_fare=None), transport.formulas([]))
+        if est["km"] is not None:
+            user.append((est["vehicle"], est["km"], d["porter_fare"]))
+    return transport.formulas(user)
+
+
+def item_dict(con, row, fx=None):
     item = dict(row)
     cat = con.execute("SELECT name FROM categories WHERE id = ?", (row["category_id"],)).fetchone() \
         if row["category_id"] else None
@@ -355,8 +400,13 @@ def item_dict(con, row):
     item["drop_amount"] = (first - cur) if (cur is not None and first is not None) else None
     item["drop_pct"] = round(100.0 * (first - cur) / first, 1) if (cur is not None and first) else None
     item["price_dropped"] = bool(prev is not None and cur is not None and cur < prev)
-    item["target_reached"] = bool(item["target_price"] is not None and cur is not None and cur <= item["target_price"])
-    item["deal_score"], item["deal_reasons"] = dealscore.score(cur, first, item["target_price"], item["new_price"])
+    tr = transport.estimate(item, fx or fare_formulas(con))
+    item["transport"] = tr
+    item["total_cost"] = (cur + tr["cost"]) if (cur is not None and tr["cost"] is not None) else None
+    pay = item["total_cost"] if item["total_cost"] is not None else cur
+    item["target_reached"] = bool(item["target_price"] is not None and pay is not None and pay <= item["target_price"])
+    item["deal_score"], item["deal_reasons"] = dealscore.score(cur, first, item["target_price"], item["new_price"],
+                                                              total=item["total_cost"])
     item["screenshots"] = [dict(r) for r in con.execute(
         "SELECT id, path, observed_at, raw_text, thumb FROM screenshots WHERE item_id = ? ORDER BY observed_at",
         (row["id"],),
@@ -367,7 +417,8 @@ def item_dict(con, row):
 
 
 def list_items(con):
-    return [item_dict(con, r) for r in con.execute("SELECT * FROM items ORDER BY id")]
+    fx = fare_formulas(con)
+    return [item_dict(con, r, fx) for r in con.execute("SELECT * FROM items ORDER BY id")]
 
 
 def get_item(con, item_id):

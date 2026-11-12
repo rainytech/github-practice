@@ -46,6 +46,16 @@ HOW IT DECIDES
 - Deal score: an offline rule (not AI) using your target price, the new price,
   and the price drop. Hover over the badge to see why.
 
+PORTER TRANSPORT ESTIMATE
+-------------------------
+Each card shows the estimated Porter fare from the listing's town to your home
+(settings.ini [transport] home = Puthiyakavu, Tripunithura) and the TOTAL cost
+(asking price + transport). Target price and deal score use the total cost.
+- Distance: town centre to home x 1.3 for road bends. Unknown town: type the km.
+- Two-wheeler fare is learned from your real fares (settings.ini two_wheeler_fares)
+  plus every "Porter fare" you type on a card - so it improves as you use it.
+- Three-wheeler / mini truck use a rough multiplier until you type one real fare.
+
 TEST
 ----
 py tests\test_pipeline.py     (uses made-up sample screenshots and a temporary

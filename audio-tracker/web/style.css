@@ -101,6 +101,10 @@ input:focus, select:focus, textarea:focus { outline: 2px solid #555; background:
 .grid2 input, .grid2 select { width: 100%; }
 .dates { margin-top: 6px; font-size: .92rem; color: var(--muted); }
 .grid2 .span3 { grid-column: span 3; }
+.grid2 .span2 { grid-column: span 2; }
+.transport-note { font-size: .95rem; }
+.total { font-weight: bold; font-size: 1.1rem; border: 2px solid #555; border-radius: 4px; padding: 0 8px; }
+.err { color: var(--maroon); font-weight: bold; }
 .card-status.saved { color: var(--green); font-weight: bold; }
 .card-status.err { color: var(--maroon); font-weight: bold; }
 input.bad { outline: 2px solid var(--maroon); }

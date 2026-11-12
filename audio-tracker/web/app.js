@@ -86,7 +86,14 @@ function fillFilterOptions() {
     (state.meta.folder_exists ? "" : "  (NOT FOUND — check settings.ini)") +
     ` · Data folder: ${state.meta.data_folder} · ${c.items} item(s), ${c.screenshots} screenshot(s) processed.`;
   if (c.errors.length) foot += ` · ${c.errors.length} screenshot(s) could not be read (they are retried on the next scan).`;
-  $("footer").textContent = foot;
+  const f = state.meta.formulas || {};
+  const v = state.meta.vehicles || {};
+  $("footer").replaceChildren(
+    el("div", { text: foot }),
+    el("div", { text: `Porter estimates to ${state.meta.home}: ` +
+      Object.keys(f).map((k) => `${v[k]} ${f[k]}`).join(" · ") }),
+    ...(state.meta.warnings || []).map((w) => el("div", { class: "err", text: w })),
+  );
 }
 
 // ------------------------------------------------------------------ filtering & sorting
@@ -119,6 +126,7 @@ function visibleItems() {
     drop: (a, b) => nul(b.drop_amount, -Infinity) - nul(a.drop_amount, -Infinity),
     added: (a, b) => b.date_added.localeCompare(a.date_added) || b.id - a.id,
     price: (a, b) => nul(a.current_price, Infinity) - nul(b.current_price, Infinity),
+    total: (a, b) => nul(a.total_cost, Infinity) - nul(b.total_cost, Infinity),
     deal: (a, b) => nul(b.deal_score, -1) - nul(a.deal_score, -1),
   }[sort];
   return list.sort(cmp);
@@ -171,6 +179,38 @@ function selectField(item, name, options, value, blankLabel) {
   return s;
 }
 
+function transportBlock(item) {
+  const tr = item.transport;
+  const vehicles = state.meta.vehicles;
+  const vs = el("select", { "data-field": "vehicle", title: "Vehicle for the Porter booking" });
+  vs.append(el("option", { value: "", text: `Auto: ${vehicles[tr.vehicle]}` }));
+  for (const [k, label] of Object.entries(vehicles)) vs.append(el("option", { value: k, text: label }));
+  vs.value = item.vehicle || "";
+  vs.addEventListener("change", () => save(item.id, "vehicle", vs.value, vs));
+
+  const autoKm = item.distance_km === null && tr.km !== null ? `≈ ${tr.km} (auto)` : "unknown — type km";
+  const km = field(item, "distance_km", item.distance_km ?? "",
+    { extra: { inputmode: "decimal", placeholder: autoKm, title: tr.km_source || "Type the road distance in km" } });
+  const fareHint = item.porter_fare === null && tr.cost !== null ? `≈ ${rupees(tr.cost)} estimate` : "type the real fare";
+  const fare = field(item, "porter_fare", item.porter_fare ?? "",
+    { extra: { inputmode: "numeric", placeholder: fareHint, title: "Type the fare the Porter app quoted or you paid. It is used to improve future estimates." } });
+
+  let summary;
+  if (tr.cost === null) {
+    summary = el("span", { class: "err", text: "Transport unknown — type the km (place not in the list)" });
+  } else {
+    summary = el("span", {},
+      `Transport ${item.porter_fare === null ? "≈ " : ""}${rupees(tr.cost)} `,
+      el("i", { class: tr.rough ? "err" : "", text: `(${tr.cost_source}${tr.km !== null ? ", " + tr.km + " km " + tr.km_source : ""})` }));
+  }
+  return [
+    el("label", { text: "Distance km" }), km,
+    el("label", { text: "Vehicle" }), vs,
+    el("label", { text: "Porter fare ₹" }), fare,
+    el("div", { class: "span2 transport-note" }, summary),
+  ];
+}
+
 function openImage(src) {
   $("lightbox-img").src = src;
   $("lightbox").hidden = false;
@@ -206,6 +246,8 @@ function card(item) {
     el("span", { class: "now" }, "Current ₹ ", field(item, "price", item.current_price ?? "", { extra: { inputmode: "numeric", title: "Changing this adds a price-history line" } })),
     el("span", {}, `First ${rupees(item.first_price)}`),
     dropText,
+    item.total_cost !== null ? el("span", { class: "total", title: "Asking price + Porter transport",
+      text: `Total ${rupees(item.total_cost)}` }) : null,
   );
 
   const grid = el("div", { class: "grid2" },
@@ -215,6 +257,7 @@ function card(item) {
     el("label", { text: "Status" }), selectField(item, "status", state.meta.statuses, item.status),
     el("label", { text: "Location" }), field(item, "location", item.location),
     el("label", { text: "Seller" }), el("div", { class: "span3" }, field(item, "seller", item.seller)),
+    ...transportBlock(item),
   );
 
   const dates = el("div", { class: "dates" },
