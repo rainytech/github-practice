@@ -37,5 +37,5 @@ Online Accountancy classes for CBSE Class 11 & 12 students in UAE, Saudi Arabia,
 ## Published Shorts
 - Golden Rules (Rent paid) — https://youtube.com/shorts/eY_sLSSbkfI
 - Rent Received — https://youtube.com/shorts/qpoDm5QZLDI
-- Salary Paid (₹15,000 cash) — https://youtube.com/shorts/dPcozM6OufE (scheduled 12 Nov 2026, 9:30 PM IST)
+- Salary Paid (₹15,000 cash) — https://youtube.com/shorts/dPcozM6OufE (published 12 Nov 2026, 7:56 AM IST)
 - Channel views: 4,253 (10 Nov 2026) → 4,310 (11 Nov 2026). Compare again around 18 Nov.
