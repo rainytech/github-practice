@@ -454,12 +454,19 @@ def item_dict(con, row, fx=None):
     item["target_reached"] = bool(item["target_price"] is not None and pay is not None and pay <= item["target_price"])
     item["deal_score"], item["deal_reasons"] = dealscore.score(cur, first, item["target_price"], item["new_price"],
                                                               total=item["total_cost"])
-    item["screenshots"] = [dict(r) for r in con.execute(
-        "SELECT id, path, observed_at, raw_text, thumb FROM screenshots WHERE item_id = ? ORDER BY observed_at",
+    shots = []
+    for r in con.execute(
+        "SELECT id, path, observed_at, raw_text, thumb, parsed_json FROM screenshots WHERE item_id = ? ORDER BY observed_at",
         (row["id"],),
-    )]
-    latest = item["screenshots"][-1]["id"] if item["screenshots"] else None
-    item["latest_screenshot_id"] = latest
+    ):
+        s = dict(r)
+        parsed = json.loads(s.pop("parsed_json") or "{}")
+        # a "main" screenshot shows the listing (title or price); others are scrolled-down extra pages
+        s["main"] = bool(parsed.get("title") or parsed.get("price") is not None)
+        shots.append(s)
+    item["screenshots"] = shots
+    mains = [s for s in shots if s["main"]]
+    item["latest_screenshot_id"] = (mains or shots)[-1]["id"] if shots else None
     return item
 
 

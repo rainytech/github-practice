@@ -294,7 +294,11 @@ function card(item) {
   return el("article", {
       class: "card" + (item.target_reached ? " target" : "") + (hiddenStatus ? " hidden-status" : ""),
       "data-id": item.id },
-    el("div", {}, thumb),
+    el("div", {}, thumb,
+      item.screenshots.length > 1 ? el("div", { class: "pages" },
+        el("div", { class: "pages-label", text: `All ${item.screenshots.length} screenshots (click to enlarge):` }),
+        item.screenshots.map((s) => sharpImage("page" + (s.id === item.latest_screenshot_id ? " current" : ""),
+                                               s.id, s.thumb, s.main ? "Listing" : "Extra page"))) : null),
     el("div", {},
       field(item, "title", item.title, { extra: { class: "title", placeholder: "Title (not read — please type it)" } }),
       badges, prices, grid, dates, more),

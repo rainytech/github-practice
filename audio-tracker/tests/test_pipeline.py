@@ -66,6 +66,9 @@ def main():
                 check(spk["category"] == "Speakers and full-range drivers", "category suggested")
                 check(len(spk["screenshots"]) == 3, "one item, three screenshots (no duplicate item)")
                 check(not spk["needs_checking"], "scrolled-down screenshot did not create a 'Needs checking' item")
+                main = next(s for s in spk["screenshots"] if s["id"] == spk["latest_screenshot_id"])
+                check(main["main"] and main["path"].endswith("20261112-083000_Facebook.jpg"),
+                      "card picture is the newest MAIN listing screenshot, not the scrolled-down page")
 
                 added = db.add_price(con, spk["id"], 950, "2026-11-13 09:00:00", "manual edit")
                 check(not added, "same price again does not add a history line")
