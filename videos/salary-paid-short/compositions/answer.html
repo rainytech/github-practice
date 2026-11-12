@@ -1,0 +1,59 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; font-family: "Inter", sans-serif; color: #fff; }
+    #answer-title { position: absolute; left: 70px; top: 230px; font-family: "Archivo Black", sans-serif; font-size: 76px; color: #F5B700; }
+    #answer-box { position: absolute; left: 70px; top: 380px; width: 840px; background: #FFFDF5; color: #111; border-radius: 18px; padding: 36px 40px; font-family: "EB Garamond", serif; }
+    .jr { display: flex; justify-content: space-between; font-size: 54px; line-height: 1.5; }
+    .jr.to { padding-left: 60px; }
+    .jr .amt { font-weight: 700; }
+    .narr { font-size: 40px; font-style: italic; color: #C2185B; margin-top: 8px; }
+    #answer-end { position: absolute; left: 70px; top: 900px; width: 840px; font-family: "Archivo Black", sans-serif; font-size: 64px; line-height: 1.3; }
+    #answer-end .dr { color: #4ADE80; } #answer-end .cr { color: #FF7A7A; }
+    #answer-logo { position: absolute; left: 70px; top: 1140px; width: 120px; height: 120px; }
+    #answer-cta { position: absolute; left: 210px; top: 1142px; width: 720px; font-size: 44px; font-weight: 700; line-height: 1.25; color: #F5B700; }
+    #answer-sub { position: absolute; left: 270px; top: 1340px; width: 540px; height: 130px; }
+    .sub-btn { position: absolute; inset: 0; border-radius: 65px; display: flex; align-items: center; justify-content: center; gap: 20px; font-size: 52px; font-weight: 900; letter-spacing: 2px; }
+    #answer-sub-on { background: #FF0000; color: #fff; }
+    #answer-sub-done { background: #3A3A3A; color: #DDD; opacity: 0; }
+    .bell { font-size: 48px; }
+    #answer-tap { position: absolute; left: 600px; top: 1390px; width: 90px; height: 90px; border-radius: 50%; border: 8px solid #fff; opacity: 0; }
+  </style>
+  <div id="root" data-composition-id="answer" data-width="1080" data-height="1920">
+    <div id="answer-title" class="clip" data-start="0" data-duration="10.6" data-track-index="0">Journal Entry</div>
+    <div id="answer-box" class="clip" data-start="0.2" data-duration="10.4" data-track-index="1">
+      <div class="jr" id="answer-r1"><span>Salary A/c ... Dr.</span><span class="amt">15,000</span></div>
+      <div class="jr to" id="answer-r2"><span>To Cash A/c</span><span class="amt">15,000</span></div>
+      <div class="narr" id="answer-r3">(Being salary paid in cash)</div>
+    </div>
+    <div id="answer-end" class="clip" data-start="4.6" data-duration="6.0" data-track-index="2">Salary → <span class="dr">Dr.</span><br>Cash → <span class="cr">Cr.</span></div>
+    <img id="answer-logo" class="clip" src="assets/img/logo.png" alt="Goodwill Tuition logo" data-start="5.7" data-duration="4.9" data-track-index="4">
+    <div id="answer-cta" class="clip" data-start="5.85" data-duration="4.75" data-track-index="3">Follow for a new accounting Short every day!</div>
+    <div id="answer-sub" class="clip" data-layout-allow-overlap data-start="6.6" data-duration="4.0" data-track-index="5">
+      <div id="answer-sub-on" class="sub-btn"><span class="bell">▶</span>SUBSCRIBE</div>
+      <div id="answer-sub-done" class="sub-btn"><span class="bell">🔔</span>SUBSCRIBED</div>
+    </div>
+    <div id="answer-tap" class="clip" data-layout-allow-overlap data-start="7.9" data-duration="2.7" data-track-index="6"></div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    tl.fromTo("#answer-title", { opacity: 0, y: -30 }, { opacity: 1, y: 0, duration: 0.4, ease: "power3.out" }, 0);
+    tl.fromTo("#answer-box", { opacity: 0, scale: 0.92 }, { opacity: 1, scale: 1, duration: 0.45, ease: "power3.out" }, 0.2);
+    tl.fromTo("#answer-r1", { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.4 }, 1.45);
+    tl.fromTo("#answer-r2", { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.4 }, 2.75);
+    tl.fromTo("#answer-r3", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 4.0);
+    tl.fromTo("#answer-end", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 4.6);
+    tl.fromTo("#answer-logo", { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 0.45, ease: "back.out(2)" }, 5.7);
+    tl.fromTo("#answer-cta", { opacity: 0, x: -20 }, { opacity: 1, x: 0, duration: 0.4 }, 5.85);
+    gsap.set("#answer-sub-on", { opacity: 0, scale: 0.4 });
+    gsap.set("#answer-tap", { opacity: 0, scale: 1.6 });
+    tl.to("#answer-sub-on", { opacity: 1, scale: 1, duration: 0.5, ease: "back.out(2.2)" }, 6.6);
+    tl.to("#answer-sub-on", { scale: 1.08, duration: 0.3, yoyo: true, repeat: 1, ease: "power2.inOut" }, 7.2);
+    tl.to("#answer-tap", { opacity: 1, scale: 0.8, duration: 0.3, ease: "power2.in" }, 7.9);
+    tl.to("#answer-sub-on", { scale: 0.92, duration: 0.12, yoyo: true, repeat: 1 }, 8.2);
+    tl.to("#answer-tap", { opacity: 0, duration: 0.3 }, 8.35);
+    tl.set("#answer-sub-on", { opacity: 0 }, 8.3);
+    tl.fromTo("#answer-sub-done", { opacity: 0 }, { opacity: 1, duration: 0.01 }, 8.3);
+    tl.fromTo("#answer-sub-done .bell", { rotation: 0 }, { rotation: 18, duration: 0.12, yoyo: true, repeat: 5, ease: "sine.inOut" }, 8.5);
+    window.__timelines["answer"] = tl;
+  </script>
+</template>
