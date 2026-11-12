@@ -27,7 +27,7 @@ Online Accountancy classes for CBSE Class 11 & 12 students in UAE, Saudi Arabia,
 - Category: Education · Type: Problem walkthrough · Class 11/12 · Exam: CBSE Class 11/12, NCERT (Kerala DHSE as extra).
 - Audience: No, it's not made for kids.
 - Tags include: cbse accountancy, ncert accountancy, class 11 accountancy, class 12 accountancy, accountancy tuition uae, online accountancy tuition dubai, journal entry, golden rules of accounting, debit and credit explained.
-- Schedule for about 9:30 PM IST (evening across the GCC).
+- Publish immediately (Visibility → Public), then the user shares the link on Facebook and WhatsApp straight away. Do not schedule.
 - Guide uploads one step at a time when asked.
 
 ## Channel links (YouTube Studio → Customisation → Profile)
