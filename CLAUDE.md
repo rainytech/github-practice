@@ -4,7 +4,9 @@ Apply these to every new YouTube video / Short without being asked.
 
 ## Audience
 - CBSE Class 11 & 12 Accountancy students, mostly in the GCC (UAE, Saudi Arabia, Qatar, Kuwait, Oman, Bahrain), plus India.
-- Keep ₹ (matches NCERT, T.S. Grewal, D.K. Goel).
+- Keep ₹ (matches NCERT and T.S. Grewal). Do not mention D.K. Goel.
+- Channel handle: @GoodwillOnlineTuition (changed from @rainytp on 12 Nov 2026). New video every day.
+- Viewers watch (76% average) but don't subscribe: end every Short with the voice line "Follow for a new accounting Short every day!" and a Subscribe button animation.
 
 ## Video template
 - Copy `videos/rent-received-short/` (HyperFrames, 1080×1920, 4 scenes: hook → golden rules → apply → journal entry).
