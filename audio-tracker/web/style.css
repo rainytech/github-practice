@@ -66,20 +66,20 @@ input:focus, select:focus, textarea:focus { outline: 2px solid #555; background:
 .dups { margin: 0 20px 14px; padding: 10px 14px; border: 2px dashed var(--amber); border-radius: 6px; background: #BEB5A4; }
 .dups h2 { margin: 0 0 8px; font-size: 1.2rem; }
 .hint { font-weight: normal; font-size: .95rem; color: var(--muted); }
-.dup { display: grid; grid-template-columns: 150px 1fr 150px; gap: 12px; align-items: start; padding: 10px 0; border-top: 1px solid #8F8F8F; }
+.dup { display: grid; grid-template-columns: 260px 1fr 260px; gap: 12px; align-items: start; padding: 10px 0; border-top: 1px solid #8F8F8F; }
 .dup:first-child { border-top: none; }
-.dup img { width: 150px; height: 190px; object-fit: cover; object-position: top; border: 1px solid #666; cursor: zoom-in; }
+.dup img { width: 260px; height: 430px; object-fit: cover; object-position: top; border: 1px solid #666; cursor: zoom-in; }
 .dup .choices { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
 
-.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(560px, 1fr)); gap: 16px; padding: 4px 20px 20px; }
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(760px, 1fr)); gap: 16px; padding: 4px 20px 20px; }
 .card {
   background: var(--card); border: 1px solid var(--card-edge); border-radius: 8px; padding: 12px;
-  display: grid; grid-template-columns: 170px 1fr; gap: 14px;
+  display: grid; grid-template-columns: 340px 1fr; gap: 16px;
 }
 .card.target { background: var(--gold-bg); border: 4px solid var(--gold); padding: 9px; }
 .card.hidden-status { opacity: .75; }
-.thumb { width: 170px; height: 250px; object-fit: cover; object-position: top; border: 1px solid #666; cursor: zoom-in; background: #999; }
-.thumb-missing { width: 170px; height: 250px; display: flex; align-items: center; justify-content: center; text-align: center; border: 1px dashed #666; color: var(--muted); }
+.thumb { width: 340px; height: 560px; object-fit: cover; object-position: top; border: 1px solid #666; cursor: zoom-in; background: #999; }
+.thumb-missing { width: 340px; height: 560px; display: flex; align-items: center; justify-content: center; text-align: center; border: 1px dashed #666; color: var(--muted); }
 
 .card .title { width: 100%; font-size: 1.15rem; font-weight: bold; }
 .badges { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; }
@@ -120,8 +120,10 @@ details textarea { width: 100%; min-height: 70px; }
 .lightbox img { max-height: 92vh; max-width: 95vw; border: 2px solid #999; }
 .lightbox-hint { color: #DDD; margin: 6px; }
 
-@media (max-width: 640px) {
+@media (max-width: 800px) {
+  .dup { grid-template-columns: 1fr; }
+  .dup img { width: 100%; height: auto; }
   .cards { grid-template-columns: 1fr; padding: 4px 10px 20px; }
   .card { grid-template-columns: 1fr; }
-  .thumb, .thumb-missing { width: 100%; height: 260px; }
+  .thumb, .thumb-missing { width: 100%; height: 520px; }
 }

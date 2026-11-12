@@ -176,11 +176,17 @@ function openImage(src) {
   $("lightbox").hidden = false;
 }
 
+// Full-quality original screenshot (read-only); falls back to the small copy if the original was moved.
+function sharpImage(cls, shotId, thumb, alt) {
+  const full = shotId ? `/shot/${shotId}` : `/thumbs/${thumb}`;
+  const img = el("img", { class: cls, src: full, alt, title: "Click to enlarge", loading: "lazy", onclick: () => openImage(full) });
+  img.addEventListener("error", () => { if (thumb && !img.src.includes("/thumbs/")) img.src = `/thumbs/${thumb}`; }, { once: true });
+  return img;
+}
+
 function card(item) {
   const hiddenStatus = state.meta.hidden_statuses.includes(item.status);
-  const thumb = item.thumb
-    ? el("img", { class: "thumb", src: `/thumbs/${item.thumb}`, alt: "Screenshot", title: "Click to enlarge",
-                  onclick: () => openImage(item.latest_screenshot_id ? `/shot/${item.latest_screenshot_id}` : `/thumbs/${item.thumb}`) })
+  const thumb = item.thumb ? sharpImage("thumb", item.latest_screenshot_id, item.thumb, "Screenshot")
     : el("div", { class: "thumb-missing", text: "No screenshot" });
 
   const badges = el("div", { class: "badges" },
@@ -259,7 +265,7 @@ function renderDuplicates() {
     const c = d.candidate;
     const p = d.parsed || {};
     return el("div", { class: "dup" },
-      el("img", { src: `/thumbs/${d.thumb}`, alt: "New screenshot", title: "New screenshot — click to enlarge", onclick: () => openImage(`/shot/${d.screenshot_id}`) }),
+      sharpImage("", d.screenshot_id, d.thumb, "New screenshot"),
       el("div", {},
         el("div", {}, el("b", { text: "New screenshot: " }), `${p.title || "(no title read)"} — ${rupees(p.price)} — ${p.seller || "seller not visible"} — ${niceDate(d.observed_at)}`),
         el("div", {}, el("b", { text: "Existing item: " }), c ? `${c.title} — ${rupees(c.current_price)} — ${c.seller || "seller unknown"}` : "(missing)"),
@@ -269,8 +275,7 @@ function renderDuplicates() {
           el("button", { type: "button", text: "Different item — add as new", onclick: (e) => resolveDup(d.id, "different", e.target) }),
         ),
       ),
-      c && c.thumb ? el("img", { src: `/thumbs/${c.thumb}`, alt: "Existing item", title: "Existing item — click to enlarge",
-                                 onclick: () => openImage(c.latest_screenshot_id ? `/shot/${c.latest_screenshot_id}` : `/thumbs/${c.thumb}`) }) : el("div"),
+      c && c.thumb ? sharpImage("", c.latest_screenshot_id, c.thumb, "Existing item") : el("div"),
     );
   }));
 }

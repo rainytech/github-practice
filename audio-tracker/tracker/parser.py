@@ -13,8 +13,10 @@ FREE_RE = re.compile(r"^\s*free\s*$", re.I)
 GOOD_NUMBER = re.compile(r"^(?:\d+|\d{1,3}(?:,\d{2})*,\d{3}|\d{1,3}(?:,\d{3})+)$")
 # Looks like a price whose ₹ sign was misread, e.g. "?1,250" or "R1,250"
 SUSPECT_PRICE = re.compile(r"^\s*[^\w\s]?[A-Za-z]?\s?\d{1,3}(?:,\d{2,3})+\s*$|^\s*[^\w\s]\s?\d{3,7}\s*$")
-LISTED_RE = re.compile(r"\bListed\s+(.*?\bago)\b(?:\s+in\s+(.+))?", re.I)
+# "Listed 2 days ago in Kochi, KL", "Listed last Thursday in Kochi, KL", "Listed yesterday", "Listed in Aluva"
 LISTED_IN_RE = re.compile(r"\bListed\s+in\s+(.+)", re.I)
+LISTED_RE = re.compile(r"\bListed\s+(.+?)\s+in\s+(.+)", re.I)
+LISTED_NOLOC_RE = re.compile(r"\bListed\s+(.+)", re.I)
 
 STOP_HEADINGS = (
     "seller information", "seller details", "seller info", "location is approximate",
@@ -126,20 +128,24 @@ def parse(rows, width, height):
     # ---- listed / location
     listed_idx = None
     for i, r in enumerate(body):
-        m = LISTED_RE.search(r["text"])
-        if m:
-            listed_idx = i
+        text = r["text"]
+        if not re.match(r"\s*Listed\b", text, re.I):
+            continue
+        listed_idx = i
+        m_in, m, m_noloc = LISTED_IN_RE.search(text), LISTED_RE.search(text), LISTED_NOLOC_RE.search(text)
+        if m_in:
+            loc = m_in.group(1)
+        elif m:
             out["listed_ago"] = _norm("Listed " + m.group(1))
-            loc = _norm(m.group(2) or "")
-            if loc.endswith(",") and i + 1 < len(body) and len(body[i + 1]["text"]) <= 25:
-                loc = _norm(loc + " " + body[i + 1]["text"])
-            out["location"] = loc.rstrip(".,")
-            break
-        m = LISTED_IN_RE.search(r["text"])
-        if m:
-            listed_idx = i
-            out["location"] = _norm(m.group(1)).rstrip(".,")
-            break
+            loc = m.group(2)
+        else:
+            out["listed_ago"] = _norm(text)
+            loc = ""
+        loc = _norm(loc)
+        if loc.endswith(",") and i + 1 < len(body) and len(body[i + 1]["text"]) <= 25:
+            loc = _norm(loc + " " + body[i + 1]["text"])
+        out["location"] = loc.rstrip(".,")
+        break
     if not out["location"]:
         for i, r in enumerate(body):
             if "location is approximate" in r["text"].lower():
