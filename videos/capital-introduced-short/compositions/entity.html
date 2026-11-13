@@ -1,0 +1,46 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; font-family: "Inter", sans-serif; color: #fff; }
+    #entity-title { position: absolute; left: 108px; top: 210px; width: 864px; font-family: "Archivo Black", sans-serif; font-size: 70px; line-height: 1.1; }
+    #entity-title span { color: #F5B700; }
+    .who { position: absolute; top: 440px; width: 340px; height: 330px; background: #13285A; border: 4px solid #F5B700; border-radius: 22px; text-align: center; padding-top: 26px; }
+    .who .ico { font-size: 120px; line-height: 1.1; }
+    .who .nm { font-family: "Archivo Black", sans-serif; font-size: 52px; margin-top: 10px; }
+    .who .sub { font-size: 34px; font-weight: 700; color: #F5B700; }
+    #entity-owner { left: 108px; } #entity-biz { left: 632px; }
+    #entity-ne { position: absolute; left: 448px; top: 500px; width: 184px; text-align: center; font-family: "Archivo Black", sans-serif; font-size: 150px; line-height: 1; color: #FF7A7A; }
+    #entity-cash { position: absolute; left: 108px; top: 830px; width: 864px; text-align: center; font-family: "Archivo Black", sans-serif; font-size: 60px; color: #4ADE80; }
+    #entity-owes { position: absolute; left: 108px; top: 1000px; width: 864px; font-size: 58px; font-weight: 700; line-height: 1.3; text-align: center; }
+    #entity-owes .amt { color: #F5B700; display: inline-block; }
+    #entity-cap { position: absolute; left: 108px; top: 1230px; width: 864px; white-space: nowrap; text-align: center; }
+    #entity-stamp { display: inline-block; font-family: "Archivo Black", sans-serif; font-size: 104px; padding: 6px 40px; border: 9px solid #F5B700; border-radius: 18px; color: #F5B700; }
+  </style>
+  <div id="root" data-composition-id="entity" data-width="1080" data-height="1920">
+    <div id="entity-title" class="clip" data-start="0" data-duration="13.2" data-track-index="0">Business <span>Entity</span> Concept</div>
+    <div id="entity-owner" class="clip who" data-start="2.7" data-duration="10.5" data-track-index="1">
+      <div class="ico">👤</div><div class="nm">HARRIS</div><div class="sub">Owner</div>
+    </div>
+    <div id="entity-biz" class="clip who" data-start="3.0" data-duration="10.2" data-track-index="2">
+      <div class="ico">🏪</div><div class="nm">BUSINESS</div><div class="sub">Separate person</div>
+    </div>
+    <div id="entity-ne" class="clip" data-start="4.0" data-duration="9.2" data-track-index="3"><span id="entity-ne-in">≠</span></div>
+    <div id="entity-cash" class="clip" data-start="5.8" data-duration="7.4" data-track-index="4"><span id="entity-cash-in">💵 ₹1,00,000 cash →</span></div>
+    <div id="entity-owes" class="clip" data-start="8.3" data-duration="4.9" data-track-index="5">Business owes Harris <span class="amt">₹1,00,000</span></div>
+    <div id="entity-cap" class="clip" data-start="12.0" data-duration="1.2" data-track-index="6"><div id="entity-stamp">= CAPITAL</div></div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    tl.fromTo("#entity-title", { opacity: 0, y: -30 }, { opacity: 1, y: 0, duration: 0.4, ease: "power3.out" }, 0.2);
+    tl.fromTo("#entity-owner .ico", { opacity: 0, scale: 0.5 }, { opacity: 1, scale: 1, duration: 0.45, ease: "back.out(2)" }, 2.7);
+    tl.fromTo("#entity-owner .nm", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.35 }, 2.8);
+    tl.fromTo("#entity-biz .ico", { opacity: 0, scale: 0.5 }, { opacity: 1, scale: 1, duration: 0.45, ease: "back.out(2)" }, 3.0);
+    tl.fromTo("#entity-biz .nm", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.35 }, 3.1);
+    tl.fromTo("#entity-ne-in", { opacity: 0, scale: 2 }, { opacity: 1, scale: 1, duration: 0.35, ease: "back.out(2)" }, 4.0);
+    tl.fromTo("#entity-cash-in", { opacity: 0, x: -260 }, { opacity: 1, x: 0, duration: 0.8, ease: "power2.out" }, 5.8);
+    tl.fromTo("#entity-owes", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 8.3);
+    tl.fromTo("#entity-owes .amt", { scale: 1 }, { scale: 1.2, duration: 0.25, yoyo: true, repeat: 1, ease: "power2.out" }, 9.6);
+    tl.fromTo(["#entity-owner", "#entity-biz", "#entity-ne", "#entity-cash"], { opacity: 1 }, { opacity: 0.4, duration: 0.5 }, 11.0);
+    tl.fromTo("#entity-stamp", { opacity: 0, scale: 1.8, rotation: -14 }, { opacity: 1, scale: 1, rotation: -5, duration: 0.35, ease: "back.out(1.8)" }, 12.0);
+    window.__timelines["entity"] = tl;
+  </script>
+</template>
