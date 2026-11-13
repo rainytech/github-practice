@@ -1,0 +1,33 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; font-family: "Inter", sans-serif; color: #fff; }
+    .row { position: absolute; left: 70px; width: 840px; }
+    #apply-a { top: 300px; } #apply-b { top: 780px; }
+    .acc { font-family: "Archivo Black", sans-serif; font-size: 100px; }
+    .chip { display: inline-block; margin-top: 18px; font-size: 40px; font-weight: 700; padding: 10px 26px; border-radius: 40px; background: #13285A; border: 3px solid #F5B700; color: #F5B700; }
+    .stamp { display: inline-block; margin-top: 26px; font-family: "Archivo Black", sans-serif; font-size: 96px; padding: 6px 34px; border: 8px solid; border-radius: 16px; }
+    #apply-a .stamp { color: #4ADE80; border-color: #4ADE80; }
+    #apply-b .stamp { color: #FF7A7A; border-color: #FF7A7A; }
+      </style>
+  <div id="root" data-composition-id="apply" data-width="1080" data-height="1920">
+    <div id="apply-a" class="clip row" data-start="0" data-duration="9.7" data-track-index="0">
+      <div class="acc">Drawings A/c</div>
+      <div class="chip">Personal · Harris = Receiver</div><br>
+      <div class="stamp">DEBIT</div>
+    </div>
+    <div id="apply-b" class="clip row" data-start="6.15" data-duration="3.55" data-track-index="1">
+      <div class="acc">Cash A/c</div>
+      <div class="chip">Real · Goes out</div><br>
+      <div class="stamp">CREDIT</div>
+    </div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    [["#apply-a", 0.2, 1.95, 4.8], ["#apply-b", 6.15, 7.4, 8.65]].forEach(([id, t, tc, ts]) => {
+      tl.fromTo(id + " .acc", { opacity: 0, x: -60 }, { opacity: 1, x: 0, duration: 0.45, ease: "power3.out" }, t);
+      tl.fromTo(id + " .chip", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.4, ease: "power3.out" }, tc);
+      tl.fromTo(id + " .stamp", { opacity: 0, scale: 1.8, rotation: -14 }, { opacity: 1, scale: 1, rotation: -6, duration: 0.35, ease: "back.out(1.8)" }, ts);
+    });
+    window.__timelines["apply"] = tl;
+  </script>
+</template>
