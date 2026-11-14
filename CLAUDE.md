@@ -9,7 +9,9 @@ Apply these to every new YouTube video / Short without being asked.
 - Viewers watch (76% average) but don't subscribe: end every Short with the voice line "Follow for a new accounting Short every day!" and a Subscribe button animation.
 
 ## Video template
-- Copy `videos/rent-received-short/` (HyperFrames, 1080×1920, 4 scenes: hook → golden rules → apply → journal entry).
+- Copy `videos/drawings-short/` (HyperFrames, 1080×1920, 4 scenes: hook → concept → apply → journal entry, ending with the Follow line and Subscribe button). This "Harris" format got about double the views of the earlier ones (13 Nov 2026).
+- Replace the concept scene (`compositions/entity.html`) with the idea behind each entry; use the 3 golden rules there only when no specific concept fits.
+- Keep the "Harris" storyline (same business) for continuity, and end each Short with a pinned quiz comment that the next Short answers.
 - Logo: `assets/img/logo.png` — on the hook frame beside "GOODWILL TUITION CENTRE" and beside the closing call to action.
 - Voice: Kokoro `af_heart` (`npx hyperframes tts`, needs `HYPERFRAMES_PYTHON=/root/video-venv/bin/python`); normalise to about −14 LUFS.
 - Verify the accounting entry before rendering; commit and push the project and MP4.
