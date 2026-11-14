@@ -13,7 +13,7 @@ Apply these to every new YouTube video / Short without being asked.
 - Replace the concept scene (`compositions/entity.html`) with the idea behind each entry; use the 3 golden rules there only when no specific concept fits.
 - Keep the "Harris" storyline (same business) for continuity, and end each Short with a pinned quiz comment that the next Short answers.
 - Logo: `assets/img/logo.png` — on the hook frame beside "GOODWILL TUITION CENTRE" and beside the closing call to action.
-- Voice: Kokoro `af_heart` (`npx hyperframes tts`, needs `HYPERFRAMES_PYTHON=/root/video-venv/bin/python`); normalise to about −14 LUFS.
+- Voice: Kokoro `hm_omega`, Indian male (`npx hyperframes tts "..." -v hm_omega -l en-us`, needs `HYPERFRAMES_PYTHON=/root/video-venv/bin/python`); normalise to about −14 LUFS. Chosen 14 Nov 2026; Shorts before that used `af_heart`.
 - Verify the accounting entry before rendering; commit and push the project and MP4.
 
 ## Every description must include
