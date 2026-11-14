@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en" data-composition-variables='[{"id":"amount","type":"string","label":"Amount","default":"₹5,000"}]'>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body {
+        width: 1080px; height: 1920px; overflow: hidden;
+        background-color: #0B1B3F;
+        background-image: repeating-linear-gradient(0deg, rgba(255,255,255,0.045) 0 2px, transparent 2px 96px);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="41.1" data-width="1080" data-height="1920">
+      <div id="hook" data-composition-id="hook" data-composition-src="compositions/hook.html"
+           data-start="0" data-duration="5.7" data-track-index="1" data-track-kind="graphics" data-width="1080" data-height="1920"></div>
+      <div id="entity" data-composition-id="entity" data-composition-src="compositions/entity.html"
+           data-start="5.7" data-duration="15.2" data-track-index="1" data-track-kind="graphics" data-width="1080" data-height="1920"></div>
+      <div id="apply" data-composition-id="apply" data-composition-src="compositions/apply.html"
+           data-start="20.9" data-duration="9.7" data-track-index="1" data-track-kind="graphics" data-width="1080" data-height="1920"></div>
+      <div id="answer" data-composition-id="answer" data-composition-src="compositions/answer.html"
+           data-start="30.6" data-duration="10.5" data-track-index="1" data-track-kind="graphics" data-width="1080" data-height="1920"></div>
+      <audio id="vo-hook" class="clip" src="assets/voice/hook.wav" data-start="0.2" data-duration="5.08" data-track-index="5" data-volume="0.79"></audio>
+      <audio id="vo-entity" class="clip" src="assets/voice/entity.wav" data-start="5.9" data-duration="14.74" data-track-index="5" data-volume="0.79"></audio>
+      <audio id="vo-apply" class="clip" src="assets/voice/apply.wav" data-start="21.1" data-duration="9.15" data-track-index="5" data-volume="0.79"></audio>
+      <audio id="vo-answer" class="clip" src="assets/voice/answer.wav" data-start="30.8" data-duration="7.77" data-track-index="5" data-volume="0.79"></audio>
+    </div>
+    <script>
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = gsap.timeline({ paused: true });
+    </script>
+  </body>
+</html>

@@ -9,7 +9,9 @@ Apply these to every new YouTube video / Short without being asked.
 - Viewers watch (76% average) but don't subscribe: end every Short with the voice line "Follow for a new accounting Short every day!" and a Subscribe button animation.
 
 ## Video template
-- Copy `videos/rent-received-short/` (HyperFrames, 1080×1920, 4 scenes: hook → golden rules → apply → journal entry).
+- Copy `videos/drawings-short/` (HyperFrames, 1080×1920, 4 scenes: hook → concept → apply → journal entry, ending with the Follow line and Subscribe button). This "Harris" format got about double the views of the earlier ones (13 Nov 2026).
+- Replace the concept scene (`compositions/entity.html`) with the idea behind each entry; use the 3 golden rules there only when no specific concept fits.
+- Keep the "Harris" storyline (same business) for continuity, and end each Short with a pinned quiz comment that the next Short answers.
 - Logo: `assets/img/logo.png` — on the hook frame beside "GOODWILL TUITION CENTRE" and beside the closing call to action.
 - Voice: Kokoro `af_heart` (`npx hyperframes tts`, needs `HYPERFRAMES_PYTHON=/root/video-venv/bin/python`); normalise to about −14 LUFS.
 - Verify the accounting entry before rendering; commit and push the project and MP4.
@@ -38,4 +40,6 @@ Online Accountancy classes for CBSE Class 11 & 12 students in UAE, Saudi Arabia,
 - Golden Rules (Rent paid) — https://youtube.com/shorts/eY_sLSSbkfI
 - Rent Received — https://youtube.com/shorts/qpoDm5QZLDI
 - Salary Paid (₹15,000 cash) — https://youtube.com/shorts/dPcozM6OufE (published 12 Nov 2026, 7:56 AM IST)
+- Started business with cash (Business Entity Concept) — https://youtube.com/shorts/B121TZv2bXE (published 13 Nov 2026)
+- Drawings (₹5,000 cash for personal use) — https://youtube.com/shorts/SsZHTMTbUYc (published 13 Nov 2026)
 - Channel views: 4,253 (10 Nov 2026) → 4,310 (11 Nov 2026). Compare again around 18 Nov.
