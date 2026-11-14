@@ -13,7 +13,7 @@ Apply these to every new YouTube video / Short without being asked.
 - Replace the concept scene (`compositions/entity.html`) with the idea behind each entry; use the 3 golden rules there only when no specific concept fits.
 - Keep the "Harris" storyline (same business) for continuity, and end each Short with a pinned quiz comment that the next Short answers.
 - Logo: `assets/img/logo.png` — on the hook frame beside "GOODWILL TUITION CENTRE" and beside the closing call to action.
-- Voice: Kokoro `af_heart` (`npx hyperframes tts`, needs `HYPERFRAMES_PYTHON=/root/video-venv/bin/python`); normalise to about −14 LUFS.
+- Voice: Kokoro `hm_omega`, Indian male (`npx hyperframes tts "..." -v hm_omega -l en-us`, needs `HYPERFRAMES_PYTHON=/root/video-venv/bin/python`); normalise to about −14 LUFS. Chosen 14 Nov 2026; Shorts before that used `af_heart`.
 - Verify the accounting entry before rendering; commit and push the project and MP4.
 
 ## Every description must include
@@ -42,4 +42,5 @@ Online Accountancy classes for CBSE Class 11 & 12 students in UAE, Saudi Arabia,
 - Salary Paid (₹15,000 cash) — https://youtube.com/shorts/dPcozM6OufE (published 12 Nov 2026, 7:56 AM IST)
 - Started business with cash (Business Entity Concept) — https://youtube.com/shorts/B121TZv2bXE (published 13 Nov 2026)
 - Drawings (₹5,000 cash for personal use) — https://youtube.com/shorts/SsZHTMTbUYc (published 13 Nov 2026)
+- Purchases: To Cash or To Ravi (cash vs credit, first in Indian male voice) — https://youtube.com/shorts/4BKv5oYPLZo (published 14 Nov 2026)
 - Channel views: 4,253 (10 Nov 2026) → 4,310 (11 Nov 2026). Compare again around 18 Nov.
