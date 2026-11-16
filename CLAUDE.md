@@ -27,6 +27,7 @@ Online Accountancy classes for CBSE Class 11 & 12 students in UAE, Saudi Arabia,
 
 ## Upload settings to give the user
 - Category: Education · Type: Problem walkthrough · Class 11/12 · Exam: CBSE Class 11/12, NCERT (Kerala DHSE as extra).
+- Title: 100 characters at most (YouTube limit) — count it before giving it, `#shorts` included.
 - Audience: No, it's not made for kids.
 - Tags include: cbse accountancy, ncert accountancy, class 11 accountancy, class 12 accountancy, accountancy tuition uae, online accountancy tuition dubai, journal entry, golden rules of accounting, debit and credit explained.
 - Publish immediately (Visibility → Public), then the user shares the link on Facebook and WhatsApp straight away. Do not schedule.
@@ -44,4 +45,5 @@ Online Accountancy classes for CBSE Class 11 & 12 students in UAE, Saudi Arabia,
 - Drawings (₹5,000 cash for personal use) — https://youtube.com/shorts/SsZHTMTbUYc (published 13 Nov 2026)
 - Purchases: To Cash or To Ravi (cash vs credit, first in Indian male voice) — https://youtube.com/shorts/4BKv5oYPLZo (published 14 Nov 2026)
 - Sales: Anu is the debtor (cash vs credit sale) — https://youtube.com/shorts/vn51CmqVDjM (published 15 Nov 2026)
+- Furniture: Purchases A/c or Furniture A/c? (fixed asset) — https://youtube.com/shorts/p4JwsQXaMiI (published 16 Nov 2026)
 - Channel views: 4,253 (10 Nov 2026) → 4,310 (11 Nov 2026). Compare again around 18 Nov.
