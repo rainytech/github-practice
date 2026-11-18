@@ -1,0 +1,54 @@
+T.S. Grewal Class 11 (CBSE, 2025–26 edition) · Chapter 8: Journal · Practical Problem 1 · Page 8.57
+Transaction: 2023, April 3 — Goods purchased from Pankaj for credit ₹18,000
+
+✅ JOURNAL ENTRY
+Date: 2023, April 3
+Purchases A/c … Dr. 18,000
+   To Pankaj A/c 18,000
+(Being goods purchased on credit from Pankaj)
+
+📘 STEP-BY-STEP EXPLANATION
+Two things happen in this transaction:
+1️⃣ Goods come into the business → this is a PURCHASE.
+2️⃣ Payment is made later → this is a CREDIT transaction.
+
+When goods are bought for cash, we write "To Cash A/c".
+When goods are bought on credit, we write the supplier's name — here, "To Pankaj A/c".
+Why? Because the business must pay Pankaj ₹18,000 later. Writing his name records whom we owe.
+Pankaj is now our CREDITOR.
+
+📏 RULES APPLIED
+• Purchases A/c — goods come in → Debit
+• Pankaj A/c — Personal Account; Pankaj is the giver → "Credit the giver"
+Modern approach: Purchases (expense) increases → Debit; Creditor (liability) increases → Credit.
+
+⚠️ COMMON MISTAKES STUDENTS MAKE
+✗ Writing "Goods A/c" — always use Purchases A/c for goods bought for resale.
+✗ Writing "To Cash A/c" — no cash is paid on April 3; it is a credit purchase.
+✗ Writing "To Creditors A/c" — in the journal, write the creditor's name: Pankaj A/c.
+
+🔜 COMING NEXT (same question)
+April 7 — Goods returned to Pankaj ₹12,000. Which account is debited? Comment your answer 👇
+Then: April 9 — Goods returned by Naresh ₹1,400.
+
+📚 T.S. GREWAL CLASS 11 SOLUTIONS — ONE ENTRY A DAY
+We solve T.S. Grewal back exercises one transaction at a time, starting with the ones students get wrong most often. The reference (chapter, problem, page) is on screen so you can match it with your own textbook.
+Our earlier basics Shorts:
+• Business started with cash (Business Entity Concept): https://youtube.com/shorts/B121TZv2bXE
+• Drawings: https://youtube.com/shorts/SsZHTMTbUYc
+• Purchases — To Cash or To Ravi?: https://youtube.com/shorts/4BKv5oYPLZo
+• Sales — Who is the debtor?: https://youtube.com/shorts/vn51CmqVDjM
+• Furniture — Purchases A/c or Furniture A/c?: https://youtube.com/shorts/p4JwsQXaMiI
+
+👨‍🏫 ABOUT US
+Goodwill Tuition Centre, Ernakulam, Kerala — 30 years of teaching Accountancy.
+A new accounting Short every day. Follow and turn on notifications 🔔
+
+🌐 www.goodwillonlinetuition.com
+📞 WhatsApp: +91 95679 02805 → https://wa.me/919567902805
+Book a paid demo class on WhatsApp.
+Online Accountancy classes for CBSE Class 11 & 12 students in UAE, Saudi Arabia, Qatar, Kuwait, Oman & Bahrain.
+
+Disclaimer: This video is an independent explanation for students. T.S. Grewal is referred to only so students can find the question in their own textbook.
+
+#TSGrewal #TSGrewalSolutions #Class11Accountancy #CBSE #JournalEntry #Accountancy #shorts

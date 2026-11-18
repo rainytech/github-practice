@@ -16,6 +16,15 @@ Apply these to every new YouTube video / Short without being asked.
 - Voice: Kokoro `hm_omega`, Indian male (`npx hyperframes tts "..." -v hm_omega -l en-us`, needs `HYPERFRAMES_PYTHON=/root/video-venv/bin/python`); normalise to about −14 LUFS. Chosen 14 Nov 2026; Shorts before that used `af_heart`.
 - Verify the accounting entry before rendering; commit and push the project and MP4.
 
+## T.S. Grewal series (from 18 Nov 2026)
+- Daily Shorts now solve T.S. Grewal Class 11 (CBSE, 2025–26 edition) back exercises, one transaction per Short. The user sends the question (chapter, problem, page); start with the transactions students get wrong.
+- Use the textbook's exact names, amounts and dates. The answer must match the book; if it doesn't, stop and tell the user.
+- Hook shows a reference card ("T.S. Grewal · Class 11 · Ch 8 / Practical Problem 1 · Pg 8.57 · 2025–26"); title starts "TS Grewal Class 11 Ch N …".
+- Quote only the transaction being solved; never copy whole pages. Description ends with a one-line note that T.S. Grewal is referred to only so students can find the question.
+- Voice says "T. S. Grayvaal" (spelled that way for TTS) so it sounds like "Grewal".
+- Write title, description and tags to `videos/<project>/upload/` and check lengths (title ≤100, description ≤5,000, tags ≤500).
+- Order for Ch 8 Practical Problem 1: Apr 3 (purchase from Pankaj, done) → Apr 7 (goods returned to Pankaj) → Apr 9 (goods returned by Naresh).
+
 ## Every description must include
 ```
 🌐 www.goodwillonlinetuition.com
