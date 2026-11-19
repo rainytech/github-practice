@@ -23,7 +23,7 @@ Apply these to every new YouTube video / Short without being asked.
 - Quote only the transaction being solved; never copy whole pages. Description ends with a one-line note that T.S. Grewal is referred to only so students can find the question.
 - Voice says "T. S. Grayvaal" (spelled that way for TTS) so it sounds like "Grewal".
 - Write title, description and tags to `videos/<project>/upload/` and check lengths (title ≤100, description ≤5,000, tags ≤500).
-- Order for Ch 8 Practical Problem 1: Apr 3 (purchase from Pankaj, done) → Apr 7 (goods returned to Pankaj) → Apr 9 (goods returned by Naresh).
+- Order for Ch 8 Practical Problem 1: Apr 3 (purchase from Pankaj, done) → Apr 7 (goods returned to Pankaj, done; book uses "Purchases Return A/c") → Apr 9 (goods returned by Naresh).
 
 ## Every description must include
 ```

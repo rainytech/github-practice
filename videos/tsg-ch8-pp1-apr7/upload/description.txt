@@ -1,0 +1,52 @@
+T.S. Grewal Class 11 (CBSE, 2025–26 edition) · Chapter 8: Journal · Practical Problem 1 · Page 8.57
+Transaction: 2023, April 7 — Goods returned to Pankaj ₹12,000
+
+✅ JOURNAL ENTRY
+Date: 2023, April 7
+Pankaj A/c … Dr. 12,000
+   To Purchases Return A/c 12,000
+(Being goods returned to Pankaj)
+
+📘 STEP-BY-STEP EXPLANATION
+On April 3, the business bought goods from Pankaj on credit for ₹18,000 — so we owed Pankaj ₹18,000.
+On April 7, goods worth ₹12,000 are sent back to Pankaj.
+1️⃣ Goods go OUT of the business back to the supplier → this is a PURCHASES RETURN (also called RETURN OUTWARD).
+2️⃣ Pankaj RECEIVES the goods → his account is debited.
+After this entry, we owe Pankaj only ₹18,000 − ₹12,000 = ₹6,000.
+
+📏 RULES APPLIED
+• Pankaj A/c — Personal Account; Pankaj is the receiver → "Debit the receiver"
+• Purchases Return A/c — goods go back → Credit
+Modern approach: Creditor (liability) decreases → Debit; Purchases Return increases → Credit.
+
+⚠️ COMMON MISTAKES STUDENTS MAKE
+✗ Crediting "Purchases A/c" directly — T.S. Grewal uses a separate Purchases Return A/c.
+✗ Writing "Goods A/c" — never use Goods A/c in the journal.
+✗ Debiting Cash A/c — no cash is involved; we simply owe Pankaj less.
+✗ Mixing up the names: Purchases Return = Return Outward; Sales Return = Return Inward.
+
+🔜 COMING NEXT (same question)
+April 9 — Goods returned by Naresh ₹1,400. Which account is debited? Comment your answer 👇
+
+📚 T.S. GREWAL CLASS 11 SOLUTIONS — ONE ENTRY A DAY
+Ch 8 Practical Problem 1 so far:
+• April 3 — Goods purchased from Pankaj for credit: https://youtube.com/shorts/_2O6tqrgyyM
+• April 7 — Goods returned to Pankaj (this Short)
+Basics Shorts:
+• Business started with cash (Business Entity Concept): https://youtube.com/shorts/B121TZv2bXE
+• Purchases — To Cash or To Ravi?: https://youtube.com/shorts/4BKv5oYPLZo
+• Sales — Who is the debtor?: https://youtube.com/shorts/vn51CmqVDjM
+• Furniture — Purchases A/c or Furniture A/c?: https://youtube.com/shorts/p4JwsQXaMiI
+
+👨‍🏫 ABOUT US
+Goodwill Tuition Centre, Ernakulam, Kerala — 30 years of teaching Accountancy.
+A new accounting Short every day. Follow and turn on notifications 🔔
+
+🌐 www.goodwillonlinetuition.com
+📞 WhatsApp: +91 95679 02805 → https://wa.me/919567902805
+Book a paid demo class on WhatsApp.
+Online Accountancy classes for CBSE Class 11 & 12 students in UAE, Saudi Arabia, Qatar, Kuwait, Oman & Bahrain.
+
+Disclaimer: This video is an independent explanation for students. T.S. Grewal is referred to only so students can find the question in their own textbook.
+
+#TSGrewal #TSGrewalSolutions #Class11Accountancy #CBSE #JournalEntry #PurchasesReturn #shorts
