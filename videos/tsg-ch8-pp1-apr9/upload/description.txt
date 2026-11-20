@@ -1,0 +1,52 @@
+T.S. Grewal Class 11 (CBSE, 2025–26 edition) · Chapter 8: Journal · Practical Problem 1 · Page 8.57
+Transaction: 2023, April 9 — Goods returned by Naresh ₹1,400
+
+✅ JOURNAL ENTRY
+Date: 2023, April 9
+Sales Return A/c … Dr. 1,400
+   To Naresh A/c 1,400
+(Being goods returned by Naresh)
+
+📘 STEP-BY-STEP EXPLANATION
+On April 5, the business sold goods to Naresh on credit for ₹9,000 — so Naresh owed us ₹9,000.
+On April 9, Naresh sends back goods worth ₹1,400.
+1️⃣ Goods COME BACK into the business from the customer → this is a SALES RETURN (also called RETURN INWARD).
+2️⃣ Naresh GIVES the goods back → his account is credited.
+After this entry, Naresh owes us only ₹9,000 − ₹1,400 = ₹7,600. Naresh is still our DEBTOR.
+
+📏 RULES APPLIED
+• Sales Return A/c — goods come back → Debit
+• Naresh A/c — Personal Account; Naresh is the giver → "Credit the giver"
+Modern approach: Sales Return increases → Debit; Debtor (asset) decreases → Credit.
+
+⚠️ COMMON MISTAKES STUDENTS MAKE
+✗ Debiting "Sales A/c" directly — T.S. Grewal uses a separate Sales Return A/c.
+✗ Writing "Goods A/c" — never use Goods A/c in the journal.
+✗ Crediting Cash A/c — no cash is paid back; Naresh simply owes us less.
+✗ Mixing up the two returns:
+   Purchases Return (Return Outward) → goods go back to the supplier → Credited
+   Sales Return (Return Inward) → goods come back from the customer → Debited
+
+📚 T.S. GREWAL CLASS 11 SOLUTIONS — ONE ENTRY A DAY
+Ch 8 Practical Problem 1 so far:
+• April 3 — Goods purchased from Pankaj for credit: https://youtube.com/shorts/_2O6tqrgyyM
+• April 7 — Goods returned to Pankaj (Purchases Return): https://youtube.com/shorts/1f0-mvuEwmk
+• April 9 — Goods returned by Naresh (Sales Return) — this Short
+Basics Shorts:
+• Business started with cash (Business Entity Concept): https://youtube.com/shorts/B121TZv2bXE
+• Purchases — To Cash or To Ravi?: https://youtube.com/shorts/4BKv5oYPLZo
+• Sales — Who is the debtor?: https://youtube.com/shorts/vn51CmqVDjM
+• Furniture — Purchases A/c or Furniture A/c?: https://youtube.com/shorts/p4JwsQXaMiI
+
+👨‍🏫 ABOUT US
+Goodwill Tuition Centre, Ernakulam, Kerala — 30 years of teaching Accountancy.
+A new accounting Short every day. Follow and turn on notifications 🔔
+
+🌐 www.goodwillonlinetuition.com
+📞 WhatsApp: +91 95679 02805 → https://wa.me/919567902805
+Book a paid demo class on WhatsApp.
+Online Accountancy classes for CBSE Class 11 & 12 students in UAE, Saudi Arabia, Qatar, Kuwait, Oman & Bahrain.
+
+Disclaimer: This video is an independent explanation for students. T.S. Grewal is referred to only so students can find the question in their own textbook.
+
+#TSGrewal #TSGrewalSolutions #Class11Accountancy #CBSE #JournalEntry #SalesReturn #shorts
