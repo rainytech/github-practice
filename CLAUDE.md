@@ -24,7 +24,15 @@ Apply these to every new YouTube video / Short without being asked.
 - Voice says "T. S. Grayvaal" (spelled that way for TTS) so it sounds like "Grewal".
 - Write title, description and tags to `videos/<project>/upload/` and check lengths (title ≤100, description ≤5,000, tags ≤500).
 - Always paste the full description in the chat reply too, ready to copy — never just point to the file.
-- Order for Ch 8 Practical Problem 1: Apr 3 (purchase from Pankaj, done) → Apr 7 (goods returned to Pankaj, done; book uses "Purchases Return A/c") → Apr 9 (goods returned by Naresh, done; book uses "Sales Return A/c"). Apr 10 "Cash paid to Ajay" is ambiguous — ask the user before making it.
+- Template for T.S. Grewal Shorts: copy `videos/tsg-ch8-pp1-apr9/` (reference card hook, recall chip in the concept scene, dated entry box, "Remember"/"Coming next" box).
+- Ch 8 Practical Problem 1 (Pg 8.57), done: Apr 3 purchase from Pankaj (Purchases A/c Dr. To Pankaj A/c 18,000) · Apr 7 goods returned to Pankaj (Pankaj A/c Dr. To Purchases Return A/c 12,000) · Apr 9 goods returned by Naresh (Sales Return A/c Dr. To Naresh A/c 1,400).
+- Ch 8 PP1, still to make, in this order:
+  1. NEXT — Apr 16 Rent paid to Amit ₹5,000: Rent A/c Dr. 5,000 To Cash A/c 5,000. Trap: not "Amit A/c" — Amit is only the landlord; the expense is rent.
+  2. Apr 19 Sold goods to Sumit for cash ₹6,000: Cash A/c Dr. 6,000 To Sales A/c 6,000. Trap: cash sale, so no "Sumit A/c". Pairs with Apr 16: "when NOT to write the person's name".
+  3. Apr 30 Cash received from Naresh on account ₹5,000: Cash A/c Dr. 5,000 To Naresh A/c 5,000. Explain "on account"; Naresh then owes ₹9,000 − 1,400 − 5,000 = ₹2,600.
+  4. Apr 10 Cash paid to Ajay ₹6,000 (the book really says Ajay; he appears nowhere else): likely Ajay A/c Dr. 6,000 To Cash A/c 6,000 — confirm the book's answer with the user first.
+  Skip as Shorts (too simple / already covered): Apr 12 Commission received ₹2,700, Apr 15 Furniture purchased ₹7,000, Apr 24 Cash Sales ₹7,000, Apr 30 Salaries paid ₹10,000.
+- Ask the user for the book's narration when unsure; so far we used "(Being goods … )" wording and the user did not object.
 
 ## Every description must include
 ```
