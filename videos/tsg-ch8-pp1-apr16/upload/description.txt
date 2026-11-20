@@ -1,0 +1,54 @@
+T.S. Grewal Class 11 (CBSE, 2025–26 edition) · Chapter 8: Journal · Practical Problem 1 · Page 8.57
+Transaction: 2023, April 16 — Rent paid to Amit ₹5,000
+
+✅ JOURNAL ENTRY
+Date: 2023, April 16
+Rent A/c … Dr. 5,000
+   To Cash A/c 5,000
+(Being rent paid to Amit)
+
+📘 STEP-BY-STEP EXPLANATION
+Amit is only the landlord — the owner of the building we use.
+We pay ₹5,000 in cash for the use of his building. That is RENT, an expense of the business.
+1️⃣ Rent is an expense → Rent A/c is debited.
+2️⃣ Cash goes out of the business → Cash A/c is credited.
+Amit is paid in full. He owes us nothing, and we owe him nothing — so Amit's account does not appear in this entry.
+
+📏 RULES APPLIED
+• Rent A/c — Nominal Account → "Debit all expenses and losses"
+• Cash A/c — Real Account → "Credit what goes out"
+Modern approach: Expense increases → Debit; Asset (Cash) decreases → Credit.
+
+⚠️ COMMON MISTAKES STUDENTS MAKE
+✗ Debiting "Amit A/c" — Amit is not our debtor. We are paying for rent, not lending money to Amit.
+✗ Crediting "Amit A/c" — we do not owe Amit anything; the rent is paid in cash.
+✓ Write a person's name in the entry only when he owes us, or we owe him.
+
+❓ QUIZ FOR TOMORROW (answer in the comments)
+April 19: Sold goods to Sumit for cash ₹6,000.
+Sumit A/c or Cash A/c — which account is debited?
+
+📚 T.S. GREWAL CLASS 11 SOLUTIONS — ONE ENTRY A DAY
+Ch 8 Practical Problem 1 so far:
+• April 3 — Goods purchased from Pankaj for credit: https://youtube.com/shorts/_2O6tqrgyyM
+• April 7 — Goods returned to Pankaj (Purchases Return): https://youtube.com/shorts/1f0-mvuEwmk
+• April 9 — Goods returned by Naresh (Sales Return): https://youtube.com/shorts/fzdeHb3QRrw
+• April 16 — Rent paid to Amit — this Short
+Basics Shorts:
+• Golden Rules (Rent paid): https://youtube.com/shorts/eY_sLSSbkfI
+• Purchases — To Cash or To Ravi?: https://youtube.com/shorts/4BKv5oYPLZo
+• Sales — Who is the debtor?: https://youtube.com/shorts/vn51CmqVDjM
+• Furniture — Purchases A/c or Furniture A/c?: https://youtube.com/shorts/p4JwsQXaMiI
+
+👨‍🏫 ABOUT US
+Goodwill Tuition Centre, Ernakulam, Kerala — 30 years of teaching Accountancy.
+A new accounting Short every day. Follow and turn on notifications 🔔
+
+🌐 www.goodwillonlinetuition.com
+📞 WhatsApp: +91 95679 02805 → https://wa.me/919567902805
+Book a paid demo class on WhatsApp.
+Online Accountancy classes for CBSE Class 11 & 12 students in UAE, Saudi Arabia, Qatar, Kuwait, Oman & Bahrain.
+
+Disclaimer: This video is an independent explanation for students. T.S. Grewal is referred to only so students can find the question in their own textbook.
+
+#TSGrewal #TSGrewalSolutions #Class11Accountancy #CBSE #JournalEntry #RentPaid #shorts
