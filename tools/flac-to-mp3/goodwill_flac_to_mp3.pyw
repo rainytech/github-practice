@@ -218,7 +218,7 @@ def guess_from_names(path, root, single):
     the artist is never guessed from a file name, only from folders."""
     g = {}
     raw = os.path.splitext(os.path.basename(path))[0].replace("_", " ")
-    raw = SPAM.sub("  ", raw)
+    raw = re.sub(r"\(\s*\)|\[\s*\]", "  ", SPAM.sub("  ", raw))
     stem = NAME_NOISE.sub("  ", raw).strip()
     m = re.match(r"^\d-(\d{2})\s*[-.]?\s*(.+)$", stem) or \
         re.match(r"^(0\d|\d{1,3}(?=\s*[-.)]))\s*[-.)]?\s*(.+)$", stem)
