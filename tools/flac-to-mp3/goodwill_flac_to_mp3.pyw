@@ -189,20 +189,31 @@ def read_text(path):
     return data.decode("latin-1")
 
 
+NAME_NOISE = re.compile(
+    r"\((?:[^)]*youtube[^)]*|[^)]*\.(?:com|net|org|in|se|co)\b[^)]*|\s*\d+\s*kbps\s*)\)"
+    r"|\b(?:full\s+video\s+hd\s+song|full\s+video\s+song|full\s+hd\s+video|full\s+video|full\s+song"
+    r"|lyrical\s+video\s+song|lyrical\s+video|lyric\s+video|official\s+video|official\s+audio"
+    r"|video\s+song|audio\s+song|hd|1080p|720p|480p|4k|remastered)\b", re.I)
+
+
 def guess_from_names(path, root, single):
-    """Fallback tags from file and folder names, e.g. Artist\\Album\\03 - Title.mp3"""
+    """Fallback tags from file and folder names.
+    Title = first part of the file name (song name first, as in Malayalam/YouTube downloads);
+    the artist is never guessed from a file name, only from folders."""
     g = {}
-    stem = os.path.splitext(os.path.basename(path))[0].replace("_", " ")
-    stem = re.sub(r"\s+", " ", stem).strip()
+    raw = os.path.splitext(os.path.basename(path))[0].replace("_", " ")
+    stem = NAME_NOISE.sub("  ", raw).strip()
     m = re.match(r"^\d-(\d{2})\s*[-.]?\s*(.+)$", stem) or \
         re.match(r"^(0\d|\d{1,3}(?=\s*[-.)]))\s*[-.)]?\s*(.+)$", stem)
     if m:
         g["track"] = int(m.group(1)) or None
         stem = m.group(2).strip()
-    if " - " in stem:
-        artist, stem = stem.split(" - ", 1)
-        g["artist"] = artist.strip()
-    g["title"] = stem.strip() or os.path.splitext(os.path.basename(path))[0]
+    parts = [p.strip(" -.,") for p in re.split(r"\s+-\s+|\s*[｜|]\s*|\s{2,}", stem)]
+    title = next((p for p in parts if p), "")
+    title = re.sub(r"\s+song\s+by\s+.*$", "", title, flags=re.I).strip()
+    if NAME_NOISE.search(raw):          # download names: "Manjani Kombil song (320 KBps)"
+        title = re.sub(r"\s+song$", "", title, flags=re.I).strip()
+    g["title"] = re.sub(r"\s+", " ", title) or re.sub(r"\s+", " ", raw).strip()
     if not single:
         parent = os.path.dirname(path)
         if is_inside(parent, root) and norm(parent) != norm(root):
@@ -602,9 +613,9 @@ class Engine:
             if not title:
                 title = g["title"]
                 s.guessed.append(f"Title '{title}' (file name)")
-            if not artist and (g.get("artist") or g.get("folder_artist")):
-                artist = g.get("artist") or g["folder_artist"]
-                s.guessed.append(f"Artist '{artist}' ({'file name' if g.get('artist') else 'folder'})")
+            if not artist and g.get("folder_artist"):
+                artist = g["folder_artist"]
+                s.guessed.append(f"Artist '{artist}' (folder)")
             if not album and g.get("album"):
                 album = g["album"]
                 s.guessed.append(f"Album '{album}' (folder)")
@@ -647,8 +658,12 @@ class Engine:
         used = set()
         for s in res.songs:
             t = s.tags
-            artist_dir = safe_name(t.get("album_artist") or t.get("artist") or "Unknown Artist")
-            album_dir = safe_name(t.get("album") or "Unknown Album")
+            artist = t.get("album_artist") or t.get("artist")
+            if artist or t.get("album"):
+                folder = os.path.join(res.out_root, safe_name(artist or "Unknown Artist"),
+                                      safe_name(t.get("album") or "Unknown Album"))
+            else:   # no artist, no album: keep it in a folder named like its source folder
+                folder = os.path.join(res.out_root, safe_name(os.path.basename(os.path.dirname(s.src))))
             width = 3 if max(s.track or 0, s.tracktotal or 0) >= 100 else 2
             multi = (s.disctotal or 0) > 1 or (s.disc or 0) > 1
             prefix = ""
@@ -656,7 +671,6 @@ class Engine:
                 prefix = f"{s.track:0{width}d} - "
                 if multi:
                     prefix = f"{s.disc or 1}-{prefix}"
-            folder = os.path.join(res.out_root, artist_dir, album_dir)
             title = safe_name(t["title"])
             room = 245 - len(folder) - len(prefix) - len(".mp3") - 5
             if len(title) > room:
@@ -724,6 +738,10 @@ class Engine:
             L(f"Left out for Stage 2 - {s.note}: {s.src}")
         for path, err in res.errors:
             L(f"CANNOT READ: {path} - {err}")
+        if res.todo:
+            L("Planned file names (check before Start):")
+            for s in res.todo:
+                L(f"   {s.rel}   <-   {os.path.basename(s.src)}")
         L("-" * 60)
 
     # ---------- convert
