@@ -34,6 +34,14 @@ Apply these to every new YouTube video / Short without being asked.
   Skip as Shorts (too simple / already covered): Apr 12 Commission received ₹2,700, Apr 15 Furniture purchased ₹7,000, Apr 24 Cash Sales ₹7,000, Apr 30 Salaries paid ₹10,000.
 - Ask the user for the book's narration when unsure; so far we used "(Being goods … )" wording and the user did not object.
 
+## Rectification of Errors series (from 21 Nov 2026)
+- T.S. Grewal Class 11 Rectification of Errors back exercises, one error per Short. Chapter number and page still to be confirmed by the user (first Short used "Q 5 (ii)" only).
+- The user's 4-step method, shown in every Short: Step 1 Wrong entry (red) → Step 2 Reverse of the wrong entry (orange) → Step 3 Correct entry (green) → Step 4 Rectifying entry = Step 2 + Step 3, with the common account cancelling (purple).
+- Template: copy `videos/tsg-rect-q5-ii/` (hook "THE ERROR" + "RECTIFY IT?", scene 2 = steps 1–2, scene 3 = step 3 + cancel stamp, scene 4 = step 4 + "Remember the 4 steps").
+- Narration style: "(Being … wrongly debited/credited to …, now rectified)". Say whether Suspense A/c is needed.
+- Order: two-sided errors first (principle, omission, commission, wrong amount), then one-sided errors with Suspense A/c, then before vs after the Trial Balance.
+- Done: Q 5 (ii) Salary paid to Ajay debited to his Personal Account ₹8,000 → Salary A/c Dr. To Ajay's A/c.
+
 ## Every description must include
 ```
 🌐 www.goodwillonlinetuition.com

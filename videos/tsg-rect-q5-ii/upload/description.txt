@@ -1,0 +1,55 @@
+T.S. Grewal Class 11 (CBSE, 2025–26 edition) · Rectification of Errors · Question 5 (ii)
+Error: Salary paid to an employee, Ajay, is debited to his Personal Account ₹8,000.
+
+✅ RECTIFYING JOURNAL ENTRY
+Salary A/c … Dr. 8,000
+   To Ajay's A/c 8,000
+(Being salary paid to Ajay wrongly debited to his Personal Account, now rectified)
+
+📘 THE 4-STEP METHOD (works for every rectification question)
+STEP 1 — Wrong entry (what was done):
+Ajay's A/c … Dr. 8,000
+   To Cash A/c 8,000
+
+STEP 2 — Reverse the wrong entry (swap Dr. and Cr.):
+Cash A/c … Dr. 8,000
+   To Ajay's A/c 8,000
+
+STEP 3 — Correct entry (what should have been done):
+Salary A/c … Dr. 8,000
+   To Cash A/c 8,000
+
+STEP 4 — Rectifying entry = Step 2 + Step 3
+Cash A/c is debited in Step 2 and credited in Step 3, so Cash cancels out.
+What remains: Salary A/c Dr. 8,000 To Ajay's A/c 8,000 ✅
+
+💡 WHY?
+Cash was recorded correctly — the money really was paid.
+Only the debit went to the wrong account: Ajay's Personal Account instead of Salary A/c (an expense).
+So we move the debit from Ajay's A/c to Salary A/c.
+Both sides were affected equally, so the Trial Balance still agrees — no Suspense A/c is needed.
+
+⚠️ COMMON MISTAKES
+✗ Writing "Salary A/c Dr. To Cash A/c" — that records the payment a second time.
+✗ Using Suspense A/c — not needed, because the error affects both sides equally.
+✗ Forgetting the narration "…now rectified".
+
+📚 T.S. GREWAL CLASS 11 SOLUTIONS — ONE QUESTION A DAY
+Journal series (Ch 8 Practical Problem 1):
+• April 3 — Goods purchased from Pankaj for credit: https://youtube.com/shorts/_2O6tqrgyyM
+• April 7 — Goods returned to Pankaj (Purchases Return): https://youtube.com/shorts/1f0-mvuEwmk
+• April 9 — Goods returned by Naresh (Sales Return): https://youtube.com/shorts/fzdeHb3QRrw
+Rectification of Errors series starts with this Short — more errors coming daily.
+
+👨‍🏫 ABOUT US
+Goodwill Tuition Centre, Ernakulam, Kerala — 30 years of teaching Accountancy.
+A new accounting Short every day. Follow and turn on notifications 🔔
+
+🌐 www.goodwillonlinetuition.com
+📞 WhatsApp: +91 95679 02805 → https://wa.me/919567902805
+Book a paid demo class on WhatsApp.
+Online Accountancy classes for CBSE Class 11 & 12 students in UAE, Saudi Arabia, Qatar, Kuwait, Oman & Bahrain.
+
+Disclaimer: This video is an independent explanation for students. T.S. Grewal is referred to only so students can find the question in their own textbook.
+
+#TSGrewal #RectificationOfErrors #Class11Accountancy #CBSE #Accountancy #shorts

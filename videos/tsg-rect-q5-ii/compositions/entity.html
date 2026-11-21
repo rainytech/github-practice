@@ -1,0 +1,45 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; font-family: "Inter", sans-serif; color: #fff; }
+    #entity-title { position: absolute; left: 70px; top: 200px; width: 900px; font-family: "Archivo Black", sans-serif; font-size: 80px; line-height: 1.1; }
+    #entity-title span { color: #F5B700; }
+    #entity-flow { position: absolute; left: 70px; top: 310px; font-size: 34px; font-weight: 700; color: #C8D3F0; }
+    .sbox { position: absolute; left: 70px; width: 840px; background: #FFFDF5; color: #111; border-radius: 18px; padding: 22px 36px 26px; font-family: "EB Garamond", serif; border-left: 16px solid #999; }
+    .slbl { font-family: "Inter", sans-serif; font-weight: 900; font-size: 32px; letter-spacing: 2px; margin-bottom: 6px; }
+    .jr { display: flex; justify-content: space-between; font-size: 50px; line-height: 1.4; }
+    .jr.to { padding-left: 60px; }
+    .jr .amt { font-weight: 700; }
+    .wrong { border-left-color: #E53935; } .wrong .slbl { color: #E53935; }
+    .rev { border-left-color: #FB8C00; } .rev .slbl { color: #B35900; }
+    #entity-s1 { top: 400px; } #entity-s2 { top: 720px; }
+    #entity-flip { position: absolute; left: 70px; top: 1050px; width: 840px; font-size: 44px; font-weight: 700; line-height: 1.35; color: #F5B700; }
+  </style>
+  <div id="root" data-composition-id="entity" data-width="1080" data-height="1920">
+    <div id="entity-title" class="clip" data-start="0" data-duration="12.0" data-track-index="0">4 steps to <span>rectify</span></div>
+    <div id="entity-flow" class="clip" data-start="0.6" data-duration="11.4" data-track-index="1"><span id="entity-flow-in">Wrong → Reverse → Correct → Rectify</span></div>
+    <div id="entity-s1" class="clip sbox wrong" data-start="1.85" data-duration="10.15" data-track-index="2">
+      <div class="slbl">STEP 1 · WRONG ENTRY (what was done)</div>
+      <div class="jr" id="entity-s1a"><span>Ajay's A/c ... Dr.</span><span class="amt">8,000</span></div>
+      <div class="jr to" id="entity-s1b"><span>To Cash A/c</span><span class="amt">8,000</span></div>
+    </div>
+    <div id="entity-s2" class="clip sbox rev" data-start="7.0" data-duration="5.0" data-track-index="3">
+      <div class="slbl">STEP 2 · REVERSE THE WRONG ENTRY</div>
+      <div class="jr" id="entity-s2a"><span>Cash A/c ... Dr.</span><span class="amt">8,000</span></div>
+      <div class="jr to" id="entity-s2b"><span>To Ajay's A/c</span><span class="amt">8,000</span></div>
+    </div>
+    <div id="entity-flip" class="clip" data-start="9.4" data-duration="2.6" data-track-index="4">⇅ Swap the sides: Dr. becomes Cr., Cr. becomes Dr.</div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    tl.fromTo("#entity-title", { opacity: 0, y: -30 }, { opacity: 1, y: 0, duration: 0.4, ease: "power3.out" }, 0.2);
+    tl.fromTo("#entity-flow-in", { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 0.4, ease: "power3.out" }, 0.6);
+    tl.fromTo("#entity-s1", { opacity: 0, scale: 0.94 }, { opacity: 1, scale: 1, duration: 0.4, ease: "power3.out" }, 1.85);
+    tl.fromTo("#entity-s1a", { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.4 }, 3.8);
+    tl.fromTo("#entity-s1b", { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.4 }, 5.3);
+    tl.fromTo("#entity-s2", { opacity: 0, scale: 0.94 }, { opacity: 1, scale: 1, duration: 0.4, ease: "power3.out" }, 7.0);
+    tl.fromTo("#entity-s2a", { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.4 }, 9.4);
+    tl.fromTo("#entity-flip", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.4 }, 9.5);
+    tl.fromTo("#entity-s2b", { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.4 }, 10.3);
+    window.__timelines["entity"] = tl;
+  </script>
+</template>

@@ -1,0 +1,50 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; font-family: "Inter", sans-serif; color: #fff; }
+    #apply-title { position: absolute; left: 70px; top: 200px; font-family: "Archivo Black", sans-serif; font-size: 72px; color: #F5B700; }
+    .sbox { position: absolute; left: 70px; width: 840px; background: #FFFDF5; color: #111; border-radius: 18px; padding: 22px 36px 26px; font-family: "EB Garamond", serif; border-left: 16px solid #999; }
+    .slbl { font-family: "Inter", sans-serif; font-weight: 900; font-size: 32px; letter-spacing: 2px; margin-bottom: 6px; }
+    .jr { display: flex; justify-content: space-between; font-size: 50px; line-height: 1.4; position: relative; }
+    .jr.to { padding-left: 60px; }
+    .jr .amt { font-weight: 700; }
+    .rev { border-left-color: #FB8C00; } .rev .slbl { color: #B35900; }
+    .right { border-left-color: #2E9E5B; } .right .slbl { color: #1E7A44; }
+    .xbar { position: absolute; left: -8px; right: -8px; top: 50%; height: 7px; margin-top: -3px; background: #E53935; border-radius: 4px; }
+    #apply-s2 { top: 330px; } #apply-s3 { top: 680px; }
+    #apply-c1, #apply-c2 { position: relative; display: inline-block; }
+    #apply-chip { position: absolute; left: 70px; top: 1000px; }
+    #apply-chip-in { display: inline-block; font-size: 40px; font-weight: 700; padding: 10px 26px; border-radius: 40px; background: #13285A; border: 3px solid #F5B700; color: #F5B700; }
+    #apply-add { position: absolute; left: 70px; top: 1100px; width: 840px; font-family: "Archivo Black", sans-serif; font-size: 56px; line-height: 1.2; }
+    #apply-cancel { position: absolute; left: 70px; top: 1250px; width: 840px; }
+    #apply-stamp { display: inline-block; font-family: "Archivo Black", sans-serif; font-size: 72px; padding: 6px 30px; border: 9px solid #FF7A7A; border-radius: 18px; color: #FF7A7A; }
+  </style>
+  <div id="root" data-composition-id="apply" data-width="1080" data-height="1920">
+    <div id="apply-title" class="clip" data-start="0" data-duration="11.2" data-track-index="0">Step 3</div>
+    <div id="apply-s2" class="clip sbox rev" data-start="0" data-duration="11.2" data-track-index="1">
+      <div class="slbl">STEP 2 · REVERSE</div>
+      <div class="jr"><span id="apply-c1">Cash A/c ... Dr.<span class="xbar" id="apply-x1"></span></span><span class="amt">8,000</span></div>
+      <div class="jr to"><span>To Ajay's A/c</span><span class="amt">8,000</span></div>
+    </div>
+    <div id="apply-s3" class="clip sbox right" data-start="0.2" data-duration="11.0" data-track-index="2">
+      <div class="slbl">STEP 3 · CORRECT ENTRY</div>
+      <div class="jr" id="apply-s3a"><span>Salary A/c ... Dr.</span><span class="amt">8,000</span></div>
+      <div class="jr to" id="apply-s3b"><span id="apply-c2">To Cash A/c<span class="xbar" id="apply-x2"></span></span><span class="amt">8,000</span></div>
+    </div>
+    <div id="apply-chip" class="clip" data-start="2.4" data-duration="8.8" data-track-index="3"><span id="apply-chip-in">Salary = expense → Debit</span></div>
+    <div id="apply-add" class="clip" data-start="6.5" data-duration="4.7" data-track-index="4">Step 2 + Step 3 →</div>
+    <div id="apply-cancel" class="clip" data-start="10.1" data-duration="1.1" data-track-index="5"><div id="apply-stamp">CASH CANCELS ✕</div></div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    tl.fromTo("#apply-title", { opacity: 0, y: -30 }, { opacity: 1, y: 0, duration: 0.4, ease: "power3.out" }, 0);
+    tl.fromTo("#apply-s3", { opacity: 0, scale: 0.94 }, { opacity: 1, scale: 1, duration: 0.4, ease: "power3.out" }, 0.2);
+    tl.fromTo("#apply-chip-in", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.4 }, 2.4);
+    tl.fromTo("#apply-s3a", { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.4 }, 3.9);
+    tl.fromTo("#apply-s3b", { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.4 }, 5.4);
+    tl.fromTo("#apply-add", { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.4 }, 6.5);
+    tl.fromTo("#apply-x1", { scaleX: 0 }, { scaleX: 1, duration: 0.35, ease: "power2.out", transformOrigin: "left center" }, 8.8);
+    tl.fromTo("#apply-x2", { scaleX: 0 }, { scaleX: 1, duration: 0.35, ease: "power2.out", transformOrigin: "left center" }, 9.7);
+    tl.fromTo("#apply-stamp", { opacity: 0, scale: 1.8, rotation: -14 }, { opacity: 1, scale: 1, rotation: -5, duration: 0.35, ease: "back.out(1.8)" }, 10.1);
+    window.__timelines["apply"] = tl;
+  </script>
+</template>

@@ -1,0 +1,70 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; font-family: "Inter", sans-serif; color: #fff; }
+    #answer-title { position: absolute; left: 70px; top: 230px; font-family: "Archivo Black", sans-serif; font-size: 76px; color: #F5B700; }
+    .box { position: absolute; left: 70px; width: 840px; background: #FFFDF5; color: #111; border-radius: 18px; padding: 28px 40px; border-left: 16px solid #6A0DAD; font-family: "EB Garamond", serif; }
+    #answer-box1 { top: 370px; } #answer-box2 { top: 770px; background: #E6E6E6; border-left-color: #999; }
+    .nxt { font-size: 42px; line-height: 1.3; }
+    #answer-out, #answer-in { display: inline-block; }
+    .lbl { font-size: 36px; font-weight: 700; font-style: italic; color: #6A0DAD; margin-bottom: 4px; }
+    .jr { display: flex; justify-content: space-between; font-size: 52px; line-height: 1.45; }
+    .jr.to { padding-left: 60px; }
+    .jr .amt { font-weight: 700; }
+    .narr { font-size: 36px; font-style: italic; color: #C2185B; margin-top: 6px; }
+    #answer-end { position: absolute; left: 70px; top: 1060px; width: 840px; font-family: "Archivo Black", sans-serif; font-size: 56px; line-height: 1.3; }
+    #answer-end .dr { color: #4ADE80; } #answer-end .cr { color: #FF7A7A; }
+    #answer-logo { position: absolute; left: 70px; top: 1230px; width: 120px; height: 120px; }
+    #answer-cta { position: absolute; left: 210px; top: 1232px; width: 720px; font-size: 44px; font-weight: 700; line-height: 1.25; color: #F5B700; }
+    #answer-sub { position: absolute; left: 270px; top: 1420px; width: 540px; height: 130px; }
+    .sub-btn { position: absolute; inset: 0; border-radius: 65px; display: flex; align-items: center; justify-content: center; gap: 20px; font-size: 52px; font-weight: 900; letter-spacing: 2px; }
+    #answer-sub-on { background: #FF0000; color: #fff; }
+    #answer-sub-done { background: #3A3A3A; color: #DDD; opacity: 0; }
+    .bell { font-size: 48px; }
+    #answer-tap { position: absolute; left: 600px; top: 1470px; width: 90px; height: 90px; border-radius: 50%; border: 8px solid #fff; opacity: 0; }
+  </style>
+  <div id="root" data-composition-id="answer" data-width="1080" data-height="1920">
+    <div id="answer-title" class="clip" data-start="0" data-duration="15.5" data-track-index="0">Step 4 · Rectify</div>
+    <div id="answer-box1" class="clip box" data-start="0.2" data-duration="15.3" data-track-index="1">
+      <div class="lbl">Rectifying Journal Entry</div>
+      <div class="jr" id="answer-a1"><span>Salary A/c ... Dr.</span><span class="amt">8,000</span></div>
+      <div class="jr to" id="answer-a2"><span>To Ajay's A/c</span><span class="amt">8,000</span></div>
+      <div class="narr" id="answer-a3">(Being salary paid to Ajay wrongly debited to his Personal Account, now rectified)</div>
+    </div>
+    <div id="answer-box2" class="clip box" data-start="6.0" data-duration="9.5" data-track-index="2">
+      <div class="lbl">Remember the 4 steps</div>
+      <div class="nxt">Wrong → Reverse → Correct → Rectify</div>
+    </div>
+    <div id="answer-end" class="clip" data-start="7.4" data-duration="8.1" data-track-index="3"><span id="answer-ok">Cash → <span class="dr">correct ✓</span></span><br><span id="answer-bad">Ajay's A/c → <span class="cr">wrong ✗</span></span></div>
+    <img id="answer-logo" class="clip" src="assets/img/logo.png" alt="Goodwill Tuition logo" data-start="10.85" data-duration="4.65" data-track-index="5">
+    <div id="answer-cta" class="clip" data-start="11.0" data-duration="4.5" data-track-index="4">Follow for a new accounting Short every day!</div>
+    <div id="answer-sub" class="clip" data-layout-allow-overlap data-start="11.7" data-duration="3.8" data-track-index="6">
+      <div id="answer-sub-on" class="sub-btn"><span class="bell">▶</span>SUBSCRIBE</div>
+      <div id="answer-sub-done" class="sub-btn"><span class="bell">🔔</span>SUBSCRIBED</div>
+    </div>
+    <div id="answer-tap" class="clip" data-layout-allow-overlap data-start="13.0" data-duration="2.5" data-track-index="7"></div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    tl.fromTo("#answer-title", { opacity: 0, y: -30 }, { opacity: 1, y: 0, duration: 0.4, ease: "power3.out" }, 0);
+    tl.fromTo("#answer-box1", { opacity: 0, scale: 0.92 }, { opacity: 1, scale: 1, duration: 0.45, ease: "power3.out" }, 0.2);
+    tl.fromTo("#answer-a1", { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.4 }, 2.9);
+    tl.fromTo("#answer-a2", { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.4 }, 3.9);
+    tl.fromTo("#answer-a3", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 5.0);
+    tl.fromTo("#answer-box2", { opacity: 0, scale: 0.92 }, { opacity: 1, scale: 1, duration: 0.45, ease: "power3.out" }, 6.0);
+    tl.fromTo("#answer-end", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 7.4);
+    tl.fromTo("#answer-bad", { opacity: 0 }, { opacity: 1, duration: 0.35 }, 8.6);
+    tl.fromTo("#answer-logo", { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 0.45, ease: "back.out(2)" }, 10.85);
+    tl.fromTo("#answer-cta", { opacity: 0, x: -20 }, { opacity: 1, x: 0, duration: 0.4 }, 11.0);
+    gsap.set("#answer-sub-on", { opacity: 0, scale: 0.4 });
+    gsap.set("#answer-tap", { opacity: 0, scale: 1.6 });
+    tl.to("#answer-sub-on", { opacity: 1, scale: 1, duration: 0.5, ease: "back.out(2.2)" }, 11.7);
+    tl.to("#answer-sub-on", { scale: 1.08, duration: 0.3, yoyo: true, repeat: 1, ease: "power2.inOut" }, 12.3);
+    tl.to("#answer-tap", { opacity: 1, scale: 0.8, duration: 0.3, ease: "power2.in" }, 13.0);
+    tl.to("#answer-sub-on", { scale: 0.92, duration: 0.12, yoyo: true, repeat: 1 }, 13.3);
+    tl.to("#answer-tap", { opacity: 0, duration: 0.3 }, 13.45);
+    tl.set("#answer-sub-on", { opacity: 0 }, 13.4);
+    tl.fromTo("#answer-sub-done", { opacity: 0 }, { opacity: 1, duration: 0.01 }, 13.4);
+    tl.fromTo("#answer-sub-done .bell", { rotation: 0 }, { rotation: 18, duration: 0.12, yoyo: true, repeat: 5, ease: "sine.inOut" }, 13.6);
+    window.__timelines["answer"] = tl;
+  </script>
+</template>
