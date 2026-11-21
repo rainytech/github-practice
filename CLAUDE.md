@@ -35,7 +35,7 @@ Apply these to every new YouTube video / Short without being asked.
 - Ask the user for the book's narration when unsure; so far we used "(Being goods … )" wording and the user did not object.
 
 ## Rectification of Errors series (from 21 Nov 2026)
-- T.S. Grewal Class 11 Rectification of Errors back exercises, one error per Short. Chapter number and page still to be confirmed by the user (first Short used "Q 5 (ii)" only).
+- T.S. Grewal Class 11 (2025–26) Chapter 17 Rectification of Errors back exercises, one error per Short. Q 5 is on page 17.44. Reference card: "T.S. Grewal · Class 11 · Ch 17 / Rectification of Errors · Q 5 (ii) · Pg 17.44 · 2025–26"; title starts "TS Grewal Class 11 Ch 17 Rectification of Errors …".
 - The user's 4-step method, shown in every Short: Step 1 Wrong entry (red) → Step 2 Reverse of the wrong entry (orange) → Step 3 Correct entry (green) → Step 4 Rectifying entry = Step 2 + Step 3, with the common account cancelling (purple).
 - Template: copy `videos/tsg-rect-q5-ii/` (hook "THE ERROR" + "RECTIFY IT?", scene 2 = steps 1–2, scene 3 = step 3 + cancel stamp, scene 4 = step 4 + "Remember the 4 steps").
 - Narration style: "(Being … wrongly debited/credited to …, now rectified)". Say whether Suspense A/c is needed.
