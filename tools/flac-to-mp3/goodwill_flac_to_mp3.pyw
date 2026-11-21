@@ -191,9 +191,25 @@ def read_text(path):
 
 NAME_NOISE = re.compile(
     r"\((?:[^)]*youtube[^)]*|[^)]*\.(?:com|net|org|in|se|co)\b[^)]*|\s*\d+\s*kbps\s*)\)"
-    r"|\b(?:full\s+video\s+hd\s+song|full\s+video\s+song|full\s+hd\s+video|full\s+video|full\s+song"
+    r"|\b(?:(?:malayalam|tamil|hindi|telugu|kannada)\s+)?(?:full\s+video\s+hd\s+song|full\s+video\s+song|full\s+hd\s+video|full\s+video|full\s+song"
     r"|lyrical\s+video\s+song|lyrical\s+video|lyric\s+video|official\s+video|official\s+audio"
     r"|video\s+song|audio\s+song|hd|1080p|720p|480p|4k|remastered)\b", re.I)
+
+
+SPAM = re.compile(
+    r"®[^®]*®"
+    r"|\[?(?:https?://)?(?:www\.)?(?:\w+\.)*\w+\.(?:com|net|org|info|biz|in|se|co|me|cc|pk|lk|tk)"
+    r"(?:\.[a-z]{2})?\b(?:/\S*)?\]?", re.I)
+
+
+def clean_spam(text):
+    """Remove web addresses (www.sensongs.com, VmusiQ.Com) and '® Riya collections ®' markers."""
+    if not text:
+        return ""
+    t = SPAM.sub(" ", text)
+    t = re.sub(r"(?:\s*-\s*){2,}", " - ", t)
+    t = re.sub(r"\(\s*\)|\[\s*\]", " ", t)
+    return re.sub(r"\s+", " ", t).strip(" -_.,")
 
 
 def guess_from_names(path, root, single):
@@ -202,6 +218,7 @@ def guess_from_names(path, root, single):
     the artist is never guessed from a file name, only from folders."""
     g = {}
     raw = os.path.splitext(os.path.basename(path))[0].replace("_", " ")
+    raw = SPAM.sub("  ", raw)
     stem = NAME_NOISE.sub("  ", raw).strip()
     m = re.match(r"^\d-(\d{2})\s*[-.]?\s*(.+)$", stem) or \
         re.match(r"^(0\d|\d{1,3}(?=\s*[-.)]))\s*[-.)]?\s*(.+)$", stem)
@@ -436,10 +453,11 @@ class ScanResult:
 # ---------------------------------------------------------------- engine
 
 class Engine:
-    def __init__(self, ffmpeg, ffprobe, log, progress, workers=DEFAULT_WORKERS):
+    def __init__(self, ffmpeg, ffprobe, log, progress, workers=DEFAULT_WORKERS, use_names=False):
         self.ffmpeg, self.ffprobe = ffmpeg, ffprobe
         self.log, self.progress = log, progress
         self.workers = workers
+        self.use_names = use_names          # titles from file names, old tags ignored
         self.runner = ProcRunner()
         self.cover_lock = threading.Lock()
         self.cover_cache = {}
@@ -573,7 +591,7 @@ class Engine:
         for src in (audio.get("tags") or {}, d.get("format", {}).get("tags") or {}):
             for k, v in src.items():
                 raw.setdefault(k.upper(), v)
-        self._clean_tags(s, raw)
+        self._clean_tags(s, {} if self.use_names else raw)
 
         pics = [st for st in streams if st.get("codec_type") == "video"
                 and st.get("disposition", {}).get("attached_pic")]
@@ -592,7 +610,7 @@ class Engine:
             for k in keys:
                 v = raw.get(k)
                 if v is not None:
-                    v = v.replace("\x00", "").strip()
+                    v = clean_spam(v.replace("\x00", ""))
                     if v:
                         return v
             return ""
@@ -727,7 +745,9 @@ class Engine:
         no_cover = [s for s in songs if not s.cover]
         if no_cover:
             L(f"No cover art: {len(no_cover)} song(s)")
-        for s in songs:
+        if self.use_names:
+            L("Mode: titles from file names - old tags ignored (see planned names below)")
+        for s in ([] if self.use_names else songs):
             if s.guessed:
                 L(f"Guessed - please check ({', '.join(s.guessed)}): {s.src}")
             if s.missing:
@@ -1100,6 +1120,9 @@ def run_gui():
             self.b_start.pack(side="left", padx=6)
             self.b_stop = ttk.Button(bar, text="Stop", command=self.stop, state="disabled")
             self.b_stop.pack(side="left")
+            self.use_names = tk.BooleanVar(value=False)
+            ttk.Checkbutton(bar, text="Use file names (ignore messy tags)",
+                            variable=self.use_names).pack(side="left", padx=(16, 0))
             self.status = ttk.Label(bar, text="")
             self.status.pack(side="right")
 
@@ -1196,7 +1219,8 @@ def run_gui():
                 return
             self.save()
             self.set_busy(True)
-            self.engine = Engine(self.ffmpeg, self.ffprobe, self.log, self.progress, self.workers.get())
+            self.engine = Engine(self.ffmpeg, self.ffprobe, self.log, self.progress, self.workers.get(),
+                                 use_names=self.use_names.get())
             threading.Thread(target=self.work, args=(inp, out, convert), daemon=True).start()
 
         def work(self, inp, out, convert):
@@ -1236,22 +1260,22 @@ def run_gui():
     root.mainloop()
 
 
-def run_cli(inp, out):
-    """Text-mode run for testing:  python goodwill_flac_to_mp3.py --cli INPUT OUTPUT"""
+def run_cli(inp, out, use_names=False):
+    """Text-mode run for testing:  python goodwill_flac_to_mp3.pyw --cli INPUT OUTPUT [--names]"""
     ffmpeg, ffprobe = find_tool("ffmpeg"), find_tool("ffprobe")
     if not ffmpeg or not ffprobe:
         sys.exit("FFmpeg not found.")
     problem = check_ffmpeg(ffmpeg) or validate_paths(inp, out)
     if problem:
         sys.exit(problem)
-    eng = Engine(ffmpeg, ffprobe, print, lambda d, t: None)
+    eng = Engine(ffmpeg, ffprobe, print, lambda d, t: None, use_names=use_names)
     res = eng.scan(inp, out)
     stats = eng.convert(res)
     sys.exit(1 if stats and stats["fail"] else 0)
 
 
 if __name__ == "__main__":
-    if len(sys.argv) == 4 and sys.argv[1] == "--cli":
-        run_cli(sys.argv[2], sys.argv[3])
+    if len(sys.argv) in (4, 5) and sys.argv[1] == "--cli":
+        run_cli(sys.argv[2], sys.argv[3], use_names=sys.argv[4:] == ["--names"])
     else:
         run_gui()
