@@ -34,6 +34,15 @@ Apply these to every new YouTube video / Short without being asked.
   Skip as Shorts (too simple / already covered): Apr 12 Commission received ₹2,700, Apr 15 Furniture purchased ₹7,000, Apr 24 Cash Sales ₹7,000, Apr 30 Salaries paid ₹10,000.
 - Ask the user for the book's narration when unsure; so far we used "(Being goods … )" wording and the user did not object.
 
+## Rectification of Errors series (from 21 Nov 2026)
+- T.S. Grewal Class 11 (2025–26) Chapter 17 Rectification of Errors back exercises, one error per Short. Q 5 is on page 17.44. Reference card: "T.S. Grewal · Class 11 · Ch 17 / Rectification of Errors · Q 5 (ii) · Pg 17.44 · 2025–26"; title starts "TS Grewal Class 11 Ch 17 Rectification of Errors …".
+- The user's 4-step method, shown in every Short: Step 1 Wrong entry (red) → Step 2 Reverse of the wrong entry (orange) → Step 3 Correct entry (green) → Step 4 Rectifying entry = Step 2 + Step 3, with the common account cancelling (purple).
+- Template: copy `videos/tsg-rect-q5-ii/` (hook "THE ERROR" + "RECTIFY IT?", scene 2 = steps 1–2, scene 3 = step 3 + cancel stamp, scene 4 = step 4 + "Remember the 4 steps").
+- Narration style: "(Being … wrongly debited/credited to …, now rectified)". Say whether Suspense A/c is needed.
+- Keep the ending clean: after the rectifying entry, the voice goes straight to the Follow line. No extra recap lines on screen or in the voice (no "Cash was correct, only Ajay's account was wrong") — the user found it confusing. Put explanations like that in the description instead.
+- Order: two-sided errors first (principle, omission, commission, wrong amount), then one-sided errors with Suspense A/c, then before vs after the Trial Balance.
+- Done: Q 5 (ii) Salary paid to Ajay debited to his Personal Account ₹8,000 → Salary A/c Dr. To Ajay's A/c.
+
 ## Every description must include
 ```
 🌐 www.goodwillonlinetuition.com
@@ -67,5 +76,6 @@ Online Accountancy classes for CBSE Class 11 & 12 students in UAE, Saudi Arabia,
 - TS Grewal Ch 8 PP1, Apr 3: Goods purchased from Pankaj for credit (first T.S. Grewal Short) — https://youtube.com/shorts/_2O6tqrgyyM (published 18 Nov 2026)
 - TS Grewal Ch 8 PP1, Apr 7: Goods returned to Pankaj (Purchases Return) — https://youtube.com/shorts/1f0-mvuEwmk (published 19 Nov 2026)
 - TS Grewal Ch 8 PP1, Apr 9: Goods returned by Naresh (Sales Return) — https://youtube.com/shorts/fzdeHb3QRrw (published 20 Nov 2026)
+- TS Grewal Ch 17 Rectification Q5 (ii): Salary debited to Ajay's A/c (first rectification Short, 4-step method) — https://youtube.com/shorts/hEt3ASDIvCA (published 21 Nov 2026)
 - Channel views: 4,253 (10 Nov 2026) → 4,310 (11 Nov 2026). Compare again around 18 Nov.
 - Popular tab (19 Nov 2026): photo Shorts of real exam question papers lead — B.Com Corporate Accounting I paper (QP 22100578, Apr 2022) 1,020 views, others 757 / 663 / 425; MGU Income Tax promo 218; Harris "Business Entity Concept" 107 (6 days old). But those question-paper Shorts are 4 years old (≈0.2–0.7 views/day); the Harris Short got ≈18 views/day — the new animated daily Shorts are far ahead per day.
