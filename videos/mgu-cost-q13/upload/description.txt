@@ -1,0 +1,55 @@
+MGU-UGP B.Com (Honours) Semester VI · Cost Accounting Methods (DSC A – MG 6 DSC COM 301)
+Dr. Jayan, Cost Accounting Methods · Tender or Quotations · Question 13 · Page 292
+
+Same method as Question 14, new numbers. Pause the video and try it before you watch the answer!
+▶ Question 14 (National Ltd, ₹2,754): https://youtu.be/sV7NjIN_g04
+
+❓ QUESTION 13 (Alpha Manufacturing Company, year 2025)
+Materials used ₹3,00,000 · Direct wages ₹2,40,000 · Factory overhead ₹60,000 · Administration overhead ₹30,000.
+Prepare a cost sheet and calculate the price to quote for a machine requiring materials ₹2,500 and direct wages ₹1,500, so that the price may yield a profit of 20% on the selling price.
+
+✅ ANSWER: Quotation Price = ₹5,742.19 (rounded off: ₹5,742)
+
+📘 STEP 1 — COST SHEET
+Materials used 3,00,000 + Direct Wages 2,40,000 = Prime Cost 5,40,000
++ Factory Overhead 60,000 = Works Cost 6,00,000
++ Administration Overhead 30,000 = Cost of Production 6,30,000
+
+📘 STEP 2 — RATES
+1. Factory Overhead rate (on Direct Wages) = 60,000 × 100 ⁄ 2,40,000 = 25%
+2. Administration Overhead rate (on Works Cost) = 30,000 × 100 ⁄ 6,00,000 = 5%
+3. Profit 20% on Sales = 20 ⁄ (100 – 20) = 20 ⁄ 80 = 25% on Cost
+
+📘 STEP 3 — QUOTATION PRICE OF THE MACHINE
+Materials 2,500.00 + Direct Wages 1,500.00 = Prime Cost 4,000.00
++ Factory Overhead (1,500 × 25%) 375.00 = Works Cost 4,375.00
++ Administration Overhead (4,375 × 5%) 218.75 = Cost of Production 4,593.75
++ Profit (4,593.75 × 20 ⁄ 80) 1,148.44 = Quotation Price 5,742.19 (rounded off: ₹5,742)
+
+💡 EXAM TIPS
+1. Different names, same idea: Factory OH = Works OH (on direct wages); Administration OH = Establishment OH (on works cost).
+2. Rounding: profit 1,148.4375 → write ₹1,148.44; show the final price rounded off: ₹5,742.
+✓ Check: 1,148.44 is 20% of 5,742.19.
+
+⏱️ CHAPTERS
+0:00 Same method, new numbers
+0:21 The question (pause & try)
+1:11 Step 1 · Cost Sheet
+1:39 Step 2 · Rates
+2:13 Step 3 · Quotation price
+3:23 2 exam tips
+4:07 Recap
+
+📄 Want these solved notes as a PDF (Questions 13, 14 + one more)? Message us on WhatsApp.
+
+👨‍🏫 ABOUT US
+Goodwill Tuition Centre, Ernakulam, Kerala — 30 years of teaching Accountancy.
+
+🌐 www.goodwillonlinetuition.com
+📞 WhatsApp: +91 95679 02805 → https://wa.me/919567902805
+Book a paid demo class on WhatsApp.
+Online Cost Accounting classes for MGU B.Com Honours students across Kerala.
+
+Disclaimer: This video is an independent explanation for students. Dr. Jayan's Cost Accounting Methods is referred to only so students can find the question in their own textbook.
+
+#CostAccounting #MGU #BComHonours #TenderAndQuotation #CostSheet

@@ -1,0 +1,43 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; font-family: "Inter", sans-serif; color: #fff; }
+    .hdr { position: absolute; left: 100px; top: 50px; font-family: "Archivo Black", sans-serif; font-size: 62px; color: #F5B700; }
+    .box { position: absolute; left: 100px; width: 1720px; background: #FFFDF5; color: #111; border-radius: 18px; padding: 20px 36px; border-left: 16px solid #6A0DAD; font-family: "EB Garamond", serif; box-shadow: 0 14px 34px rgba(0,0,0,0.3); }
+    .k { font-family: "Archivo Black", sans-serif; font-size: 40px; color: #6A0DAD; margin-bottom: 6px; }
+    .ln { display: block; font-size: 50px; line-height: 1.3; }
+    .ln b { color: #0057B8; }
+    .eq { color: #CC0000; font-weight: 700; }
+    #t-1 { top: 165px; }
+    #t-2 { top: 515px; }
+    .fr { display: inline-flex; flex-direction: column; align-items: center; vertical-align: middle; font-size: 0.82em; line-height: 1.1; margin: 0 0.15em; }
+    .fr > span:last-child { border-top: 2px solid currentColor; padding: 0 0.15em; }
+    .pk { color: #C2185B; font-style: italic; }
+    .ok { color: #1E8E3E; font-weight: 700; }
+    #t-a2 { display: inline-block; border-radius: 8px; padding: 0 6px; }
+  </style>
+  <div id="root" data-composition-id="tips" data-width="1920" data-height="1080">
+    <div class="hdr clip" id="t-hdr" data-start="0" data-duration="43.8" data-track-index="0">2 Exam Tips</div>
+    <div class="box clip" id="t-1" data-start="3.0" data-duration="40.8" data-track-index="1">
+      <div class="k">Tip 1 · Different names, same idea</div>
+      <span class="ln" id="t-1a">Factory OH <span class="eq">=</span> Works OH → % of <b>Direct Wages</b></span>
+      <span class="ln" id="t-1b">Administration OH <span class="eq">=</span> Establishment OH → % of <b>Works Cost</b></span>
+    </div>
+    <div class="box clip" id="t-2" data-start="15.6" data-duration="28.2" data-track-index="2">
+      <div class="k">Tip 2 · Rounding</div>
+      <span class="ln" id="t-2a">Profit = ₹ 4,593.75 × <span class="fr"><span>20</span><span>80</span></span> = 1,148.4375 → <span id="t-a2">₹ 1,148.44</span></span>
+      <span class="ln" id="t-2b">Price = ₹ 5,742.19 <span class="pk">(rounded off: ₹ 5,742)</span></span>
+      <span class="ln" id="t-2c">Check: <span class="fr"><span>1,148.44</span><span>5,742.19</span></span> × 100 = 20% <span class="ok">✓</span></span>
+    </div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    const card = (s, t) => tl.fromTo(s, { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, t);
+    const line = (s, t) => tl.fromTo(s, { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.4 }, t);
+    tl.fromTo("#t-hdr", { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 0.4 }, 0);
+    card("#t-1", 3.0); line("#t-1a", 6.4); line("#t-1b", 10.9);
+    card("#t-2", 15.6); line("#t-2a", 18.1);
+    tl.fromTo("#t-a2", { backgroundColor: "rgba(245,183,0,0)" }, { backgroundColor: "rgba(245,183,0,0.6)", duration: 0.3 }, 24.1);
+    line("#t-2b", 29.0); line("#t-2c", 35.2);
+    window.__timelines["tips"] = tl;
+  </script>
+</template>

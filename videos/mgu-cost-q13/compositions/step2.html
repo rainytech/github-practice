@@ -1,0 +1,49 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; font-family: "Inter", sans-serif; color: #fff; }
+    .hdr { position: absolute; left: 100px; top: 50px; font-family: "Archivo Black", sans-serif; font-size: 62px; color: #F5B700; }
+    .steps { position: absolute; right: 100px; top: 54px; display: flex; gap: 14px; }
+    .steps span { width: 70px; height: 70px; border-radius: 50%; border: 4px solid rgba(255,255,255,0.5); display: flex; align-items: center; justify-content: center; font-family: "Archivo Black", sans-serif; font-size: 34px; color: rgba(255,255,255,0.6); }
+    .steps span.on { background: #F5B700; border-color: #F5B700; color: #0B1B3F; }
+    .card { position: absolute; left: 100px; width: 1720px; height: 240px; background: #FFFDF5; color: #111; border-radius: 18px; padding: 18px 30px; border-left: 16px solid #6A0DAD; font-family: "EB Garamond", serif; display: flex; align-items: center; gap: 26px; box-shadow: 0 14px 34px rgba(0,0,0,0.3); }
+    .lbl { width: 470px; flex: none; font-size: 46px; font-weight: 700; color: #6A0DAD; line-height: 1.15; }
+    .lbl .sm { display: block; font-size: 34px; font-style: italic; color: #C2185B; font-weight: 400; }
+    .fx { flex: 1; font-size: 56px; line-height: 1.2; white-space: nowrap; }
+    .res { width: 260px; flex: none; text-align: center; background: #6A0DAD; color: #fff; border-radius: 14px; padding: 14px 8px; font-family: "Archivo Black", sans-serif; font-size: 72px; line-height: 1.05; }
+    .res .sm { display: block; font-family: "Inter", sans-serif; font-size: 30px; font-weight: 700; }
+    .fr { display: inline-flex; flex-direction: column; align-items: center; vertical-align: middle; font-size: 0.85em; line-height: 1.15; margin: 0 0.2em; }
+    .fr > span:last-child { border-top: 3px solid currentColor; padding: 0 0.15em; }
+    #s2-c1 { top: 160px; } #s2-c2 { top: 425px; } #s2-c3 { top: 690px; }
+  </style>
+  <div id="root" data-composition-id="step2" data-width="1920" data-height="1080">
+    <div class="hdr clip" id="s2-hdr" data-start="0" data-duration="34.3" data-track-index="0">Step 2 · Rates</div>
+    <div class="steps clip" id="s2-steps" data-start="0" data-duration="34.3" data-track-index="1"><span>1</span><span class="on">2</span><span>3</span></div>
+    <div class="card clip" id="s2-c1" data-start="2.2" data-duration="32.1" data-track-index="2">
+      <div class="lbl">1. Factory Overhead Rate<span class="sm">(on Direct Wages)</span></div>
+      <div class="fx" id="s2-c1n">= <span class="fr"><span>60,000 × 100</span><span>2,40,000</span></span></div>
+      <div class="res" id="s2-c1r">25%</div>
+    </div>
+    <div class="card clip" id="s2-c2" data-start="12.3" data-duration="22.0" data-track-index="3">
+      <div class="lbl">2. Administration Overhead Rate<span class="sm">(on Works Cost)</span></div>
+      <div class="fx" id="s2-c2n">= <span class="fr"><span>30,000 × 100</span><span>6,00,000</span></span></div>
+      <div class="res" id="s2-c2r">5%</div>
+    </div>
+    <div class="card clip" id="s2-c3" data-start="21.0" data-duration="13.3" data-track-index="4">
+      <div class="lbl">3. Rate of Profit<span class="sm">(Sales to Cost)</span></div>
+      <div class="fx"><span id="s2-c3f">= <span class="fr"><span>20</span><span>100 – 20</span></span> × 100</span><span id="s2-c3n"> = <span class="fr"><span>20</span><span>80</span></span> × 100</span></div>
+      <div class="res" id="s2-c3r">25%<span class="sm">(on Cost)</span></div>
+    </div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    const card = (s, t) => tl.fromTo(s, { opacity: 0, x: -50 }, { opacity: 1, x: 0, duration: 0.45, ease: "power3.out" }, t);
+    const fade = (s, t) => tl.fromTo(s, { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.4 }, t);
+    const pop = (s, t) => tl.fromTo(s, { opacity: 0, scale: 0.5 }, { opacity: 1, scale: 1, duration: 0.45, ease: "back.out(2.2)" }, t);
+    tl.fromTo("#s2-hdr", { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 0.4 }, 0);
+    tl.fromTo("#s2-steps span", { opacity: 0, scale: 0.5 }, { opacity: 1, scale: 1, duration: 0.3, stagger: 0.1 }, 0.2);
+    card("#s2-c1", 2.2); fade("#s2-c1n", 6.1); pop("#s2-c1r", 10.7);
+    card("#s2-c2", 12.3); fade("#s2-c2n", 16.2); pop("#s2-c2r", 19.6);
+    card("#s2-c3", 21.0); fade("#s2-c3f", 23.2); fade("#s2-c3n", 28.55); pop("#s2-c3r", 31.0);
+    window.__timelines["step2"] = tl;
+  </script>
+</template>
