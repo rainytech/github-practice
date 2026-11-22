@@ -43,13 +43,26 @@ Apply these to every new YouTube video / Short without being asked.
 - Order: two-sided errors first (principle, omission, commission, wrong amount), then one-sided errors with Suspense A/c, then before vs after the Trial Balance.
 - Done: Q 5 (ii) Salary paid to Ajay debited to his Personal Account ₹8,000 → Salary A/c Dr. To Ajay's A/c.
 
-## MGU B.Com Hons Sem 6 Cost Accounting video (planned 22 Nov 2026)
+## ▶ START HERE next session (left 22 Nov 2026, night)
+- Next video: MGU Cost Accounting **Illustration 17 (Samsung India Ltd)**, Dr. Jayan, Cost Accounting Methods, Pg 276–278, from `videos/mgu-cost-q14/source/notes-tender-quotations-q14-q13-ill17.html`. Answer ₹30,677 (Cost of Sales 25,564 + profit 5,113). First ask the user: show profit ₹5,112.81 (as in the notes) or ₹5,112.80 (exact; 4,20,000 ⁄ 25,20,000 = 20% on cost)?
+- Build it by copying `videos/mgu-cost-q13/` (bigger text, 16:9) with the per-line voice method; likely 7–8 min (cost sheet 2025 → old rates 60/24/16/10% and profit → revised rates 72/27/18/9% → statement for 2026 → tips → recap). Upload text with playlist settings.json; link Q13 and Q14 in the description.
+- Waiting on Google: YouTube API audit (submitted 22 Nov). If an email arrives, help the user reply.
+- Still pending: 9:16 Shorts from Q14/Q13; T.S. Grewal Ch 8 PP1 Apr 16 Short; Rectification series next error.
+
+## MGU B.Com Hons Sem 6 Cost Accounting video (main video made 22 Nov 2026)
 - Source: `videos/mgu-cost-q14/source/notes-tender-quotations-q14-q13-ill17.html` (the user's solved notes). Make **Question 14 (National Ltd), Tender or Quotations, Dr. Jayan Pg 292–293** first.
 - Do NOT change the document's solution or wording: follow its 3 steps exactly — Step 1 Cost Sheet (Prime Cost 12,40,000 → Works Cost 14,02,000 → Cost of Production 15,14,000); Step 2 rates (Works OH 30% of wages; Establishment OH 8% of works cost, rounded from 7.9886%; Profit 20% on sales = 20⁄(100−20) = 25% on cost); Step 3 quotation (1,000 + 800 = 1,800 → +240 = 2,040 → +163.20 = 2,203.20 → +550.80 = **₹2,754.00**).
 - Proposed format (confirm with the user before building): one 16:9 main video of 5–6 min (hook → question → Step 1 → Step 2 → Step 3 → exam traps → recap/CTA) plus 3 Shorts cut from it ("20% on sales = 25% on cost" trick; absorption bases; quotation in 3 steps).
-- Still to ask the user: full name of Dr. Jayan's book for the reference card; main video + Shorts or Shorts only; OK to offer "the full solved PDF on WhatsApp".
+- Illustration 17 (Samsung India, Pg 276–278) is from the same book. Its notes show profit ₹5,112.81 (from 16.6667%); exact is ₹5,112.80 — ask the user before making it. Q13 video made 22 Nov: `videos/mgu-cost-q13/` (4:40, "try it yourself" with Pause & Try card, tips scene instead of traps, 30–40% bigger text — use this size from now on).
+- Book: "Cost Accounting Methods" by Dr. Jayan, MGU-UGP B.Com (Honours) Semester VI (DSC A – MG 6 DSC COM 301). Offering the solved-notes PDF on WhatsApp is OK.
+- Main video done: `videos/mgu-cost-q14/` (HyperFrames, 1920×1080, 5:28, 7 scenes hook → question → step1 → step2 → step3 → traps → recap; voice `hm_omega`, one wav per scene built from per-line clips in `voice-script/`). Template for later MGU main videos. Shorts from it: later, when the user asks. On a phone held upright the 16:9 video fills only half the screen; the user kept it as is for now (22 Nov). Later: enlarge tables, figures and fractions 30–40% to fill the frame, and cut the 9:16 Shorts.
 - Audience is Kerala B.Com (MGU), not CBSE GCC: separate playlist "MGU B.Com Hons Sem 6 · Cost Accounting"; in the description replace the GCC line with "Online Cost Accounting classes for MGU B.Com Honours students across Kerala." (keep website, WhatsApp, paid demo lines). Stacked fractions on screen, never ÷.
 - The user's weekly Claude usage was at 74% on 22 Nov (refresh 7:30 PM IST): keep replies short and avoid unnecessary re-renders.
+
+## Main-video method and cost (MGU Q14, 22 Nov 2026 — the user loved it; reuse it)
+- Cost: about 10% of a 5-hour session and about 1% of the weekly limit for a 5½-min 16:9 video (8:45–9:38 AM), voice, 7 scenes, render, upload text and upload guidance included.
+- Method that kept it cheap: write the voice script first as per-line clips (`voice-script/lines.json`) → TTS each line → join each scene into one wav with 0.5 s gaps and loudnorm −14 LUFS → line start times (`timing.json`) set every on-screen reveal → one scene file per step → `check` → one snapshot contact sheet → fix → render once in the background (~10 min) → commit project, then MP4.
+- Keep: no music, house colours (navy #0B1B3F, gold #F5B700, cream cards, purple #6A0DAD, red #CC0000), stacked fractions, step pills 1·2·3, summary chips, "exam traps" scene, recap + WhatsApp PDF offer + Subscribe animation.
 
 ## Every description must include
 ```
@@ -67,6 +80,7 @@ Online Accountancy classes for CBSE Class 11 & 12 students in UAE, Saudi Arabia,
 - Tags include: cbse accountancy, ncert accountancy, class 11 accountancy, class 12 accountancy, accountancy tuition uae, online accountancy tuition dubai, journal entry, golden rules of accounting, debit and credit explained.
 - Publish immediately (Visibility → Public), then the user shares the link on Facebook and WhatsApp straight away. Do not schedule.
 - Guide uploads one step at a time when asked.
+- Upload script (22 Nov 2026): `tools/upload_youtube.py videos/<project>` (setup in `tools/UPLOAD_SETUP.md`; runs on the user's PC; free API). Give every new project an `upload/settings.json` with its playlist. Public uploads need Google's API audit first; Education fields and pinned comment stay manual. Count tags the YouTube way (quotes around multi-word tags) — the script checks it. Set up on the user's PC 22 Nov 2026 (repo at C:\Users\Admin\github-practice, Google Cloud project goodwill-youtube-upload / 440497871188, OAuth app "Goodwill Video Uploader", Testing mode, test user = channel Gmail; signed in OK). API audit form submitted 22 Nov 2026 (answers in tools/audit/FORM_ANSWERS.md; privacy page https://www.goodwillonlinetuition.com/privacy-policy). Until Google approves, upload with --privacy private or by hand. In Testing mode the sign-in expires after about 7 days: run `python tools\upload_youtube.py --login` again if it fails.
 
 ## Channel links (YouTube Studio → Customisation → Profile)
 - Website: https://goodwillonlinetuition.com
@@ -85,5 +99,7 @@ Online Accountancy classes for CBSE Class 11 & 12 students in UAE, Saudi Arabia,
 - TS Grewal Ch 8 PP1, Apr 7: Goods returned to Pankaj (Purchases Return) — https://youtube.com/shorts/1f0-mvuEwmk (published 19 Nov 2026)
 - TS Grewal Ch 8 PP1, Apr 9: Goods returned by Naresh (Sales Return) — https://youtube.com/shorts/fzdeHb3QRrw (published 20 Nov 2026)
 - TS Grewal Ch 17 Rectification Q5 (ii): Salary debited to Ajay's A/c (first rectification Short, 4-step method) — https://youtube.com/shorts/hEt3ASDIvCA (published 21 Nov 2026)
+- MGU B.Com Hons Sem 6 Cost Accounting Q14 (National Ltd), Tender or Quotations — main 16:9 video, 5:28, first in playlist "MGU B.Com Hons Sem 6 · Cost Accounting" — https://youtu.be/sV7NjIN_g04 (published 22 Nov 2026)
+- MGU B.Com Hons Sem 6 Cost Accounting Q13 (Alpha Manufacturing), "Try it yourself" — main 16:9 video, 4:40, bigger text, same playlist — https://youtu.be/K8D6-XDE_pI (published 22 Nov 2026)
 - Channel views: 4,253 (10 Nov 2026) → 4,310 (11 Nov 2026). Compare again around 18 Nov.
 - Popular tab (19 Nov 2026): photo Shorts of real exam question papers lead — B.Com Corporate Accounting I paper (QP 22100578, Apr 2022) 1,020 views, others 757 / 663 / 425; MGU Income Tax promo 218; Harris "Business Entity Concept" 107 (6 days old). But those question-paper Shorts are 4 years old (≈0.2–0.7 views/day); the Harris Short got ≈18 views/day — the new animated daily Shorts are far ahead per day.

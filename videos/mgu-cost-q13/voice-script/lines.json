@@ -1,0 +1,64 @@
+{
+"hook": [
+"M G U, B Com Honours, Semester Six. Cost Accounting.",
+"Tender or Quotations. Question thirteen, from Doctor Jayan's Cost Accounting Methods, page two ninety-two.",
+"Same method as Question fourteen. New numbers.",
+"Can you find the quotation price before I do? Let's go."
+],
+"question": [
+"Here is the question. Following information has been obtained from the costing records of Alpha Manufacturing Company for the year twenty twenty-five.",
+"Materials used, three lakh rupees.",
+"Direct wages, two lakh forty thousand.",
+"Factory overhead, sixty thousand.",
+"Administration overhead, thirty thousand.",
+"Prepare a cost sheet, and calculate the price which the company should quote for the manufacture of a machine requiring materials of two thousand five hundred rupees, and direct wages of one thousand five hundred rupees,",
+"so that the price may yield a profit of twenty percent on the selling price.",
+"Pause the video now, and try it yourself. Then check your answer with me."
+],
+"step1": [
+"Step one. The cost sheet for the year twenty twenty-five.",
+"Materials used, three lakh. Add direct wages, two lakh forty thousand.",
+"Prime cost, five lakh forty thousand rupees.",
+"Add factory overhead, sixty thousand.",
+"Works cost, six lakh rupees.",
+"Add administration overhead, thirty thousand.",
+"Cost of production, six lakh thirty thousand rupees."
+],
+"step2": [
+"Step two. The rates.",
+"One. Factory overhead rate, on direct wages.",
+"Sixty thousand into hundred, over two lakh forty thousand. That is twenty-five percent.",
+"Two. Administration overhead rate, on works cost.",
+"Thirty thousand into hundred, over six lakh. That is five percent.",
+"Three. The rate of profit.",
+"Twenty percent on sales is twenty, over hundred minus twenty, on cost.",
+"Twenty over eighty, into hundred. Twenty-five percent on cost."
+],
+"step3": [
+"Step three. The quotation price of the machine.",
+"Materials, two thousand five hundred. Add direct wages, one thousand five hundred.",
+"Prime cost, four thousand rupees.",
+"Add factory overhead, twenty-five percent of wages. One thousand five hundred into twenty-five, over hundred, is three hundred and seventy-five.",
+"Works cost, four thousand three hundred and seventy-five rupees.",
+"Add administration overhead, five percent of works cost. Four thousand three hundred and seventy-five into five, over hundred, is two hundred and eighteen rupees, seventy-five paise.",
+"Cost of production, four thousand five hundred and ninety-three rupees, seventy-five paise.",
+"Add profit. Four thousand five hundred and ninety-three rupees seventy-five paise, into twenty, over eighty, is one thousand one hundred and forty-eight rupees, forty-four paise.",
+"Quotation price: five thousand seven hundred and forty-two rupees, nineteen paise. Rounded off, five thousand seven hundred and forty-two rupees."
+],
+"tips": [
+"Two exam tips from this question.",
+"Tip one. Different names, same idea. Factory overhead is works overhead, so it goes on direct wages. Administration overhead is establishment overhead, so it goes on works cost.",
+"Tip two. Rounding. Profit works out to one thousand one hundred and forty-eight point four three seven five. Write it to two decimals: one thousand one hundred and forty-eight rupees, forty-four paise.",
+"Then show the final price rounded off: five thousand seven hundred and forty-two rupees.",
+"Quick check: one thousand one hundred and forty-eight rupees forty-four paise is twenty percent of the price. Correct!"
+],
+"recap": [
+"Let's recap.",
+"Cost sheet: cost of production, six lakh thirty thousand.",
+"Rates: twenty-five percent, five percent, and twenty-five percent on cost.",
+"Quotation price: five thousand seven hundred and forty-two rupees.",
+"Missed Question fourteen? The link is in the description.",
+"Want these solved notes as a P D F? Message us on WhatsApp, and book a paid demo class.",
+"Subscribe for more Cost Accounting videos!"
+]
+}

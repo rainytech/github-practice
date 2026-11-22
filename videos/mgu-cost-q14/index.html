@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en" data-composition-variables='[{"id":"price","type":"string","label":"Quotation price","default":"2,754.00"}]'>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body {
+        width: 1920px; height: 1080px; overflow: hidden;
+        background-color: #0B1B3F;
+        background-image: repeating-linear-gradient(0deg, rgba(255,255,255,0.045) 0 2px, transparent 2px 72px);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="328.1" data-width="1920" data-height="1080">
+      <div id="hook" data-composition-id="hook" data-composition-src="compositions/hook.html" data-start="0.0" data-duration="26.4" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
+      <div id="question" data-composition-id="question" data-composition-src="compositions/question.html" data-start="26.4" data-duration="41.2" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
+      <div id="step1" data-composition-id="step1" data-composition-src="compositions/step1.html" data-start="67.6" data-duration="37.0" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
+      <div id="step2" data-composition-id="step2" data-composition-src="compositions/step2.html" data-start="104.6" data-duration="77.2" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
+      <div id="step3" data-composition-id="step3" data-composition-src="compositions/step3.html" data-start="181.8" data-duration="61.6" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
+      <div id="traps" data-composition-id="traps" data-composition-src="compositions/traps.html" data-start="243.4" data-duration="47.2" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
+      <div id="recap" data-composition-id="recap" data-composition-src="compositions/recap.html" data-start="290.6" data-duration="37.5" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
+      <audio id="vo-hook" class="clip" src="assets/voice/hook.wav" data-start="0.3" data-duration="25.08" data-track-index="5" data-volume="0.85"></audio>
+      <audio id="vo-question" class="clip" src="assets/voice/question.wav" data-start="26.7" data-duration="39.86" data-track-index="5" data-volume="0.85"></audio>
+      <audio id="vo-step1" class="clip" src="assets/voice/step1.wav" data-start="67.9" data-duration="35.47" data-track-index="5" data-volume="0.85"></audio>
+      <audio id="vo-step2" class="clip" src="assets/voice/step2.wav" data-start="104.9" data-duration="75.76" data-track-index="5" data-volume="0.85"></audio>
+      <audio id="vo-step3" class="clip" src="assets/voice/step3.wav" data-start="182.1" data-duration="60.13" data-track-index="5" data-volume="0.85"></audio>
+      <audio id="vo-traps" class="clip" src="assets/voice/traps.wav" data-start="243.7" data-duration="45.77" data-track-index="5" data-volume="0.85"></audio>
+      <audio id="vo-recap" class="clip" src="assets/voice/recap.wav" data-start="290.9" data-duration="34.65" data-track-index="5" data-volume="0.85"></audio>
+    </div>
+    <script>
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = gsap.timeline({ paused: true });
+    </script>
+  </body>
+</html>

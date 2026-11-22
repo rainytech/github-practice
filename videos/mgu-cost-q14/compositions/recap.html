@@ -1,0 +1,75 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; font-family: "Inter", sans-serif; color: #fff; }
+    .hdr { position: absolute; left: 120px; top: 70px; font-family: "Archivo Black", sans-serif; font-size: 58px; color: #F5B700; }
+    .st { position: absolute; left: 120px; width: 880px; display: flex; gap: 26px; align-items: flex-start; }
+    .st .n { flex: none; width: 76px; height: 76px; border-radius: 50%; background: #F5B700; color: #0B1B3F; display: flex; align-items: center; justify-content: center; font-family: "Archivo Black", sans-serif; font-size: 40px; }
+    .st .t { font-family: "Archivo Black", sans-serif; font-size: 44px; line-height: 1.1; }
+    .st .d { display: block; font-family: "Inter", sans-serif; font-size: 32px; font-weight: 600; color: rgba(255,255,255,0.85); margin-top: 8px; }
+    .pill { display: inline-block; background: #6A0DAD; color: #fff; border-radius: 26px; padding: 4px 20px; margin-right: 10px; font-weight: 800; }
+    #r-1 { top: 210px; } #r-2 { top: 420px; } #r-3 { top: 630px; }
+    #r-price { display: inline-block; color: #0B1B3F; background: #F5B700; border-radius: 12px; padding: 4px 18px; font-family: "Archivo Black", sans-serif; font-size: 52px; margin-top: 10px; }
+    .cta { position: absolute; left: 1080px; width: 720px; background: #FFFDF5; color: #0B1B3F; border-radius: 18px; padding: 22px 30px; box-shadow: 0 14px 34px rgba(0,0,0,0.3); }
+    .cta .h { font-family: "Archivo Black", sans-serif; font-size: 36px; line-height: 1.2; }
+    .cta .p { display: block; font-size: 30px; font-weight: 600; margin-top: 8px; line-height: 1.3; }
+    #r-c1, #r-c2 { border-radius: 8px; padding: 0 6px; }
+    .cta .wa { display: block; font-size: 38px; font-weight: 900; color: #128C3E; margin-top: 8px; }
+    #r-pdf { top: 170px; border-left: 14px solid #25D366; }
+    #r-cls { top: 430px; border-left: 14px solid #0057B8; }
+    #r-logo { position: absolute; left: 1080px; top: 770px; width: 130px; height: 130px; }
+    #r-sub { position: absolute; left: 1240px; top: 780px; width: 520px; height: 110px; }
+    .sub-btn { position: absolute; inset: 0; border-radius: 55px; display: flex; align-items: center; justify-content: center; gap: 18px; font-size: 46px; font-weight: 900; letter-spacing: 2px; }
+    #r-sub-on { background: #FF0000; color: #fff; }
+    #r-sub-done { background: #3A3A3A; color: #DDD; opacity: 0; }
+    #r-bell { display: inline-block; }
+    #r-tap { position: absolute; left: 1580px; top: 800px; width: 80px; height: 80px; border-radius: 50%; border: 8px solid #fff; opacity: 0; }
+  </style>
+  <div id="root" data-composition-id="recap" data-width="1920" data-height="1080">
+    <div class="hdr clip" id="r-hdr" data-start="0" data-duration="37.5" data-track-index="0">Recap · Question 14</div>
+    <div class="st clip" id="r-1" data-start="1.9" data-duration="35.6" data-track-index="1"><div class="n">1</div><div class="t">Cost Sheet<span class="d">Prime Cost 12,40,000 → Works Cost 14,02,000 → Cost of Production 15,14,000</span></div></div>
+    <div class="st clip" id="r-2" data-start="4.2" data-duration="33.3" data-track-index="2"><div class="n">2</div><div class="t">Rates<span class="d"><span class="pill" id="r-p1">30% of wages</span><span class="pill" id="r-p2">8% of works cost</span><span class="pill" id="r-p3">25% on cost</span></span></div></div>
+    <div class="st clip" id="r-3" data-start="10.0" data-duration="27.5" data-track-index="3"><div class="n">3</div><div class="t">Quotation Price<span class="d"><span id="r-price">₹ <span data-var-text="price">2,754.00</span></span></span></div></div>
+    <div class="cta clip" id="r-pdf" data-start="15.5" data-duration="22.0" data-track-index="4">
+      <div class="h">📄 These solved notes as a PDF</div>
+      <span class="p">Question 14 + two more solved questions</span>
+      <span class="wa">WhatsApp +91 95679 02805</span>
+    </div>
+    <div class="cta clip" id="r-cls" data-start="22.2" data-duration="15.3" data-track-index="5">
+      <div class="h">Online Cost Accounting classes</div>
+      <span class="p" id="r-c1">MGU B.Com Honours students across Kerala</span>
+      <span class="p" id="r-c2"><b>Book a paid demo class on WhatsApp</b></span>
+      <span class="p">🌐 goodwillonlinetuition.com</span>
+    </div>
+    <img id="r-logo" class="clip" src="assets/img/logo.png" alt="Goodwill Tuition logo" data-start="31.5" data-duration="6.0" data-track-index="6">
+    <div id="r-sub" class="clip" data-layout-allow-overlap data-start="31.6" data-duration="5.9" data-track-index="7">
+      <div id="r-sub-on" class="sub-btn"><span>▶</span>SUBSCRIBE</div>
+      <div id="r-sub-done" class="sub-btn"><span id="r-bell">🔔</span>SUBSCRIBED</div>
+    </div>
+    <div id="r-tap" class="clip" data-layout-allow-overlap data-start="33.2" data-duration="4.3" data-track-index="8"></div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    const slide = (s, t) => tl.fromTo(s, { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 0.45, ease: "power3.out" }, t);
+    const pop = (s, t) => tl.fromTo(s, { opacity: 0, scale: 0.5 }, { opacity: 1, scale: 1, duration: 0.4, ease: "back.out(2.2)" }, t);
+    tl.fromTo("#r-hdr", { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 0.4 }, 0);
+    slide("#r-1", 1.95); slide("#r-2", 4.2); pop("#r-p1", 6.0); pop("#r-p2", 7.0); pop("#r-p3", 8.1);
+    slide("#r-3", 10.1); pop("#r-price", 12.6);
+    tl.fromTo("#r-pdf", { opacity: 0, x: 50 }, { opacity: 1, x: 0, duration: 0.45, ease: "power3.out" }, 15.55);
+    tl.fromTo("#r-cls", { opacity: 0, x: 50 }, { opacity: 1, x: 0, duration: 0.45, ease: "power3.out" }, 22.3);
+    tl.to("#r-pdf .wa", { scale: 1.08, duration: 0.3, yoyo: true, repeat: 1, transformOrigin: "left center" }, 19.9);
+    tl.fromTo("#r-c1", { backgroundColor: "rgba(245,183,0,0)" }, { backgroundColor: "rgba(245,183,0,0.5)", duration: 0.3 }, 25.0);
+    tl.fromTo("#r-c2", { backgroundColor: "rgba(245,183,0,0)" }, { backgroundColor: "rgba(245,183,0,0.5)", duration: 0.3 }, 28.4);
+    tl.fromTo("#r-logo", { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 0.45, ease: "back.out(2)" }, 31.5);
+    gsap.set("#r-sub-on", { opacity: 0, scale: 0.4 });
+    gsap.set("#r-tap", { opacity: 0, scale: 1.6 });
+    tl.to("#r-sub-on", { opacity: 1, scale: 1, duration: 0.5, ease: "back.out(2.2)" }, 31.7);
+    tl.to("#r-sub-on", { scale: 1.08, duration: 0.3, yoyo: true, repeat: 1, ease: "power2.inOut" }, 32.3);
+    tl.to("#r-tap", { opacity: 1, scale: 0.8, duration: 0.3, ease: "power2.in" }, 33.3);
+    tl.to("#r-sub-on", { scale: 0.92, duration: 0.12, yoyo: true, repeat: 1 }, 33.6);
+    tl.to("#r-tap", { opacity: 0, duration: 0.3 }, 33.75);
+    tl.set("#r-sub-on", { opacity: 0 }, 33.7);
+    tl.fromTo("#r-sub-done", { opacity: 0 }, { opacity: 1, duration: 0.01 }, 33.7);
+    tl.fromTo("#r-bell", { rotation: 0 }, { rotation: 18, duration: 0.12, yoyo: true, repeat: 5, ease: "sine.inOut" }, 33.9);
+    window.__timelines["recap"] = tl;
+  </script>
+</template>
