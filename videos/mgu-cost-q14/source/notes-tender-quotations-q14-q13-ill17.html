@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cost Accounting Solved &mdash; Tender or Quotations (Questions 14, 13 &amp; Illustration 17)</title>
+<style>
+/* Print & Playwright-to-PDF Page Configuration */
+@page { size: A4; margin: 0; }
+html, body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+html { background: #C8C8C8 !important; }
+body {
+  background: #C8C8C8 !important;
+  font-family: "Times New Roman", Times, serif;
+  font-size: 13pt; color: #000000; line-height: 1.5;
+  margin: 0; padding: 0.5cm;
+  width: 210mm; max-width: 210mm; box-sizing: border-box;
+  overflow-x: hidden;
+}
+
+/* Seamless In-Preview Direct Editing */
+[contenteditable]:focus { outline: none; }
+
+/* Institutional Header */
+.header { text-align: center; color: #0057B8; font-weight: bold; border-bottom: 3px solid #0057B8; margin-bottom: 14px; padding: 14px 0 10px 0; }
+.header .inst { font-size: 15pt; font-weight: bold; letter-spacing: 0.5pt; }
+.header .line2 { font-size: 11.5pt; font-weight: normal; margin-top: 5px; }
+.header .line2 .ph { color: #CC0000; font-weight: bold; }
+.header .date { font-size: 10.5pt; font-weight: normal; color: #CC0000; margin-top: 4px; }
+
+/* Exam & Chapter Heading Block */
+.exam-head { text-align: center; color: #00008B; font-weight: bold; border-bottom: 2px solid #00008B; padding: 4px 0 8px 0; margin-bottom: 18px; }
+.exam-head .eh-row { display: flex; justify-content: space-between; font-size: 12.5pt; color: #000; }
+.exam-head .eh-l1 { font-size: 14pt; letter-spacing: 0.5pt; margin-top: 4px; }
+.exam-head .eh-l2 { font-size: 13pt; margin-top: 2px; }
+.exam-head .eh-l3 { font-size: 12.5pt; font-weight: normal; margin-top: 6px; }
+.exam-head .eh-l4 { font-size: 14pt; margin-top: 2px; }
+
+/* Fixed Right-Edge Vertical Watermark */
+.wm { position: fixed; right: 0.08cm; bottom: 1.2cm; writing-mode: vertical-rl; font-size: 10pt; font-style: italic; font-weight: bold; letter-spacing: 0.15em; color: #9E9E9E; pointer-events: none; }
+@media screen { .wm { right: auto; left: calc(210mm - 0.45cm); } }
+
+/* Question Top Bar & Page Blocks */
+.top-bar { display: flex; align-items: center; border-bottom: 1px solid #000; padding: 4px 0; margin-bottom: 14px; }
+.top-bar .title { flex: 1; text-align: center; font-weight: bold; text-transform: uppercase; font-size: 14pt; color: #00008B; }
+.top-bar .pgref { color: #CC0000; font-weight: bold; white-space: nowrap; font-size: 13pt; }
+.top-bar .pgref .num { font-size: 20pt; }
+.page-block { max-width: 210mm; margin: 0 auto 30px auto; padding: 0; background: #C8C8C8 !important; overflow: hidden; }
+table.wn tr, .formula-box { break-inside: avoid; page-break-inside: avoid; }
+.tbl-title, .tbl-sub, .wn-label, .wn-sub, .dr-cr-row { break-after: avoid; page-break-after: avoid; }
+@media screen { .page-block + .page-block { margin-top: 40px; border-top: 3px dashed #888; padding-top: 30px; } }
+@media print {
+  .page-block { max-width: 100%; overflow: visible; }
+  .page-block + .page-block { margin-top: 0; border-top: none; padding-top: 0.5cm; page-break-before: always; break-before: page; }
+}
+
+/* Question, Adjustments & Text Blocks */
+.q > span, .notes > span, .adj > span, .wn-text > span { display: block; }
+.q { line-height: 1.8; margin-bottom: 12px; }
+.q > span { margin-bottom: 8px; }
+.adj { line-height: 1.8; margin-top: 10px; margin-bottom: 14px; }
+.adj > span { margin-bottom: 8px; }
+.qno { font-weight: bold; color: #000080; }
+.qno .num { font-size: 20pt; font-weight: bold; color: #CC0000; }
+.amt { color: #CC0000; white-space: nowrap; font-weight: normal; }
+table.wn tr.total .amt,
+table.wn tr.sub-total .amt,
+table.wn.wn-calc td.res-col .amt,
+strong .amt { font-weight: bold; }
+
+/* Solution & Working Note Labels */
+.sol-label { font-size: 13pt; font-weight: bold; color: #6A0DAD; text-align: center; text-transform: uppercase; letter-spacing: 0.3em; margin-top: 16px; margin-bottom: 12px; }
+.wn-label { font-weight: bold; color: #0057B8; margin-top: 16px; margin-bottom: 6px; }
+.wn-sub { font-weight: bold; color: #6A0DAD; margin-top: 12px; margin-bottom: 6px; }
+.wn-text { line-height: 1.8; margin: 8px 0 12px 0; font-size: 12.5pt; }
+.wn-text > span { margin-bottom: 4px; }
+.wn-text .mk { font-weight: bold; color: #00008B; font-style: normal; }
+.wn-text .nm { font-weight: bold; color: #0057B8; }
+.tbl-title { text-align: center; font-weight: bold; font-size: 13pt; color: #6A0DAD; text-decoration: underline; margin: 14px 0 2px 0; }
+.tbl-sub { text-align: center; font-style: italic; font-size: 12pt; margin-bottom: 4px; }
+
+/* Standard Accounting Tables */
+table.wn { width: auto; max-width: 100%; table-layout: auto; border-collapse: collapse; font-size: 12.5pt; margin: 12px 0; border-left: 3px solid #0057B8; }
+table.wn th, table.wn td { border: 1px solid #000; padding: 10px 20px; vertical-align: middle; word-wrap: break-word; overflow-wrap: break-word; }
+table.wn th { white-space: nowrap; font-style: italic; font-weight: bold; text-align: center; background: #BDBDBD !important; }
+table.wn td.right { text-align: right; white-space: nowrap; }
+table.wn td.center { text-align: center; white-space: nowrap; }
+table.wn tr.total td { font-weight: bold; border-top: 2px solid #000; border-bottom: 2px solid #000; }
+table.wn tr.sec-head td { font-weight: bold; background: #BEBEBE !important; }
+table.wn tr.sub-total td { font-weight: bold; border-top: 1.5px solid #000; }
+
+/* Spacious Working Notes Calculation Table (A4 Overflow-Safe) */
+table.wn.wn-calc { width: 100%; max-width: 100%; table-layout: fixed; }
+table.wn.wn-calc th { padding: 10px 8px; white-space: normal; }
+table.wn.wn-calc td { padding: 16px 14px; line-height: 2.3; vertical-align: middle; }
+table.wn.wn-calc td:first-child { padding: 16px 8px; }
+table.wn.wn-calc td.calc-col { white-space: normal; }
+table.wn.wn-calc td.res-col { text-align: right; white-space: nowrap; font-weight: bold; padding: 16px 12px; }
+
+/* Highlighted Technique / Formula Box */
+.formula-box {
+  background: #DCDCDC !important;
+  border: 1.5px solid #0057B8;
+  border-left: 5px solid #6A0DAD;
+  padding: 18px 22px;
+  margin: 18px 0;
+  line-height: 2.4;
+  font-size: 12.5pt;
+  box-sizing: border-box;
+  max-width: 100%;
+}
+.formula-box .fb-title {
+  display: block;
+  font-weight: bold;
+  color: #6A0DAD;
+  text-decoration: underline;
+  margin-bottom: 12px;
+  line-height: 1.6;
+}
+.formula-box .fb-line {
+  display: block;
+  margin-bottom: 14px;
+  line-height: 2.4;
+}
+.formula-box .fb-line:last-child {
+  margin-bottom: 0;
+}
+.formula-box .frac { margin: 0 0.25em; }
+.formula-box .frac span.num { padding: 0 0.2em 3px 0.2em; }
+.formula-box .frac span.den { padding: 3px 0.2em 0 0.2em; }
+
+/* Stacked Vertical Fractions */
+.frac { display: inline-block; vertical-align: middle; text-align: center; text-indent: 0; white-space: nowrap; margin: 0 0.18em; font-size: 0.88em; line-height: 1.1; }
+.frac span.num { display: block; text-indent: 0; padding: 0 0.15em 1px 0.15em; }
+.frac span.den { display: block; text-indent: 0; border-top: 1px solid currentColor; padding: 1px 0.15em 0 0.15em; }
+
+/* Exam Tips, Table Wrappers & Hanging Indents */
+.rule-note { font-style: italic; color: #6A0DAD; margin-top: 16px; line-height: 1.8; }
+.final-ans { font-weight: bold; font-size: 13pt; color: #CC0000; margin-top: 12px; border-top: 1px solid #CC0000; padding-top: 4px; }
+table.wn.left { margin-left: 0; margin-right: 0; }
+.tw { display: table; max-width: 100%; }
+.tw > table.wn { margin-left: 0; margin-right: 0; }
+table.wn td.hang { padding-left: calc(20px + 2.6em); text-indent: -2.6em; }
+table.wn td.hang > em.mk { display: inline-block; width: 2.6em; text-indent: 0; }
+.indent1 { padding-left: calc(20px + 1.4em) !important; }
+.lc { display: inline-block; padding-left: 1.4em; text-indent: 0; }
+</style>
+</head>
+<body>
+
+<!-- Fixed Vertical Watermark -->
+<div class="wm">Goodwill Tuition Centre Online, Kerala</div>
+
+<!-- Main Printable Document Wrapper (Directly Editable in Preview Mode) -->
+<div contenteditable="true" spellcheck="false">
+
+  <!-- Institutional Header -->
+  <div class="header">
+    <div class="inst">GOODWILL TUITION CENTRE FOR ACCOUNTANCY &amp; INCOME TAX ONLINE</div>
+    <div class="line2">Thevara, Ernakulam &nbsp;|&nbsp; Ph: <span class="ph">9567902805</span> &nbsp;|&nbsp; goodwillonlinetuition.com</div>
+    <div class="date">22 November 2026</div>
+  </div>
+
+  <!-- Course & Chapter Heading Block -->
+  <div class="exam-head">
+    <div class="eh-row"><span></span><span>B.Com Honours Sem 6</span></div>
+    <div class="eh-l1">COST ACCOUNTING</div>
+    <div class="eh-l2">SOLVED PRACTICAL PROBLEMS</div>
+    <div class="eh-l3">Preparation of Cost Sheet, Tender &amp; Quotation Price</div>
+    <div class="eh-l4">QUESTIONS 14, 13 &amp; ILLUSTRATION 17</div>
+    <div class="eh-row"><span></span><span>Questions 14, 13 &amp; Illustration 17</span></div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- PAGE BLOCK 1: QUESTION 14 (National Ltd.)                             -->
+  <!-- ===================================================================== -->
+  <div class="page-block">
+    <div class="top-bar">
+      <div class="title">Tender or Quotations</div>
+      <div class="pgref">Dr. Jayan | Pg. <span class="num">292&ndash;293</span></div>
+    </div>
+
+    <div class="q">
+      <span><span class="qno">Question <span class="num">14</span></span></span>
+      <span>The accounts of National Ltd showed the following.</span>
+    </div>
+
+    <!-- Given Particulars Table -->
+    <table class="wn left">
+      <tbody>
+        <tr>
+          <th>Particulars</th>
+          <th>Amount (&#8377;)</th>
+        </tr>
+        <tr>
+          <td>Direct materials</td>
+          <td class="right">7,00,000</td>
+        </tr>
+        <tr>
+          <td>Direct wages</td>
+          <td class="right">5,40,000</td>
+        </tr>
+        <tr>
+          <td>Works Overhead</td>
+          <td class="right">1,62,000</td>
+        </tr>
+        <tr>
+          <td>Establishment overhead</td>
+          <td class="right">1,12,000</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Question Requirement (One Sentence per Line) -->
+    <div class="adj">
+      <span>What price should the company quote to manufacture a machine which will require an expenditure of <span class="amt">&#8377; 1,000</span> in material and <span class="amt">&#8377; 800</span> in wages so that it will yield a profit of <span class="amt">20%</span> on selling price?</span>
+    </div>
+
+    <div class="sol-label">Solution</div>
+
+    <!-- Step 1: Cost Sheet of National Ltd. -->
+    <div class="tw">
+      <div class="tbl-title">STEP 1 : COST SHEET</div>
+      <div class="tbl-sub">(National Ltd.)</div>
+      <table class="wn">
+        <tbody>
+          <tr>
+            <th>Particulars</th>
+            <th>Amount (&#8377;)</th>
+          </tr>
+          <tr>
+            <td>Direct Materials</td>
+            <td class="right">7,00,000</td>
+          </tr>
+          <tr>
+            <td class="hang"><em class="mk">Add:</em>Direct Wages</td>
+            <td class="right">5,40,000</td>
+          </tr>
+          <tr class="sub-total">
+            <td>1. Prime Cost</td>
+            <td class="right">12,40,000</td>
+          </tr>
+          <tr>
+            <td class="hang"><em class="mk">Add:</em>Works Overhead</td>
+            <td class="right">1,62,000</td>
+          </tr>
+          <tr class="sub-total">
+            <td>2. Works Cost</td>
+            <td class="right">14,02,000</td>
+          </tr>
+          <tr>
+            <td class="hang"><em class="mk">Add:</em>Establishment Overhead</td>
+            <td class="right">1,12,000</td>
+          </tr>
+          <tr class="total">
+            <td>3. Cost of Production</td>
+            <td class="right"><span class="amt">15,14,000</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Step 2: Spacious Working Notes Table -->
+    <div class="wn-label">Working Notes (Step 2 &mdash; Overhead Absorption Rates &amp; Profit Rate):</div>
+    <table class="wn wn-calc">
+      <colgroup><col style="width:9%"><col style="width:26%"><col style="width:48%"><col style="width:17%"></colgroup>
+      <tbody>
+        <tr>
+          <th>Sl.<br>No.</th>
+          <th>Rate / Basis</th>
+          <th>Formula &amp; Step-by-Step Calculation</th>
+          <th>Result</th>
+        </tr>
+        <tr>
+          <td class="center">1</td>
+          <td><strong>Works Overhead Rate</strong><br><em>(on Direct Wages)</em></td>
+          <td class="calc-col">= <span class="frac"><span class="num">Works Overhead &times; 100</span><span class="den">Direct Wages</span></span> = <span class="frac"><span class="num">1,62,000 &times; 100</span><span class="den">5,40,000</span></span></td>
+          <td class="res-col"><span class="amt">30%</span></td>
+        </tr>
+        <tr>
+          <td class="center">2</td>
+          <td><strong>Establishment Overhead Rate</strong><br><em>(on Works Cost)</em></td>
+          <td class="calc-col">= <span class="frac"><span class="num">Establishment Overhead &times; 100</span><span class="den">Works Cost</span></span> = <span class="frac"><span class="num">1,12,000 &times; 100</span><span class="den">14,02,000</span></span><br>= 7.9886% &approx; 8% <em>(rounded off)</em></td>
+          <td class="res-col"><span class="amt">8%</span></td>
+        </tr>
+        <tr>
+          <td class="center">3</td>
+          <td><strong>Rate of Profit</strong><br><em>(Sales to Cost)</em></td>
+          <td class="calc-col">Profit on Cost = <span class="frac"><span class="num">20</span><span class="den">100 &ndash; 20</span></span> &times; 100 = <span class="frac"><span class="num">20</span><span class="den">80</span></span> &times; 100</td>
+          <td class="res-col"><span class="amt">25%</span><br><em>(on Cost)</em></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Highlighted Profit Conversion Technique Box -->
+    <div class="formula-box">
+      <span class="fb-title">Technique &mdash; Converting Profit on Sales to Profit on Cost:</span>
+      <span class="fb-line">If profit is <strong><span class="amt">20%</span></strong> on Sales, it is equal to <strong><span class="amt"><span class="frac"><span class="num">20</span><span class="den">100 &ndash; 20</span></span></span></strong> on Cost.</span>
+      <span class="fb-line"><em>General Formula:</em> &nbsp;<strong>Profit on Cost</strong> = <span class="frac"><span class="num">Rate</span><span class="den">100 &ndash; Rate</span></span></span>
+    </div>
+
+    <!-- Key Accounting Treatment Notes -->
+    <div class="wn-text">
+      <span><em class="mk">Note &mdash; Standard Absorption Bases:</em> When the question does not specify overhead recovery bases, <span class="nm">Works Overhead</span> is absorbed as a percentage of <span class="nm">Direct Wages</span> and <span class="nm">Establishment (Administration) Overhead</span> is absorbed as a percentage of <span class="nm">Works Cost</span>.</span>
+    </div>
+
+    <!-- Step 3: Statement showing the Quotation Price of the Machine -->
+    <div class="tw">
+      <div class="tbl-title">STEP 3 : STATEMENT SHOWING THE QUOTATION PRICE OF THE MACHINE</div>
+      <div class="tbl-sub">(National Ltd.)</div>
+      <table class="wn">
+        <tbody>
+          <tr>
+            <th>Elements of Cost</th>
+            <th>Amount (&#8377;)</th>
+          </tr>
+          <tr>
+            <td>Direct Material</td>
+            <td class="right">1,000.00</td>
+          </tr>
+          <tr>
+            <td class="hang"><em class="mk">Add:</em>Direct Wages</td>
+            <td class="right">800.00</td>
+          </tr>
+          <tr class="sub-total">
+            <td>1. Prime Cost</td>
+            <td class="right">1,800.00</td>
+          </tr>
+          <tr>
+            <td class="hang"><em class="mk">Add:</em>Works Overhead &nbsp;(<span class="amt">&#8377; 800</span> &times; <span class="frac"><span class="num">30</span><span class="den">100</span></span>)</td>
+            <td class="right">240.00</td>
+          </tr>
+          <tr class="sub-total">
+            <td>2. Works Cost</td>
+            <td class="right">2,040.00</td>
+          </tr>
+          <tr>
+            <td class="hang"><em class="mk">Add:</em>Establishment Overhead &nbsp;(<span class="amt">&#8377; 2,040</span> &times; <span class="frac"><span class="num">8</span><span class="den">100</span></span>)</td>
+            <td class="right">163.20</td>
+          </tr>
+          <tr class="sub-total">
+            <td>3. Cost of Production (Total Cost)</td>
+            <td class="right">2,203.20</td>
+          </tr>
+          <tr>
+            <td class="hang"><em class="mk">Add:</em>Profit (20% on Sales = <span class="frac"><span class="num">20</span><span class="den">100 &ndash; 20</span></span> on Cost) = <span class="amt">&#8377; 2,203.20</span> &times; <span class="frac"><span class="num">20</span><span class="den">80</span></span></td>
+            <td class="right">550.80</td>
+          </tr>
+          <tr class="total">
+            <td>Quotation / Selling Price</td>
+            <td class="right"><span class="amt">2,754.00</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- PAGE BLOCK 2: QUESTION 13 (Alpha Manufacturing Company)               -->
+  <!-- ===================================================================== -->
+  <div class="page-block">
+    <div class="top-bar">
+      <div class="title">Tender or Quotations</div>
+      <div class="pgref">Dr. Jayan | Pg. <span class="num">292</span></div>
+    </div>
+
+    <div class="q">
+      <span><span class="qno">Question <span class="num">13</span></span></span>
+      <span>Following information has been obtained from the costing records of Alpha Manufacturing Company for the year 2025.</span>
+    </div>
+
+    <!-- Given 2025 Costing Records Table -->
+    <table class="wn left">
+      <tbody>
+        <tr>
+          <th>Particulars</th>
+          <th>Amount (&#8377;)</th>
+        </tr>
+        <tr>
+          <td>Materials used</td>
+          <td class="right">3,00,000</td>
+        </tr>
+        <tr>
+          <td>Direct Wages</td>
+          <td class="right">2,40,000</td>
+        </tr>
+        <tr>
+          <td>Factory overhead</td>
+          <td class="right">60,000</td>
+        </tr>
+        <tr>
+          <td>Administration overhead</td>
+          <td class="right">30,000</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Question Requirement (One Sentence per Line) -->
+    <div class="adj">
+      <span>Prepare a cost sheet and calculate the price which the company should quote for the manufacture of a machine requiring materials <span class="amt">&#8377; 2,500</span> and direct wages <span class="amt">&#8377; 1,500</span>, so that the price may yield a profit of <span class="amt">20%</span> on the selling price.</span>
+    </div>
+
+    <div class="sol-label">Solution</div>
+
+    <!-- Step 1: Cost Sheet for 2025 (Alpha Manufacturing Company) -->
+    <div class="tw">
+      <div class="tbl-title">STEP 1 : COST SHEET</div>
+      <div class="tbl-sub">for the year 2025 (Alpha Manufacturing Company)</div>
+      <table class="wn">
+        <tbody>
+          <tr>
+            <th>Particulars</th>
+            <th>Amount (&#8377;)</th>
+          </tr>
+          <tr>
+            <td>Materials used</td>
+            <td class="right">3,00,000</td>
+          </tr>
+          <tr>
+            <td class="hang"><em class="mk">Add:</em>Direct Wages</td>
+            <td class="right">2,40,000</td>
+          </tr>
+          <tr class="sub-total">
+            <td>1. Prime Cost</td>
+            <td class="right">5,40,000</td>
+          </tr>
+          <tr>
+            <td class="hang"><em class="mk">Add:</em>Factory Overhead</td>
+            <td class="right">60,000</td>
+          </tr>
+          <tr class="sub-total">
+            <td>2. Works Cost</td>
+            <td class="right">6,00,000</td>
+          </tr>
+          <tr>
+            <td class="hang"><em class="mk">Add:</em>Administration Overhead</td>
+            <td class="right">30,000</td>
+          </tr>
+          <tr class="total">
+            <td>3. Cost of Production</td>
+            <td class="right"><span class="amt">6,30,000</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Step 2: Spacious Working Notes Table -->
+    <div class="wn-label">Working Notes (Step 2 &mdash; Overhead Absorption Rates &amp; Profit Rate):</div>
+    <table class="wn wn-calc">
+      <colgroup><col style="width:9%"><col style="width:26%"><col style="width:48%"><col style="width:17%"></colgroup>
+      <tbody>
+        <tr>
+          <th>Sl.<br>No.</th>
+          <th>Rate / Basis</th>
+          <th>Formula &amp; Step-by-Step Calculation</th>
+          <th>Result</th>
+        </tr>
+        <tr>
+          <td class="center">1</td>
+          <td><strong>Factory Overhead Rate</strong><br><em>(on Direct Wages)</em></td>
+          <td class="calc-col">= <span class="frac"><span class="num">Factory Overhead &times; 100</span><span class="den">Direct Wages</span></span> = <span class="frac"><span class="num">60,000 &times; 100</span><span class="den">2,40,000</span></span></td>
+          <td class="res-col"><span class="amt">25%</span></td>
+        </tr>
+        <tr>
+          <td class="center">2</td>
+          <td><strong>Administration Overhead Rate</strong><br><em>(on Works Cost)</em></td>
+          <td class="calc-col">= <span class="frac"><span class="num">Administration Overhead &times; 100</span><span class="den">Works Cost</span></span> = <span class="frac"><span class="num">30,000 &times; 100</span><span class="den">6,00,000</span></span></td>
+          <td class="res-col"><span class="amt">5%</span></td>
+        </tr>
+        <tr>
+          <td class="center">3</td>
+          <td><strong>Rate of Profit</strong><br><em>(Sales to Cost)</em></td>
+          <td class="calc-col">Profit on Cost = <span class="frac"><span class="num">20</span><span class="den">100 &ndash; 20</span></span> &times; 100 = <span class="frac"><span class="num">20</span><span class="den">80</span></span> &times; 100</td>
+          <td class="res-col"><span class="amt">25%</span><br><em>(on Cost)</em></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Highlighted Profit Conversion Technique Box -->
+    <div class="formula-box">
+      <span class="fb-title">Technique &mdash; Converting Profit on Sales to Profit on Cost:</span>
+      <span class="fb-line">If profit is <strong><span class="amt">20%</span></strong> on Sales, it is equal to <strong><span class="amt"><span class="frac"><span class="num">20</span><span class="den">100 &ndash; 20</span></span></span></strong> on Cost.</span>
+      <span class="fb-line"><em>General Formula:</em> &nbsp;<strong>Profit on Cost</strong> = <span class="frac"><span class="num">Rate</span><span class="den">100 &ndash; Rate</span></span></span>
+    </div>
+
+    <!-- Key Accounting Treatment Notes -->
+    <div class="wn-text">
+      <span><em class="mk">Note &mdash; Standard Absorption Bases:</em> When the question does not specify overhead recovery bases, <span class="nm">Factory Overhead</span> is absorbed as a percentage of <span class="nm">Direct Wages</span> and <span class="nm">Administration Overhead</span> is absorbed as a percentage of <span class="nm">Works Cost</span>.</span>
+    </div>
+
+    <!-- Step 3: Statement showing the Quotation Price of the Machine -->
+    <div class="tw">
+      <div class="tbl-title">STEP 3 : STATEMENT SHOWING THE QUOTATION PRICE OF THE MACHINE</div>
+      <div class="tbl-sub">(Alpha Manufacturing Company)</div>
+      <table class="wn">
+        <tbody>
+          <tr>
+            <th>Elements of Cost</th>
+            <th>Amount (&#8377;)</th>
+          </tr>
+          <tr>
+            <td>Materials</td>
+            <td class="right">2,500.00</td>
+          </tr>
+          <tr>
+            <td class="hang"><em class="mk">Add:</em>Direct Wages</td>
+            <td class="right">1,500.00</td>
+          </tr>
+          <tr class="sub-total">
+            <td>1. Prime Cost</td>
+            <td class="right">4,000.00</td>
+          </tr>
+          <tr>
+            <td class="hang"><em class="mk">Add:</em>Factory Overhead &nbsp;(<span class="amt">&#8377; 1,500</span> &times; <span class="frac"><span class="num">25</span><span class="den">100</span></span>)</td>
+            <td class="right">375.00</td>
+          </tr>
+          <tr class="sub-total">
+            <td>2. Works Cost</td>
+            <td class="right">4,375.00</td>
+          </tr>
+          <tr>
+            <td class="hang"><em class="mk">Add:</em>Administration Overhead &nbsp;(<span class="amt">&#8377; 4,375</span> &times; <span class="frac"><span class="num">5</span><span class="den">100</span></span>)</td>
+            <td class="right">218.75</td>
+          </tr>
+          <tr class="sub-total">
+            <td>3. Cost of Production (Total Cost)</td>
+            <td class="right">4,593.75</td>
+          </tr>
+          <tr>
+            <td class="hang"><em class="mk">Add:</em>Profit (20% on Sales = <span class="frac"><span class="num">20</span><span class="den">100 &ndash; 20</span></span> on Cost) = <span class="amt">&#8377; 4,593.75</span> &times; <span class="frac"><span class="num">20</span><span class="den">80</span></span></td>
+            <td class="right">1,148.44</td>
+          </tr>
+          <tr class="total">
+            <td>Quotation / Selling Price <em>(rounded off: <span class="amt">&#8377; 5,742</span>)</em></td>
+            <td class="right"><span class="amt">5,742.19</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- PAGE BLOCK 3: ILLUSTRATION 17 (Samsung India Ltd.)                    -->
+  <!-- ===================================================================== -->
+  <div class="page-block">
+    <div class="top-bar">
+      <div class="title">Preparation of Cost Sheet &amp; Quotation Price</div>
+      <div class="pgref">Cost Accounting | Pg. <span class="num">276&ndash;278</span></div>
+    </div>
+
+    <div class="q">
+      <span><span class="qno">Illustration <span class="num">17</span></span></span>
+      <span>The following figures have been obtained from the Books of Samsung India Ltd. for the year 2025.</span>
+    </div>
+
+    <!-- Given 2025 Particulars Table -->
+    <table class="wn left">
+      <tbody>
+        <tr>
+          <th>Particulars</th>
+          <th>Amount (&#8377;)</th>
+        </tr>
+        <tr>
+          <td>Direct Material</td>
+          <td class="right">6,00,000</td>
+        </tr>
+        <tr>
+          <td>Direct wages</td>
+          <td class="right">5,00,000</td>
+        </tr>
+        <tr>
+          <td>Factory Overheads</td>
+          <td class="right">3,00,000</td>
+        </tr>
+        <tr>
+          <td>Administration overheads</td>
+          <td class="right">3,36,000</td>
+        </tr>
+        <tr>
+          <td>Selling overheads</td>
+          <td class="right">2,24,000</td>
+        </tr>
+        <tr>
+          <td>Distribution overheads</td>
+          <td class="right">1,40,000</td>
+        </tr>
+        <tr>
+          <td>Profit</td>
+          <td class="right">4,20,000</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- New Model Introduction Sentence (One Sentence per Line) -->
+    <div class="adj">
+      <span>A new model has been introduced in 2026 and the following expenses have been incurred.</span>
+    </div>
+
+    <!-- Given 2026 New Model Expenses Table -->
+    <table class="wn left">
+      <tbody>
+        <tr>
+          <th>Particulars</th>
+          <th>Amount (&#8377;)</th>
+        </tr>
+        <tr>
+          <td>Material</td>
+          <td class="right">8,000</td>
+        </tr>
+        <tr>
+          <td>Wages</td>
+          <td class="right">5,000</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Question Adjustments & Requirement (Split into Separate Lines) -->
+    <div class="adj">
+      <span>Assuming that in 2026, the rate of factory overhead has increased by <span class="amt">20%</span>,</span>
+      <span>the rate of distribution overhead has gone down by <span class="amt">10%</span>,</span>
+      <span>and selling and administration overheads rates have each gone up by <span class="amt">12<span class="frac"><span class="num">1</span><span class="den">2</span></span>%</span>,</span>
+      <span>at what price should the product be sold so as to earn the same rate of profit on the selling price as in 2025?</span>
+      <span>Factory overhead is based on Direct wages,</span>
+      <span>while all other overheads are based on Factory Cost.</span>
+    </div>
+
+    <div class="sol-label">Solution</div>
+
+    <!-- Step 1: Cost Sheet for the year 2025 (Samsung India Ltd.) -->
+    <div class="tw">
+      <div class="tbl-title">STEP 1 : COST SHEET</div>
+      <div class="tbl-sub">for the year 2025 (Samsung India Ltd.)</div>
+      <table class="wn">
+        <tbody>
+          <tr>
+            <th>Particulars</th>
+            <th>Amount (&#8377;)</th>
+          </tr>
+          <tr>
+            <td>Direct Material</td>
+            <td class="right">6,00,000</td>
+          </tr>
+          <tr>
+            <td class="hang"><em class="mk">Add:</em>Direct Wages</td>
+            <td class="right">5,00,000</td>
+          </tr>
+          <tr class="sub-total">
+            <td>1. Prime Cost</td>
+            <td class="right">11,00,000</td>
+          </tr>
+          <tr>
+            <td class="hang"><em class="mk">Add:</em>Factory Overheads</td>
+            <td class="right">3,00,000</td>
+          </tr>
+          <tr class="sub-total">
+            <td>2. Works Cost (Factory Cost)</td>
+            <td class="right">14,00,000</td>
+          </tr>
+          <tr>
+            <td class="hang"><em class="mk">Add:</em>Administration Overheads</td>
+            <td class="right">3,36,000</td>
+          </tr>
+          <tr class="sub-total">
+            <td>3. Cost of Production</td>
+            <td class="right">17,36,000</td>
+          </tr>
+          <tr>
+            <td class="hang"><em class="mk">Add:</em>Selling Overheads</td>
+            <td class="right">2,24,000</td>
+          </tr>
+          <tr>
+            <td class="hang"><em class="mk">Add:</em>Distribution Overheads</td>
+            <td class="right">1,40,000</td>
+          </tr>
+          <tr class="sub-total">
+            <td>4. Cost of Sales</td>
+            <td class="right">21,00,000</td>
+          </tr>
+          <tr>
+            <td class="hang"><em class="mk">Add:</em>Profit</td>
+            <td class="right">4,20,000</td>
+          </tr>
+          <tr class="total">
+            <td>5. Sales</td>
+            <td class="right"><span class="amt">25,20,000</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Step 2(A): Calculation of Overhead Rates & Profit Rate (2025) -->
+    <div class="wn-label">Working Notes (Step 2A &mdash; Calculation of Overhead Rates &amp; Profit Rate for 2025):</div>
+    <table class="wn wn-calc">
+      <colgroup><col style="width:9%"><col style="width:26%"><col style="width:48%"><col style="width:17%"></colgroup>
+      <tbody>
+        <tr>
+          <th>Sl.<br>No.</th>
+          <th>Rate / Basis</th>
+          <th>Formula &amp; Step-by-Step Calculation</th>
+          <th>Result</th>
+        </tr>
+        <tr>
+          <td class="center">1</td>
+          <td><strong>Factory Overhead Rate</strong><br><em>(on Direct Wages)</em></td>
+          <td class="calc-col">= <span class="frac"><span class="num">Factory Overheads &times; 100</span><span class="den">Direct Wages</span></span> = <span class="frac"><span class="num">3,00,000 &times; 100</span><span class="den">5,00,000</span></span></td>
+          <td class="res-col"><span class="amt">60%</span></td>
+        </tr>
+        <tr>
+          <td class="center">2</td>
+          <td><strong>Administration Overhead Rate</strong><br><em>(on Works Cost)</em></td>
+          <td class="calc-col">= <span class="frac"><span class="num">Administration Overheads &times; 100</span><span class="den">Works Cost</span></span> = <span class="frac"><span class="num">3,36,000 &times; 100</span><span class="den">14,00,000</span></span></td>
+          <td class="res-col"><span class="amt">24%</span></td>
+        </tr>
+        <tr>
+          <td class="center">3</td>
+          <td><strong>Selling Overhead Rate</strong><br><em>(on Works Cost)</em></td>
+          <td class="calc-col">= <span class="frac"><span class="num">Selling Overheads &times; 100</span><span class="den">Works Cost</span></span> = <span class="frac"><span class="num">2,24,000 &times; 100</span><span class="den">14,00,000</span></span></td>
+          <td class="res-col"><span class="amt">16%</span></td>
+        </tr>
+        <tr>
+          <td class="center">4</td>
+          <td><strong>Distribution Overhead Rate</strong><br><em>(on Works Cost)</em></td>
+          <td class="calc-col">= <span class="frac"><span class="num">Distribution Overheads &times; 100</span><span class="den">Works Cost</span></span> = <span class="frac"><span class="num">1,40,000 &times; 100</span><span class="den">14,00,000</span></span></td>
+          <td class="res-col"><span class="amt">10%</span></td>
+        </tr>
+        <tr>
+          <td class="center">5</td>
+          <td><strong>Rate of Profit</strong><br><em>(Sales to Cost)</em></td>
+          <td class="calc-col">Profit on Sales = <span class="frac"><span class="num">Profit &times; 100</span><span class="den">Sales</span></span> = <span class="frac"><span class="num">4,20,000 &times; 100</span><span class="den">25,20,000</span></span> = 16.6667%<br>Profit on Cost = <span class="frac"><span class="num">16.6667</span><span class="den">100 &ndash; 16.6667</span></span> &times; 100 = <span class="frac"><span class="num">16.6667</span><span class="den">83.3333</span></span> &times; 100</td>
+          <td class="res-col"><span class="amt">20%</span><br><em>(on Cost)</em></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Highlighted Profit Conversion Technique Box -->
+    <div class="formula-box">
+      <span class="fb-title">Technique &mdash; Converting Profit on Sales to Profit on Cost:</span>
+      <span class="fb-line">If profit is <strong><span class="amt">16.6667%</span></strong> on Sales, it is equal to <strong><span class="amt"><span class="frac"><span class="num">16.6667</span><span class="den">100 &ndash; 16.6667</span></span></span></strong> on Cost.</span>
+      <span class="fb-line"><em>General Formula:</em> &nbsp;<strong>Profit on Cost</strong> = <span class="frac"><span class="num">Rate</span><span class="den">100 &ndash; Rate</span></span></span>
+    </div>
+
+    <!-- Step 2(B): Calculation of Revised Overhead Rates for 2026 -->
+    <div class="wn-label">Working Notes (Step 2B &mdash; Calculation of Revised Overhead Rates for 2026):</div>
+    <table class="wn wn-calc">
+      <colgroup><col style="width:9%"><col style="width:26%"><col style="width:48%"><col style="width:17%"></colgroup>
+      <tbody>
+        <tr>
+          <th>Sl.<br>No.</th>
+          <th>Overhead &amp; Change</th>
+          <th>Revised Rate Calculation</th>
+          <th>Revised<br>Rate</th>
+        </tr>
+        <tr>
+          <td class="center">1</td>
+          <td><strong>Factory Overhead</strong><br><em>(Increased by 20%)</em></td>
+          <td class="calc-col">= 60% &times; <span class="frac"><span class="num">100 + 20</span><span class="den">100</span></span> = <span class="frac"><span class="num">60 &times; 120</span><span class="den">100</span></span></td>
+          <td class="res-col"><span class="amt">72%</span></td>
+        </tr>
+        <tr>
+          <td class="center">2</td>
+          <td><strong>Administration Overhead</strong><br><em>(Increased by 12<span class="frac"><span class="num">1</span><span class="den">2</span></span>%)</em></td>
+          <td class="calc-col">= 24% &times; <span class="frac"><span class="num">100 + 12.5</span><span class="den">100</span></span> = <span class="frac"><span class="num">24 &times; 112.5</span><span class="den">100</span></span></td>
+          <td class="res-col"><span class="amt">27%</span></td>
+        </tr>
+        <tr>
+          <td class="center">3</td>
+          <td><strong>Selling Overhead</strong><br><em>(Increased by 12<span class="frac"><span class="num">1</span><span class="den">2</span></span>%)</em></td>
+          <td class="calc-col">= 16% &times; <span class="frac"><span class="num">100 + 12.5</span><span class="den">100</span></span> = <span class="frac"><span class="num">16 &times; 112.5</span><span class="den">100</span></span></td>
+          <td class="res-col"><span class="amt">18%</span></td>
+        </tr>
+        <tr>
+          <td class="center">4</td>
+          <td><strong>Distribution Overhead</strong><br><em>(Decreased by 10%)</em></td>
+          <td class="calc-col">= 10% &times; <span class="frac"><span class="num">100 &ndash; 10</span><span class="den">100</span></span> = <span class="frac"><span class="num">10 &times; 90</span><span class="den">100</span></span></td>
+          <td class="res-col"><span class="amt">9%</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Step 3: Statement showing the Estimated Price of the New Model (2026) -->
+    <div class="tw">
+      <div class="tbl-title">STEP 3 : STATEMENT SHOWING THE ESTIMATED PRICE OF THE NEW MODEL</div>
+      <div class="tbl-sub">for the year 2026 (Samsung India Ltd.)</div>
+      <table class="wn">
+        <tbody>
+          <tr>
+            <th>Elements of Cost</th>
+            <th>Amount (&#8377;)</th>
+          </tr>
+          <tr>
+            <td>Direct Material</td>
+            <td class="right">8,000</td>
+          </tr>
+          <tr>
+            <td class="hang"><em class="mk">Add:</em>Direct Wages</td>
+            <td class="right">5,000</td>
+          </tr>
+          <tr class="sub-total">
+            <td>1. Prime Cost</td>
+            <td class="right">13,000</td>
+          </tr>
+          <tr>
+            <td class="hang"><em class="mk">Add:</em>Factory Overhead &nbsp;(<span class="amt">&#8377; 5,000</span> &times; <span class="frac"><span class="num">72</span><span class="den">100</span></span>)</td>
+            <td class="right">3,600</td>
+          </tr>
+          <tr class="sub-total">
+            <td>2. Works Cost (Factory Cost)</td>
+            <td class="right">16,600</td>
+          </tr>
+          <tr>
+            <td class="hang"><em class="mk">Add:</em>Administration Overhead &nbsp;(<span class="amt">&#8377; 16,600</span> &times; <span class="frac"><span class="num">27</span><span class="den">100</span></span>)</td>
+            <td class="right">4,482</td>
+          </tr>
+          <tr class="sub-total">
+            <td>3. Cost of Production</td>
+            <td class="right">21,082</td>
+          </tr>
+          <tr>
+            <td class="hang"><em class="mk">Add:</em>Selling Overhead &nbsp;(<span class="amt">&#8377; 16,600</span> &times; <span class="frac"><span class="num">18</span><span class="den">100</span></span>)</td>
+            <td class="right">2,988</td>
+          </tr>
+          <tr>
+            <td class="hang"><em class="mk">Add:</em>Distribution Overhead &nbsp;(<span class="amt">&#8377; 16,600</span> &times; <span class="frac"><span class="num">9</span><span class="den">100</span></span>)</td>
+            <td class="right">1,494</td>
+          </tr>
+          <tr class="sub-total">
+            <td>4. Cost of Sales (Total Cost)</td>
+            <td class="right">25,564</td>
+          </tr>
+          <tr>
+            <td class="hang"><em class="mk">Add:</em>Profit (16.6667% on Sales = <span class="frac"><span class="num">16.6667</span><span class="den">100 &ndash; 16.6667</span></span> on Cost)<br>= <span class="amt">&#8377; 25,564</span> &times; <span class="frac"><span class="num">16.6667</span><span class="den">83.3333</span></span> = <span class="amt">&#8377; 5,112.81</span> <em>(rounded off)</em></td>
+            <td class="right">5,113</td>
+          </tr>
+          <tr class="total">
+            <td>Estimated Selling Price</td>
+            <td class="right"><span class="amt">30,677</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
