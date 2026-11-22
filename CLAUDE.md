@@ -74,6 +74,7 @@ Online Accountancy classes for CBSE Class 11 & 12 students in UAE, Saudi Arabia,
 - Tags include: cbse accountancy, ncert accountancy, class 11 accountancy, class 12 accountancy, accountancy tuition uae, online accountancy tuition dubai, journal entry, golden rules of accounting, debit and credit explained.
 - Publish immediately (Visibility → Public), then the user shares the link on Facebook and WhatsApp straight away. Do not schedule.
 - Guide uploads one step at a time when asked.
+- Upload script (22 Nov 2026): `tools/upload_youtube.py videos/<project>` (setup in `tools/UPLOAD_SETUP.md`; runs on the user's PC; free API). Give every new project an `upload/settings.json` with its playlist. Public uploads need Google's API audit first; Education fields and pinned comment stay manual. Count tags the YouTube way (quotes around multi-word tags) — the script checks it.
 
 ## Channel links (YouTube Studio → Customisation → Profile)
 - Website: https://goodwillonlinetuition.com
