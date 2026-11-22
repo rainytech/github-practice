@@ -52,6 +52,11 @@ Apply these to every new YouTube video / Short without being asked.
 - Audience is Kerala B.Com (MGU), not CBSE GCC: separate playlist "MGU B.Com Hons Sem 6 · Cost Accounting"; in the description replace the GCC line with "Online Cost Accounting classes for MGU B.Com Honours students across Kerala." (keep website, WhatsApp, paid demo lines). Stacked fractions on screen, never ÷.
 - The user's weekly Claude usage was at 74% on 22 Nov (refresh 7:30 PM IST): keep replies short and avoid unnecessary re-renders.
 
+## Main-video method and cost (MGU Q14, 22 Nov 2026 — the user loved it; reuse it)
+- Cost: about 10% of a 5-hour session and about 1% of the weekly limit for a 5½-min 16:9 video (8:45–9:38 AM), voice, 7 scenes, render, upload text and upload guidance included.
+- Method that kept it cheap: write the voice script first as per-line clips (`voice-script/lines.json`) → TTS each line → join each scene into one wav with 0.5 s gaps and loudnorm −14 LUFS → line start times (`timing.json`) set every on-screen reveal → one scene file per step → `check` → one snapshot contact sheet → fix → render once in the background (~10 min) → commit project, then MP4.
+- Keep: no music, house colours (navy #0B1B3F, gold #F5B700, cream cards, purple #6A0DAD, red #CC0000), stacked fractions, step pills 1·2·3, summary chips, "exam traps" scene, recap + WhatsApp PDF offer + Subscribe animation.
+
 ## Every description must include
 ```
 🌐 www.goodwillonlinetuition.com
