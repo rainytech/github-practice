@@ -5,6 +5,7 @@ Usage (run on your own PC, from the repository folder):
     python tools/upload_youtube.py videos/mgu-cost-q13
     python tools/upload_youtube.py videos/mgu-cost-q13 --dry-run      # check only, no upload
     python tools/upload_youtube.py videos/mgu-cost-q13 --privacy private
+    python tools/upload_youtube.py --login                            # sign in once, upload nothing
 
 It reads from the project folder:
     <project>/*.mp4                  the rendered video (the newest .mp4 if there are several)
@@ -164,12 +165,22 @@ def note_in_claude_md(title, url):
 
 def main():
     ap = argparse.ArgumentParser(description="Upload a Goodwill video project to YouTube.")
-    ap.add_argument("project", help="project folder, e.g. videos/mgu-cost-q13")
+    ap.add_argument("project", nargs="?", help="project folder, e.g. videos/mgu-cost-q13")
+    ap.add_argument("--login", action="store_true", help="sign in and show the channel name; upload nothing")
     ap.add_argument("--privacy", choices=["public", "unlisted", "private"], help="default: settings.json or public")
     ap.add_argument("--playlist", help="playlist name (overrides settings.json)")
     ap.add_argument("--client-secret", default=str(DEFAULT_SECRET), help="path to the OAuth client_secret.json")
     ap.add_argument("--dry-run", action="store_true", help="check the files and stop before uploading")
     args = ap.parse_args()
+
+    if args.login:
+        yt = youtube_client(Path(args.client_secret))
+        items = yt.channels().list(part="snippet", mine=True).execute().get("items", [])
+        name = items[0]["snippet"]["title"] if items else "(no channel found on this account)"
+        print(f"Signed in. Channel: {name}")
+        return
+    if not args.project:
+        ap.error("give the project folder, e.g. videos/mgu-cost-q13")
 
     project = Path(args.project).resolve()
     title, description, tags, settings, video = load_project(project)
