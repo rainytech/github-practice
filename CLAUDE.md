@@ -86,5 +86,6 @@ Online Accountancy classes for CBSE Class 11 & 12 students in UAE, Saudi Arabia,
 - TS Grewal Ch 8 PP1, Apr 7: Goods returned to Pankaj (Purchases Return) — https://youtube.com/shorts/1f0-mvuEwmk (published 19 Nov 2026)
 - TS Grewal Ch 8 PP1, Apr 9: Goods returned by Naresh (Sales Return) — https://youtube.com/shorts/fzdeHb3QRrw (published 20 Nov 2026)
 - TS Grewal Ch 17 Rectification Q5 (ii): Salary debited to Ajay's A/c (first rectification Short, 4-step method) — https://youtube.com/shorts/hEt3ASDIvCA (published 21 Nov 2026)
+- MGU B.Com Hons Sem 6 Cost Accounting Q14 (National Ltd), Tender or Quotations — main 16:9 video, 5:28, first in playlist "MGU B.Com Hons Sem 6 · Cost Accounting" — https://youtu.be/sV7NjIN_g04 (published 22 Nov 2026)
 - Channel views: 4,253 (10 Nov 2026) → 4,310 (11 Nov 2026). Compare again around 18 Nov.
 - Popular tab (19 Nov 2026): photo Shorts of real exam question papers lead — B.Com Corporate Accounting I paper (QP 22100578, Apr 2022) 1,020 views, others 757 / 663 / 425; MGU Income Tax promo 218; Harris "Business Entity Concept" 107 (6 days old). But those question-paper Shorts are 4 years old (≈0.2–0.7 views/day); the Harris Short got ≈18 views/day — the new animated daily Shorts are far ahead per day.
