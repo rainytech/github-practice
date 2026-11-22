@@ -43,6 +43,14 @@ Apply these to every new YouTube video / Short without being asked.
 - Order: two-sided errors first (principle, omission, commission, wrong amount), then one-sided errors with Suspense A/c, then before vs after the Trial Balance.
 - Done: Q 5 (ii) Salary paid to Ajay debited to his Personal Account ₹8,000 → Salary A/c Dr. To Ajay's A/c.
 
+## MGU B.Com Hons Sem 6 Cost Accounting video (planned 22 Nov 2026)
+- Source: `videos/mgu-cost-q14/source/notes-tender-quotations-q14-q13-ill17.html` (the user's solved notes). Make **Question 14 (National Ltd), Tender or Quotations, Dr. Jayan Pg 292–293** first.
+- Do NOT change the document's solution or wording: follow its 3 steps exactly — Step 1 Cost Sheet (Prime Cost 12,40,000 → Works Cost 14,02,000 → Cost of Production 15,14,000); Step 2 rates (Works OH 30% of wages; Establishment OH 8% of works cost, rounded from 7.9886%; Profit 20% on sales = 20⁄(100−20) = 25% on cost); Step 3 quotation (1,000 + 800 = 1,800 → +240 = 2,040 → +163.20 = 2,203.20 → +550.80 = **₹2,754.00**).
+- Proposed format (confirm with the user before building): one 16:9 main video of 5–6 min (hook → question → Step 1 → Step 2 → Step 3 → exam traps → recap/CTA) plus 3 Shorts cut from it ("20% on sales = 25% on cost" trick; absorption bases; quotation in 3 steps).
+- Still to ask the user: full name of Dr. Jayan's book for the reference card; main video + Shorts or Shorts only; OK to offer "the full solved PDF on WhatsApp".
+- Audience is Kerala B.Com (MGU), not CBSE GCC: separate playlist "MGU B.Com Hons Sem 6 · Cost Accounting"; in the description replace the GCC line with "Online Cost Accounting classes for MGU B.Com Honours students across Kerala." (keep website, WhatsApp, paid demo lines). Stacked fractions on screen, never ÷.
+- The user's weekly Claude usage was at 74% on 22 Nov (refresh 7:30 PM IST): keep replies short and avoid unnecessary re-renders.
+
 ## Every description must include
 ```
 🌐 www.goodwillonlinetuition.com
