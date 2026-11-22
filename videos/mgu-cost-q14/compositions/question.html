@@ -1,0 +1,54 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; font-family: "Inter", sans-serif; color: #fff; }
+    .hdr { position: absolute; left: 120px; top: 70px; font-family: "Archivo Black", sans-serif; font-size: 58px; color: #F5B700; }
+    .ref { position: absolute; right: 120px; top: 88px; font-size: 28px; font-weight: 700; color: rgba(255,255,255,0.75); }
+    .card { position: absolute; background: #FFFDF5; color: #111; border-radius: 18px; padding: 26px 34px; font-family: "EB Garamond", serif; box-shadow: 0 14px 34px rgba(0,0,0,0.3); }
+    #q-data { left: 120px; top: 190px; width: 780px; border-left: 14px solid #0057B8; }
+    #q-data .lead { font-size: 36px; margin-bottom: 14px; }
+    table { width: 100%; border-collapse: collapse; font-size: 38px; }
+    th { background: #BDBDBD; font-style: italic; padding: 6px 14px; border: 2px solid #000; }
+    td { padding: 6px 14px; border: 2px solid #000; }
+    td.r { text-align: right; font-weight: 700; }
+    #q-ask { left: 960px; top: 190px; width: 840px; border-left: 14px solid #CC0000; font-size: 42px; line-height: 1.38; }
+    #q-ask .amt { color: #CC0000; font-weight: 700; display: inline-block; padding: 0 6px; border-radius: 8px; }
+    #q-ask .pf { font-weight: 700; display: inline-block; padding: 0 6px; border-radius: 8px; }
+    #q-note { position: absolute; left: 960px; top: 790px; width: 840px; background: #F5B700; color: #0B1B3F; border-radius: 16px; padding: 22px 30px; font-family: "Archivo Black", sans-serif; font-size: 42px; line-height: 1.25; }
+    #q-note .no { color: #CC0000; text-decoration: line-through; text-decoration-thickness: 5px; }
+  </style>
+  <div id="root" data-composition-id="question" data-width="1920" data-height="1080">
+    <div class="hdr clip" id="q-hdr" data-start="0" data-duration="41.2" data-track-index="0">The Question</div>
+    <div class="ref clip" id="q-ref" data-start="0" data-duration="41.2" data-track-index="1">Dr. Jayan · Question 14 · Pg 292–293</div>
+    <div class="card clip" id="q-data" data-start="0.3" data-duration="40.9" data-track-index="2">
+      <div class="lead">The accounts of National Ltd showed the following.</div>
+      <table>
+        <tr><th style="width:62%">Particulars</th><th>Amount (₹)</th></tr>
+        <tr id="q-r1"><td>Direct materials</td><td class="r">7,00,000</td></tr>
+        <tr id="q-r2"><td>Direct wages</td><td class="r">5,40,000</td></tr>
+        <tr id="q-r3"><td>Works Overhead</td><td class="r">1,62,000</td></tr>
+        <tr id="q-r4"><td>Establishment overhead</td><td class="r">1,12,000</td></tr>
+      </table>
+    </div>
+    <div class="card clip" id="q-ask" data-start="19.0" data-duration="22.2" data-track-index="3">What price should the company quote to <span class="pf" id="q-mc">manufacture a machine</span> which will require an expenditure of <span class="amt" id="q-m">₹ 1,000</span> in material and <span class="amt" id="q-w">₹ 800</span> in wages so that it will yield a profit of <span class="pf" id="q-p">20% on selling price</span>?</div>
+    <div class="clip" id="q-note" data-start="34.7" data-duration="6.5" data-track-index="4">Profit is on the SELLING PRICE — <span class="no">not on cost</span></div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    tl.fromTo("#q-hdr", { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 0.4 }, 0);
+    tl.fromTo("#q-ref", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 0.2);
+    tl.fromTo("#q-data", { opacity: 0, x: -50 }, { opacity: 1, x: 0, duration: 0.5, ease: "power3.out" }, 0.3);
+    [["#q-r1", 5.3], ["#q-r2", 8.5], ["#q-r3", 11.85], ["#q-r4", 15.3]].forEach(([s, t]) => {
+      tl.fromTo(s, { opacity: 0 }, { opacity: 1, duration: 0.35 }, t);
+      tl.fromTo(s, { backgroundColor: "rgba(245,183,0,0.55)" }, { backgroundColor: "rgba(245,183,0,0)", duration: 1.4 }, t + 0.3);
+    });
+    tl.fromTo("#q-ask", { opacity: 0, x: 50 }, { opacity: 1, x: 0, duration: 0.5, ease: "power3.out" }, 19.0);
+    tl.fromTo("#q-mc", { backgroundColor: "rgba(0,87,184,0)" }, { backgroundColor: "rgba(0,87,184,0.25)", duration: 0.3 }, 22.4);
+    tl.fromTo("#q-m", { backgroundColor: "rgba(245,183,0,0)" }, { backgroundColor: "rgba(245,183,0,0.6)", duration: 0.3 }, 25.2);
+    tl.fromTo("#q-w", { backgroundColor: "rgba(245,183,0,0)" }, { backgroundColor: "rgba(245,183,0,0.6)", duration: 0.3 }, 27.4);
+    tl.fromTo("#q-p", { backgroundColor: "rgba(204,0,0,0)", color: "#111" }, { backgroundColor: "rgba(204,0,0,1)", color: "#FFFFFF", duration: 0.3 }, 31.8);
+    tl.to("#q-p", { scale: 1.08, duration: 0.25, yoyo: true, repeat: 1 }, 31.9);
+    tl.fromTo("#q-note", { opacity: 0, scale: 0.85 }, { opacity: 1, scale: 1, duration: 0.45, ease: "back.out(2)" }, 34.85);
+    tl.fromTo("#q-note .no", { opacity: 0.3 }, { opacity: 1, duration: 0.3 }, 37.2);
+    window.__timelines["question"] = tl;
+  </script>
+</template>

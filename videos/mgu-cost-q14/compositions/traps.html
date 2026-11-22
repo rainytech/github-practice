@@ -1,0 +1,65 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; font-family: "Inter", sans-serif; color: #fff; }
+    .hdr { position: absolute; left: 120px; top: 60px; font-family: "Archivo Black", sans-serif; font-size: 56px; color: #F5B700; }
+    .box { position: absolute; background: #FFFDF5; color: #111; border-radius: 18px; padding: 20px 30px; font-family: "EB Garamond", serif; box-shadow: 0 14px 34px rgba(0,0,0,0.3); }
+    .k { font-family: "Archivo Black", sans-serif; font-size: 34px; margin-bottom: 8px; }
+    .ln { display: block; font-size: 40px; line-height: 1.35; }
+    #t-wrong { left: 120px; top: 165px; width: 820px; height: 380px; border-left: 14px solid #CC0000; }
+    #t-wrong .k { color: #CC0000; }
+    #t-right { left: 980px; top: 165px; width: 820px; height: 380px; border-left: 14px solid #1E8E3E; }
+    #t-right .k { color: #1E8E3E; }
+    #t-bad { position: relative; display: inline-block; color: #CC0000; font-weight: 700; }
+    #t-strike { position: absolute; left: -6px; right: -6px; top: 52%; height: 5px; background: #CC0000; }
+    #t-stamp { position: absolute; right: 40px; bottom: 30px; border: 6px solid #CC0000; color: #CC0000; font-family: "Archivo Black", sans-serif; font-size: 52px; padding: 2px 18px; border-radius: 10px; }
+    #t-good { display: inline-block; color: #1E8E3E; font-weight: 700; }
+    .fr { display: inline-flex; flex-direction: column; align-items: center; vertical-align: middle; font-size: 0.8em; line-height: 1.1; margin: 0 0.15em; }
+    .fr > span:last-child { border-top: 2px solid currentColor; padding: 0 0.15em; }
+    #t-2 { left: 120px; top: 585px; width: 1680px; border-left: 14px solid #6A0DAD; }
+    #t-3 { left: 120px; top: 775px; width: 1680px; border-left: 14px solid #6A0DAD; }
+    #t-2 .k, #t-3 .k { color: #6A0DAD; }
+    .pk { color: #C2185B; font-style: italic; }
+    #t2a, #t2b, #t2c, #t3a, #t3b, #t3c { border-radius: 8px; padding: 0 4px; }
+  </style>
+  <div id="root" data-composition-id="traps" data-width="1920" data-height="1080">
+    <div class="hdr clip" id="t-hdr" data-start="0" data-duration="47.2" data-track-index="0">⚠ 3 Exam Traps</div>
+    <div class="box clip" id="t-wrong" data-start="3.9" data-duration="43.3" data-track-index="1">
+      <div class="k">✗ Trap 1 · 20% of cost as profit</div>
+      <span class="ln">₹ 2,203.20 + 20% of ₹ 2,203.20</span>
+      <span class="ln" id="t-w2">= <span id="t-bad">₹ 2,643.84<span id="t-strike"></span></span></span>
+      <div id="t-stamp">WRONG</div>
+    </div>
+    <div class="box clip" id="t-right" data-start="13.3" data-duration="33.9" data-track-index="2">
+      <div class="k">✓ Profit is on selling price</div>
+      <span class="ln">20% on Sales = <span class="fr"><span>20</span><span>80</span></span> on Cost</span>
+      <span class="ln">₹ 2,203.20 + 550.80 = <span id="t-good">₹ 2,754.00</span></span>
+      <span class="ln" id="t-chk">Check: <span class="fr"><span>550.80</span><span>2,754.00</span></span> × 100 = 20% ✓</span>
+    </div>
+    <div class="box clip" id="t-2" data-start="26.8" data-duration="20.4" data-track-index="3">
+      <div class="k">✗ Trap 2 · Wrong base</div>
+      <span class="ln">Works OH → <b id="t2a">Direct Wages</b> · Establishment OH → <b id="t2b">Works Cost</b> <span class="pk" id="t2c">(not wages, not prime cost)</span></span>
+    </div>
+    <div class="box clip" id="t-3" data-start="36.9" data-duration="10.3" data-track-index="4">
+      <div class="k">✗ Trap 3 · Writing 8% with no working</div>
+      <span class="ln"><span id="t3a">Show the formula</span>, then write: <b id="t3b">7.9886% ≈ 8%</b> <span class="pk" id="t3c">(rounded off)</span></span>
+    </div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    const card = (s, t) => tl.fromTo(s, { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, t);
+    tl.fromTo("#t-hdr", { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 0.4 }, 0);
+    tl.to("#t-hdr", { scale: 1.06, duration: 0.25, yoyo: true, repeat: 1, transformOrigin: "left center" }, 1.0);
+    card("#t-wrong", 3.95);
+    tl.fromTo("#t-w2", { opacity: 0 }, { opacity: 1, duration: 0.35 }, 8.3);
+    tl.fromTo("#t-strike", { scaleX: 0, transformOrigin: "left center" }, { scaleX: 1, duration: 0.35 }, 11.8);
+    tl.fromTo("#t-stamp", { opacity: 0, scale: 2, rotation: -14 }, { opacity: 1, scale: 1, rotation: -8, duration: 0.35, ease: "power3.in" }, 11.9);
+    card("#t-right", 13.3);
+    tl.fromTo("#t-chk", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 18.6);
+    tl.to("#t-good", { scale: 1.12, duration: 0.25, yoyo: true, repeat: 1 }, 22.5);
+    card("#t-2", 26.85);
+    card("#t-3", 36.95);
+    [["#t2a", 30.6], ["#t2b", 33.0], ["#t2c", 35.0], ["#t3a", 40.6], ["#t3c", 42.4], ["#t3b", 44.0]].forEach(([s, t]) =>
+      tl.fromTo(s, { backgroundColor: "rgba(245,183,0,0)" }, { backgroundColor: "rgba(245,183,0,0.55)", duration: 0.3 }, t));
+    window.__timelines["traps"] = tl;
+  </script>
+</template>

@@ -1,0 +1,53 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; font-family: "Inter", sans-serif; color: #fff; }
+    .hdr { position: absolute; left: 120px; top: 70px; font-family: "Archivo Black", sans-serif; font-size: 58px; color: #F5B700; }
+    .steps { position: absolute; right: 120px; top: 78px; display: flex; gap: 14px; }
+    .steps span { width: 64px; height: 64px; border-radius: 50%; border: 4px solid rgba(255,255,255,0.5); display: flex; align-items: center; justify-content: center; font-family: "Archivo Black", sans-serif; font-size: 30px; color: rgba(255,255,255,0.6); }
+    .steps span.on { background: #F5B700; border-color: #F5B700; color: #0B1B3F; }
+    #s1-card { position: absolute; left: 410px; top: 180px; width: 1100px; background: #FFFDF5; color: #111; border-radius: 18px; padding: 22px 36px 28px; border-left: 14px solid #6A0DAD; font-family: "EB Garamond", serif; box-shadow: 0 14px 34px rgba(0,0,0,0.3); }
+    .tt { text-align: center; font-weight: 700; font-size: 40px; color: #6A0DAD; text-decoration: underline; }
+    .ts { text-align: center; font-style: italic; font-size: 30px; color: #6A0DAD; margin-bottom: 12px; }
+    table { width: 100%; border-collapse: collapse; font-size: 38px; }
+    th { background: #BDBDBD; font-style: italic; padding: 5px 16px; border: 2px solid #000; }
+    td { padding: 5px 16px; border: 2px solid #000; }
+    td.r { text-align: right; }
+    tr.tot td { font-weight: 700; border-top: 4px solid #000; }
+    #s1-use { position: absolute; left: 1540px; top: 430px; width: 300px; font-size: 32px; font-weight: 800; line-height: 1.25; color: #F5B700; }
+  </style>
+  <div id="root" data-composition-id="step1" data-width="1920" data-height="1080">
+    <div class="hdr clip" id="s1-hdr" data-start="0" data-duration="37" data-track-index="0">Step 1 · Cost Sheet</div>
+    <div class="steps clip" id="s1-steps" data-start="0" data-duration="37" data-track-index="1"><span class="on">1</span><span>2</span><span>3</span></div>
+    <div class="clip" id="s1-card" data-start="0.3" data-duration="36.7" data-track-index="2">
+      <div class="tt">COST SHEET</div>
+      <div class="ts">(National Ltd.)</div>
+      <table>
+        <tr><th style="width:68%">Particulars</th><th>Amount (₹)</th></tr>
+        <tr id="s1-r1"><td>Direct Materials</td><td class="r">7,00,000</td></tr>
+        <tr id="s1-r2"><td>Add: Direct Wages</td><td class="r">5,40,000</td></tr>
+        <tr id="s1-r3" class="tot"><td>1. Prime Cost</td><td class="r">12,40,000</td></tr>
+        <tr id="s1-r4"><td>Add: Works Overhead</td><td class="r">1,62,000</td></tr>
+        <tr id="s1-r5" class="tot"><td>2. Works Cost</td><td class="r">14,02,000</td></tr>
+        <tr id="s1-r6"><td>Add: Establishment Overhead</td><td class="r">1,12,000</td></tr>
+        <tr id="s1-r7" class="tot"><td>3. Cost of Production</td><td class="r">15,14,000</td></tr>
+      </table>
+    </div>
+    <div class="clip" id="s1-use" data-start="31.9" data-duration="5.1" data-track-index="3">◀ Highlighted figures give the rates in Step 2</div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    tl.fromTo("#s1-hdr", { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 0.4 }, 0);
+    tl.fromTo("#s1-steps span", { opacity: 0, scale: 0.5 }, { opacity: 1, scale: 1, duration: 0.3, stagger: 0.1 }, 0.2);
+    tl.fromTo("#s1-card", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 0.4);
+    [["#s1-r1", 4.3], ["#s1-r2", 6.9], ["#s1-r3", 10.1], ["#s1-r4", 14.65], ["#s1-r5", 18.35], ["#s1-r6", 22.8], ["#s1-r7", 26.75]].forEach(([s, t]) => {
+      tl.fromTo(s, { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.35 }, t);
+    });
+    ["#s1-r3", "#s1-r5", "#s1-r7"].forEach((s, i) => {
+      const t = [10.1, 18.35, 26.75][i];
+      tl.fromTo(s, { backgroundColor: "rgba(106,13,173,0.25)" }, { backgroundColor: "rgba(106,13,173,0)", duration: 1.6 }, t + 0.4);
+    });
+    tl.to(["#s1-r2", "#s1-r4", "#s1-r5", "#s1-r6"], { backgroundColor: "rgba(245,183,0,0.55)", duration: 0.4, stagger: 0.25 }, 32.0);
+    tl.fromTo("#s1-use", { opacity: 0, x: 30 }, { opacity: 1, x: 0, duration: 0.4 }, 32.2);
+    window.__timelines["step1"] = tl;
+  </script>
+</template>

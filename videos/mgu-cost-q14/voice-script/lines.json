@@ -1,0 +1,73 @@
+{
+"hook": [
+"M G U, B Com Honours, Semester Six. Cost Accounting.",
+"Tender or Quotations. Question fourteen, from Doctor Jayan's Cost Accounting Methods, pages two ninety-two to two ninety-three.",
+"A company has to quote a price for a new machine, and it wants a profit of twenty percent on the selling price.",
+"What price should it quote? Let's solve it in three simple steps."
+],
+"question": [
+"Here is the question. The accounts of National Limited showed the following.",
+"Direct materials, seven lakh rupees.",
+"Direct wages, five lakh forty thousand.",
+"Works overhead, one lakh sixty-two thousand.",
+"And establishment overhead, one lakh twelve thousand.",
+"What price should the company quote to manufacture a machine which will require an expenditure of one thousand rupees in material, and eight hundred rupees in wages,",
+"so that it will yield a profit of twenty percent on selling price?",
+"Notice: the profit is on the selling price, not on cost. Keep that in mind."
+],
+"step1": [
+"Step one. Prepare the cost sheet of National Limited.",
+"Direct materials, seven lakh. Add direct wages, five lakh forty thousand.",
+"That gives the Prime Cost: twelve lakh forty thousand rupees.",
+"Add works overhead, one lakh sixty-two thousand.",
+"That gives the Works Cost: fourteen lakh two thousand rupees.",
+"Add establishment overhead, one lakh twelve thousand.",
+"That gives the Cost of Production: fifteen lakh fourteen thousand rupees.",
+"Now we use these figures to find the overhead rates."
+],
+"step2": [
+"Step two. Find the overhead rates, and the rate of profit.",
+"One. Works overhead rate, on direct wages.",
+"Works overhead into hundred, over direct wages.",
+"One lakh sixty-two thousand into hundred, over five lakh forty thousand. That is thirty percent.",
+"Two. Establishment overhead rate, on works cost.",
+"Establishment overhead into hundred, over works cost.",
+"One lakh twelve thousand into hundred, over fourteen lakh two thousand. That is seven point nine eight eight six percent.",
+"Rounded off, we take eight percent.",
+"Three. The rate of profit.",
+"The profit is twenty percent on sales. We convert it to a rate on cost.",
+"Profit on cost equals twenty, over hundred minus twenty, into hundred.",
+"That is twenty over eighty, into hundred. Twenty-five percent on cost.",
+"Why? If the selling price is hundred, the profit is twenty, so the cost is eighty. And twenty on eighty is twenty-five percent.",
+"One more point. When the question does not give the bases, works overhead is absorbed as a percentage of direct wages, and establishment overhead as a percentage of works cost."
+],
+"step3": [
+"Step three. The statement showing the quotation price of the machine.",
+"Direct material, one thousand. Add direct wages, eight hundred.",
+"Prime cost, one thousand eight hundred rupees.",
+"Add works overhead, thirty percent of wages. Eight hundred into thirty, over hundred, is two hundred and forty.",
+"Works cost, two thousand and forty rupees.",
+"Add establishment overhead, eight percent of works cost. Two thousand and forty into eight, over hundred, is one hundred and sixty-three rupees, twenty paise.",
+"Cost of production, the total cost, two thousand two hundred and three rupees, twenty paise.",
+"Add profit. Twenty percent on sales is twenty over eighty on cost.",
+"Two thousand two hundred and three rupees twenty paise, into twenty, over eighty, is five hundred and fifty rupees, eighty paise.",
+"So the quotation price is two thousand seven hundred and fifty-four rupees."
+],
+"traps": [
+"Now, three traps students fall into in the exam.",
+"Trap one. Taking twenty percent of the cost as profit. That gives two thousand six hundred and forty-three rupees, eighty-four paise. Wrong!",
+"The profit is on the selling price, so use twenty over eighty on cost.",
+"Quick check: five hundred and fifty rupees eighty paise is exactly twenty percent of two thousand seven hundred and fifty-four.",
+"Trap two. The wrong base. Works overhead goes on direct wages. Establishment overhead goes on works cost, not on wages or prime cost.",
+"Trap three. Writing eight percent with no working. Show the formula, and write rounded off, when seven point nine eight eight six becomes eight."
+],
+"recap": [
+"Let's recap.",
+"Step one, the cost sheet.",
+"Step two, the rates: thirty percent, eight percent, and twenty-five percent on cost.",
+"Step three, the quotation: two thousand seven hundred and fifty-four rupees.",
+"Want these solved notes as a P D F, with two more solved questions? Message us on WhatsApp.",
+"We teach online Cost Accounting classes for M G U, B Com Honours students across Kerala. Book a paid demo class on WhatsApp.",
+"Subscribe for more Cost Accounting videos!"
+]
+}

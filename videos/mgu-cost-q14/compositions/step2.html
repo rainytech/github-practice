@@ -1,0 +1,113 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; font-family: "Inter", sans-serif; color: #fff; }
+    .hdr { position: absolute; left: 120px; top: 70px; font-family: "Archivo Black", sans-serif; font-size: 58px; color: #F5B700; }
+    .steps { position: absolute; right: 120px; top: 78px; display: flex; gap: 14px; }
+    .steps span { width: 64px; height: 64px; border-radius: 50%; border: 4px solid rgba(255,255,255,0.5); display: flex; align-items: center; justify-content: center; font-family: "Archivo Black", sans-serif; font-size: 30px; color: rgba(255,255,255,0.6); }
+    .steps span.on { background: #F5B700; border-color: #F5B700; color: #0B1B3F; }
+    .card { position: absolute; left: 120px; width: 1680px; background: #FFFDF5; color: #111; border-radius: 18px; padding: 22px 30px; border-left: 14px solid #6A0DAD; font-family: "EB Garamond", serif; display: flex; align-items: center; gap: 24px; box-shadow: 0 14px 34px rgba(0,0,0,0.3); }
+    .lbl { width: 440px; flex: none; font-size: 40px; font-weight: 700; color: #6A0DAD; line-height: 1.2; }
+    .lbl .sm { display: block; font-size: 30px; font-style: italic; color: #C2185B; font-weight: 400; }
+    .fx { flex: 1; font-size: 44px; line-height: 1.3; }
+    .fx .ln { display: block; margin: 6px 0; }
+    .res { width: 230px; flex: none; text-align: center; background: #6A0DAD; color: #fff; border-radius: 14px; padding: 14px 8px; font-family: "Archivo Black", sans-serif; font-size: 58px; line-height: 1.1; }
+    .res .sm { display: block; font-family: "Inter", sans-serif; font-size: 28px; font-weight: 700; }
+    .fr { display: inline-flex; flex-direction: column; align-items: center; vertical-align: middle; font-size: 0.85em; line-height: 1.15; margin: 0 0.2em; }
+    .fr > span:last-child { border-top: 3px solid currentColor; padding: 0 0.15em; }
+    .red { color: #CC0000; font-weight: 700; }
+    #s2-c1 { top: 185px; } #s2-c2 { top: 525px; } #s2-c3 { top: 185px; }
+    #s2-why { position: absolute; left: 120px; top: 560px; width: 1680px; height: 340px; background: rgba(255,255,255,0.08); border: 3px solid rgba(255,255,255,0.3); border-radius: 18px; }
+    #s2-sp { position: absolute; left: 140px; top: 30px; width: 1400px; text-align: center; font-size: 36px; font-weight: 800; border-bottom: 4px solid #fff; padding-bottom: 6px; }
+    #s2-bar { position: absolute; left: 140px; top: 100px; width: 1400px; height: 110px; border: 4px solid #fff; border-radius: 10px; overflow: hidden; }
+    #s2-cost { position: absolute; left: 0; top: 0; width: 80%; height: 100%; background: #2F6FD6; display: flex; align-items: center; justify-content: center; font-family: "Archivo Black", sans-serif; font-size: 44px; }
+    #s2-prof { position: absolute; right: 0; top: 0; width: 20%; height: 100%; background: #F5B700; color: #0B1B3F; display: flex; align-items: center; justify-content: center; font-family: "Archivo Black", sans-serif; font-size: 40px; }
+    #s2-ans { position: absolute; left: 140px; top: 235px; width: 1400px; text-align: center; font-family: "EB Garamond", serif; font-size: 50px; font-weight: 700; }
+    #s2-ans .g { color: #F5B700; }
+    #s2-note { position: absolute; left: 120px; top: 185px; width: 1680px; background: #4a90d9; color: #fff; border-left: 14px solid #00008B; border-radius: 18px; padding: 26px 40px; font-size: 40px; line-height: 1.4; }
+    #s2-note .t { font-family: "Archivo Black", sans-serif; font-size: 46px; }
+    #s2-note .row { display: block; margin-top: 18px; font-size: 48px; font-weight: 800; }
+    #s2-note .row b { color: #FFE27A; }
+    .chips { position: absolute; left: 120px; top: 935px; width: 1680px; display: flex; gap: 18px; }
+    .chip { position: absolute; top: 935px; height: 64px; padding: 0 22px; border-radius: 32px; background: #1C3A78; border: 3px solid #F5B700; display: flex; align-items: center; font-size: 28px; font-weight: 800; white-space: nowrap; }
+    #s2-k1 { left: 120px; } #s2-k2 { left: 720px; } #s2-k3 { left: 1400px; }
+  </style>
+  <div id="root" data-composition-id="step2" data-width="1920" data-height="1080">
+    <div class="hdr clip" id="s2-hdr" data-start="0" data-duration="77.2" data-track-index="0">Step 2 · Rates</div>
+    <div class="steps clip" id="s2-steps" data-start="0" data-duration="77.2" data-track-index="1"><span>1</span><span class="on">2</span><span>3</span></div>
+
+    <div class="card clip" id="s2-c1" data-start="0.3" data-duration="37.6" data-track-index="2">
+      <div class="lbl">1. Works Overhead Rate<span class="sm">(on Direct Wages)</span></div>
+      <div class="fx">
+        <span class="ln" id="s2-c1f">= <span class="fr"><span>Works Overhead × 100</span><span>Direct Wages</span></span></span>
+        <span class="ln" id="s2-c1n">= <span class="fr"><span>1,62,000 × 100</span><span>5,40,000</span></span></span>
+      </div>
+      <div class="res" id="s2-c1r">30%</div>
+    </div>
+    <div class="card clip" id="s2-c2" data-start="18.7" data-duration="19.2" data-track-index="3">
+      <div class="lbl">2. Establishment Overhead Rate<span class="sm">(on Works Cost)</span></div>
+      <div class="fx">
+        <span class="ln" id="s2-c2f">= <span class="fr"><span>Establishment Overhead × 100</span><span>Works Cost</span></span></span>
+        <span class="ln" id="s2-c2n">= <span class="fr"><span>1,12,000 × 100</span><span>14,02,000</span></span><span id="s2-c2x"> = 7.9886%</span><span id="s2-c2y" class="red"> ≈ 8% <i>(rounded off)</i></span></span>
+      </div>
+      <div class="res" id="s2-c2r">8%</div>
+    </div>
+
+    <div class="card clip" id="s2-c3" data-start="37.9" data-duration="26.1" data-track-index="2">
+      <div class="lbl">3. Rate of Profit<span class="sm">(Sales to Cost)</span></div>
+      <div class="fx">
+        <span class="ln" id="s2-c3a">Profit <span class="red">20% on Sales</span> → convert to a rate on <b>Cost</b></span>
+        <span class="ln" id="s2-c3f">Profit on Cost = <span class="fr"><span>20</span><span>100 – 20</span></span> × 100</span>
+        <span class="ln" id="s2-c3n">= <span class="fr"><span>20</span><span>80</span></span> × 100</span>
+      </div>
+      <div class="res" id="s2-c3r">25%<span class="sm">(on Cost)</span></div>
+    </div>
+    <div class="clip" id="s2-why" data-start="55.6" data-duration="8.4" data-track-index="3">
+      <div id="s2-sp">Selling Price = 100</div>
+      <div id="s2-bar"><div id="s2-cost">Cost = 80</div><div id="s2-prof">Profit = 20</div></div>
+      <div id="s2-ans">Profit on Cost = <span class="fr"><span>20</span><span>80</span></span> × 100 = <span class="g">25%</span></div>
+    </div>
+
+    <div class="clip" id="s2-note" data-start="64.1" data-duration="13.1" data-track-index="4">
+      <div class="t">Note — Standard Absorption Bases</div>
+      <div>When the question does not specify overhead recovery bases:</div>
+      <span class="row" id="s2-n1">Works Overhead → <b>% of Direct Wages</b></span>
+      <span class="row" id="s2-n2">Establishment Overhead → <b>% of Works Cost</b></span>
+    </div>
+
+    <div class="chip clip" id="s2-k1" data-start="17.0" data-duration="60.2" data-track-index="5">✓ Works OH = 30% of Wages</div>
+    <div class="chip clip" id="s2-k2" data-start="35.4" data-duration="41.8" data-track-index="6">✓ Establishment OH = 8% of Works Cost</div>
+    <div class="chip clip" id="s2-k3" data-start="54.0" data-duration="23.2" data-track-index="7">✓ Profit = 25% on Cost</div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    const pop = (s, t) => tl.fromTo(s, { opacity: 0, scale: 0.5 }, { opacity: 1, scale: 1, duration: 0.45, ease: "back.out(2.2)" }, t);
+    const fade = (s, t) => tl.fromTo(s, { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.4 }, t);
+    tl.fromTo("#s2-hdr", { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 0.4 }, 0);
+    tl.fromTo("#s2-steps span", { opacity: 0, scale: 0.5 }, { opacity: 1, scale: 1, duration: 0.3, stagger: 0.1 }, 0.2);
+    // card 1
+    tl.fromTo("#s2-c1", { opacity: 0, x: -50 }, { opacity: 1, x: 0, duration: 0.45, ease: "power3.out" }, 4.3);
+    fade("#s2-c1f", 7.95); fade("#s2-c1n", 11.8); pop("#s2-c1r", 16.6);
+    // card 2
+    tl.fromTo("#s2-c2", { opacity: 0, x: -50 }, { opacity: 1, x: 0, duration: 0.45, ease: "power3.out" }, 18.8);
+    fade("#s2-c2f", 22.5); fade("#s2-c2n", 26.65); fade("#s2-c2x", 31.0); fade("#s2-c2y", 35.05); pop("#s2-c2r", 35.3);
+    tl.set("#s2-c2x", { opacity: 0 }, 0); tl.set("#s2-c2y", { opacity: 0 }, 0);
+    tl.to(["#s2-c1", "#s2-c2"], { opacity: 0, y: -30, duration: 0.4 }, 37.4);
+    // card 3
+    tl.fromTo("#s2-c3", { opacity: 0, x: -50 }, { opacity: 1, x: 0, duration: 0.45, ease: "power3.out" }, 37.95);
+    fade("#s2-c3a", 40.1); fade("#s2-c3f", 45.2); fade("#s2-c3n", 50.55); pop("#s2-c3r", 53.6);
+    // why diagram
+    tl.fromTo("#s2-why", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 55.7);
+    fade("#s2-sp", 56.2);
+    tl.fromTo("#s2-prof", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 59.2);
+    tl.fromTo("#s2-cost", { scaleX: 0, transformOrigin: "left center" }, { scaleX: 1, duration: 0.6, ease: "power2.out" }, 60.5);
+    fade("#s2-ans", 61.0);
+    tl.to(["#s2-c3", "#s2-why"], { opacity: 0, y: -30, duration: 0.35 }, 63.75);
+    // note
+    tl.fromTo("#s2-note", { opacity: 0, scale: 0.94 }, { opacity: 1, scale: 1, duration: 0.45, ease: "power3.out" }, 64.25);
+    tl.fromTo("#s2-n1", { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.4 }, 68.0);
+    tl.fromTo("#s2-n2", { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.4 }, 71.8);
+    // summary chips
+    ["#s2-k1", "#s2-k2", "#s2-k3"].forEach((s, i) => tl.fromTo(s, { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.4, ease: "back.out(2)" }, [17.0, 35.4, 54.0][i]));
+    window.__timelines["step2"] = tl;
+  </script>
+</template>

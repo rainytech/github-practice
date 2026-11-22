@@ -1,0 +1,53 @@
+MGU-UGP B.Com (Honours) Semester VI · Cost Accounting Methods (DSC A – MG 6 DSC COM 301)
+Dr. Jayan, Cost Accounting Methods · Tender or Quotations · Question 14 · Pages 292–293
+
+❓ QUESTION 14 (National Ltd)
+Direct materials ₹7,00,000 · Direct wages ₹5,40,000 · Works overhead ₹1,62,000 · Establishment overhead ₹1,12,000.
+What price should the company quote for a machine needing ₹1,000 material and ₹800 wages, to yield a profit of 20% on selling price?
+
+✅ ANSWER: Quotation Price = ₹2,754.00
+
+📘 STEP 1 — COST SHEET
+Direct Materials 7,00,000 + Direct Wages 5,40,000 = Prime Cost 12,40,000
++ Works Overhead 1,62,000 = Works Cost 14,02,000
++ Establishment Overhead 1,12,000 = Cost of Production 15,14,000
+
+📘 STEP 2 — RATES
+1. Works Overhead rate (on Direct Wages) = 1,62,000 × 100 ⁄ 5,40,000 = 30%
+2. Establishment Overhead rate (on Works Cost) = 1,12,000 × 100 ⁄ 14,02,000 = 7.9886% ≈ 8% (rounded off)
+3. Profit 20% on Sales = 20 ⁄ (100 – 20) = 20 ⁄ 80 = 25% on Cost
+
+📘 STEP 3 — QUOTATION PRICE OF THE MACHINE
+Direct Material 1,000.00 + Direct Wages 800.00 = Prime Cost 1,800.00
++ Works Overhead (800 × 30%) 240.00 = Works Cost 2,040.00
++ Establishment Overhead (2,040 × 8%) 163.20 = Cost of Production 2,203.20
++ Profit (2,203.20 × 20 ⁄ 80) 550.80 = Quotation Price 2,754.00
+
+⚠️ EXAM TRAPS
+✗ Taking 20% of cost as profit gives ₹2,643.84 — wrong. Profit is on selling price, so use 20 ⁄ 80 on cost.
+✓ Check: 550.80 is exactly 20% of 2,754.00.
+✗ Wrong base: Works overhead goes on direct wages; establishment overhead goes on works cost.
+✗ Writing 8% with no working: show the formula and write "7.9886% ≈ 8% (rounded off)".
+
+⏱️ CHAPTERS
+0:00 The problem
+0:26 The question
+1:07 Step 1 · Cost Sheet
+1:44 Step 2 · Overhead rates & profit rate
+3:01 Step 3 · Quotation price
+4:03 3 exam traps
+4:50 Recap
+
+📄 Want these solved notes as a PDF (Question 14 + two more solved questions)? Message us on WhatsApp.
+
+👨‍🏫 ABOUT US
+Goodwill Tuition Centre, Ernakulam, Kerala — 30 years of teaching Accountancy.
+
+🌐 www.goodwillonlinetuition.com
+📞 WhatsApp: +91 95679 02805 → https://wa.me/919567902805
+Book a paid demo class on WhatsApp.
+Online Cost Accounting classes for MGU B.Com Honours students across Kerala.
+
+Disclaimer: This video is an independent explanation for students. Dr. Jayan's Cost Accounting Methods is referred to only so students can find the question in their own textbook.
+
+#CostAccounting #MGU #BComHonours #TenderAndQuotation #CostSheet
