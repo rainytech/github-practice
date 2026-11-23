@@ -44,7 +44,7 @@ Apply these to every new YouTube video / Short without being asked.
 - Done: Q 5 (ii) Salary paid to Ajay debited to his Personal Account ₹8,000 → Salary A/c Dr. To Ajay's A/c.
 
 ## ▶ START HERE next session (left 23 Nov 2026)
-- MGU Illustration 17 (Samsung India Ltd) video made 23 Nov: `videos/mgu-cost-ill17/` (6:53, 8 scenes hook → question → step1 → step2a → step2b → step3 → tips → recap; step pills 1 · 2A · 2B · 3). The user chose profit ₹5,112.80 (exact 20% on cost) → ₹5,113 → price ₹30,677. Upload text in `upload/`. Next: user uploads it, then add its link to Published.
+- MGU Illustration 17 (Samsung India Ltd) video made 23 Nov: `videos/mgu-cost-ill17/` (6:53, 8 scenes hook → question → step1 → step2a → step2b → step3 → tips → recap; step pills 1 · 2A · 2B · 3). The user chose profit ₹5,112.80 (exact 20% on cost) → ₹5,113 → price ₹30,677. Published 23 Nov: https://youtu.be/3xFBo8OilcA
 - Waiting on Google: YouTube API audit (submitted 22 Nov). If an email arrives, help the user reply.
 - Still pending: 9:16 Shorts from Q14/Q13; T.S. Grewal Ch 8 PP1 Apr 16 Short; Rectification series next error.
 
@@ -100,5 +100,6 @@ Online Accountancy classes for CBSE Class 11 & 12 students in UAE, Saudi Arabia,
 - TS Grewal Ch 17 Rectification Q5 (ii): Salary debited to Ajay's A/c (first rectification Short, 4-step method) — https://youtube.com/shorts/hEt3ASDIvCA (published 21 Nov 2026)
 - MGU B.Com Hons Sem 6 Cost Accounting Q14 (National Ltd), Tender or Quotations — main 16:9 video, 5:28, first in playlist "MGU B.Com Hons Sem 6 · Cost Accounting" — https://youtu.be/sV7NjIN_g04 (published 22 Nov 2026)
 - MGU B.Com Hons Sem 6 Cost Accounting Q13 (Alpha Manufacturing), "Try it yourself" — main 16:9 video, 4:40, bigger text, same playlist — https://youtu.be/K8D6-XDE_pI (published 22 Nov 2026)
+- MGU B.Com Hons Sem 6 Cost Accounting Illustration 17 (Samsung India Ltd), revised overhead rates — main 16:9 video, 6:53, same playlist — https://youtu.be/3xFBo8OilcA (published 23 Nov 2026)
 - Channel views: 4,253 (10 Nov 2026) → 4,310 (11 Nov 2026). Compare again around 18 Nov.
 - Popular tab (19 Nov 2026): photo Shorts of real exam question papers lead — B.Com Corporate Accounting I paper (QP 22100578, Apr 2022) 1,020 views, others 757 / 663 / 425; MGU Income Tax promo 218; Harris "Business Entity Concept" 107 (6 days old). But those question-paper Shorts are 4 years old (≈0.2–0.7 views/day); the Harris Short got ≈18 views/day — the new animated daily Shorts are far ahead per day.
