@@ -43,9 +43,8 @@ Apply these to every new YouTube video / Short without being asked.
 - Order: two-sided errors first (principle, omission, commission, wrong amount), then one-sided errors with Suspense A/c, then before vs after the Trial Balance.
 - Done: Q 5 (ii) Salary paid to Ajay debited to his Personal Account ₹8,000 → Salary A/c Dr. To Ajay's A/c.
 
-## ▶ START HERE next session (left 22 Nov 2026, night)
-- Next video: MGU Cost Accounting **Illustration 17 (Samsung India Ltd)**, Dr. Jayan, Cost Accounting Methods, Pg 276–278, from `videos/mgu-cost-q14/source/notes-tender-quotations-q14-q13-ill17.html`. Answer ₹30,677 (Cost of Sales 25,564 + profit 5,113). First ask the user: show profit ₹5,112.81 (as in the notes) or ₹5,112.80 (exact; 4,20,000 ⁄ 25,20,000 = 20% on cost)?
-- Build it by copying `videos/mgu-cost-q13/` (bigger text, 16:9) with the per-line voice method; likely 7–8 min (cost sheet 2025 → old rates 60/24/16/10% and profit → revised rates 72/27/18/9% → statement for 2026 → tips → recap). Upload text with playlist settings.json; link Q13 and Q14 in the description.
+## ▶ START HERE next session (left 23 Nov 2026)
+- MGU Illustration 17 (Samsung India Ltd) video made 23 Nov: `videos/mgu-cost-ill17/` (6:53, 8 scenes hook → question → step1 → step2a → step2b → step3 → tips → recap; step pills 1 · 2A · 2B · 3). The user chose profit ₹5,112.80 (exact 20% on cost) → ₹5,113 → price ₹30,677. Upload text in `upload/`. Next: user uploads it, then add its link to Published.
 - Waiting on Google: YouTube API audit (submitted 22 Nov). If an email arrives, help the user reply.
 - Still pending: 9:16 Shorts from Q14/Q13; T.S. Grewal Ch 8 PP1 Apr 16 Short; Rectification series next error.
 
