@@ -1,0 +1,80 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; font-family: "Inter", sans-serif; color: #fff; }
+    .hdr { position: absolute; left: 100px; top: 50px; font-family: "Archivo Black", sans-serif; font-size: 62px; color: #F5B700; }
+    .ref { position: absolute; right: 100px; top: 72px; font-size: 32px; font-weight: 700; color: rgba(255,255,255,0.8); }
+    .card { position: absolute; background: #FFFDF5; color: #111; border-radius: 18px; padding: 22px 30px; font-family: "EB Garamond", serif; box-shadow: 0 14px 34px rgba(0,0,0,0.3); }
+    #q-data { left: 100px; top: 160px; width: 830px; border-left: 14px solid #0057B8; }
+    #q-data .lead { font-size: 36px; line-height: 1.3; margin-bottom: 12px; }
+    table { width: 100%; border-collapse: collapse; font-size: 40px; }
+    th { background: #BDBDBD; font-style: italic; padding: 2px 14px; border: 2px solid #000; }
+    td { padding: 2px 14px; border: 2px solid #000; }
+    td.r { text-align: right; font-weight: 700; }
+    #q-new { left: 970px; top: 160px; width: 850px; border-left: 14px solid #CC0000; font-size: 37px; line-height: 1.3; }
+    #q-new .h { font-weight: 700; color: #6A0DAD; }
+    #q-new table { font-size: 38px; margin: 6px 0 12px; }
+    .chg { display: block; font-weight: 700; padding: 1px 8px; border-radius: 8px; }
+    .up { color: #CC0000; } .dn { color: #1E6B2E; }
+    #q-ask { display: block; margin-top: 12px; }
+    #q-ask .pf { font-weight: 700; display: inline-block; padding: 0 6px; border-radius: 8px; }
+    #q-base { display: block; margin-top: 10px; color: #C2185B; font-style: italic; font-size: 35px; }
+    #q-base b { color: #0057B8; font-style: normal; }
+    .fr { display: inline-flex; flex-direction: column; align-items: center; vertical-align: middle; font-size: 0.7em; line-height: 1.05; margin: 0 0.08em; }
+    .fr > span:last-child { border-top: 2px solid currentColor; padding: 0 0.1em; }
+    #q-pause { position: absolute; left: 100px; top: 850px; width: 830px; height: 160px; background: #F5B700; color: #0B1B3F; border-radius: 20px; display: flex; align-items: center; justify-content: center; gap: 30px; font-family: "Archivo Black", sans-serif; font-size: 66px; }
+    #q-pause .ic { width: 100px; height: 100px; border-radius: 50%; background: #0B1B3F; color: #F5B700; display: flex; align-items: center; justify-content: center; font-size: 54px; }
+  </style>
+  <div id="root" data-composition-id="question" data-width="1920" data-height="1080">
+    <div class="hdr clip" id="q-hdr" data-start="0" data-duration="76.4" data-track-index="0">The Question</div>
+    <div class="ref clip" id="q-ref" data-start="0" data-duration="76.4" data-track-index="1">Dr. Jayan · Illustration 17 · Pg 276–278</div>
+    <div class="card clip" id="q-data" data-start="0.3" data-duration="76.1" data-track-index="2">
+      <div class="lead">The following figures have been obtained from the Books of Samsung India Ltd. for the year 2025.</div>
+      <table>
+        <tr><th style="width:64%">Particulars</th><th>Amount (₹)</th></tr>
+        <tr id="q-r1"><td>Direct Material</td><td class="r">6,00,000</td></tr>
+        <tr id="q-r2"><td>Direct wages</td><td class="r">5,00,000</td></tr>
+        <tr id="q-r3"><td>Factory Overheads</td><td class="r">3,00,000</td></tr>
+        <tr id="q-r4"><td>Administration overheads</td><td class="r">3,36,000</td></tr>
+        <tr id="q-r5"><td>Selling overheads</td><td class="r">2,24,000</td></tr>
+        <tr id="q-r6"><td>Distribution overheads</td><td class="r">1,40,000</td></tr>
+        <tr id="q-r7"><td>Profit</td><td class="r">4,20,000</td></tr>
+      </table>
+    </div>
+    <div class="card clip" id="q-new" data-start="31.0" data-duration="45.4" data-track-index="3">
+      <span class="h">A new model has been introduced in 2026:</span>
+      <table>
+        <tr><th style="width:64%">Particulars</th><th>Amount (₹)</th></tr>
+        <tr><td>Material</td><td class="r">8,000</td></tr>
+        <tr><td>Wages</td><td class="r">5,000</td></tr>
+      </table>
+      <span class="chg up" id="q-c1">▲ Factory overhead rate: up 20%</span>
+      <span class="chg dn" id="q-c2">▼ Distribution overhead rate: down 10%</span>
+      <span class="chg up" id="q-c3">▲ Selling &amp; Administration rates: each up 12<span class="fr"><span>1</span><span>2</span></span>%</span>
+      <span id="q-ask">At what price should the product be sold so as to earn <span class="pf" id="q-p">the same rate of profit on the selling price</span> as in 2025?</span>
+      <span id="q-base">Factory overhead → based on <b>Direct Wages</b>; all other overheads → based on <b>Factory Cost</b>.</span>
+    </div>
+    <div class="clip" id="q-pause" data-start="70.8" data-duration="5.6" data-track-index="4"><span class="ic">❚❚</span>PAUSE &amp; TRY</div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    const show = (s, t) => tl.fromTo(s, { opacity: 0, x: -24 }, { opacity: 1, x: 0, duration: 0.35 }, t);
+    tl.fromTo("#q-hdr", { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 0.4 }, 0);
+    tl.fromTo("#q-ref", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 0.2);
+    tl.fromTo("#q-data", { opacity: 0, x: -50 }, { opacity: 1, x: 0, duration: 0.5, ease: "power3.out" }, 0.3);
+    tl.fromTo("#q-data .lead", { backgroundColor: "rgba(245,183,0,0)" }, { backgroundColor: "rgba(245,183,0,0.3)", duration: 0.4, yoyo: true, repeat: 1, repeatDelay: 3 }, 3.5);
+    [["#q-r1", 8.75], ["#q-r2", 11.75], ["#q-r3", 14.15], ["#q-r4", 16.8], ["#q-r5", 21.1], ["#q-r6", 24.6], ["#q-r7", 28.4]].forEach(([s, t]) => {
+      tl.fromTo(s, { opacity: 0 }, { opacity: 1, duration: 0.35 }, t);
+      tl.fromTo(s, { backgroundColor: "rgba(245,183,0,0.55)" }, { backgroundColor: "rgba(245,183,0,0)", duration: 1.4 }, t + 0.3);
+    });
+    tl.fromTo("#q-new", { opacity: 0, x: 50 }, { opacity: 1, x: 0, duration: 0.5, ease: "power3.out" }, 31.05);
+    show("#q-c1", 39.8); show("#q-c2", 45.45); show("#q-c3", 50.2);
+    [["#q-c1", 39.8], ["#q-c2", 45.45], ["#q-c3", 50.2]].forEach(([s, t]) =>
+      tl.fromTo(s, { backgroundColor: "rgba(245,183,0,0.5)" }, { backgroundColor: "rgba(245,183,0,0)", duration: 1.6 }, t + 0.3));
+    show("#q-ask", 56.5);
+    tl.fromTo("#q-p", { backgroundColor: "rgba(204,0,0,0)", color: "#111" }, { backgroundColor: "rgba(204,0,0,1)", color: "#FFFFFF", duration: 0.3 }, 59.5);
+    show("#q-base", 64.3);
+    tl.fromTo("#q-pause", { opacity: 0, scale: 0.7 }, { opacity: 1, scale: 1, duration: 0.45, ease: "back.out(2)" }, 70.9);
+    tl.to("#q-pause .ic", { scale: 1.15, duration: 0.5, yoyo: true, repeat: 5, ease: "sine.inOut" }, 71.5);
+    window.__timelines["question"] = tl;
+  </script>
+</template>

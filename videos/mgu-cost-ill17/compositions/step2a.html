@@ -1,0 +1,71 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; font-family: "Inter", sans-serif; color: #fff; }
+    .hdr { position: absolute; left: 100px; top: 44px; font-family: "Archivo Black", sans-serif; font-size: 58px; color: #F5B700; }
+    .steps { position: absolute; right: 100px; top: 44px; display: flex; gap: 14px; }
+    .steps span { width: 76px; height: 70px; border-radius: 35px; border: 4px solid rgba(255,255,255,0.5); display: flex; align-items: center; justify-content: center; font-family: "Archivo Black", sans-serif; font-size: 30px; color: rgba(255,255,255,0.6); }
+    .steps span.on { background: #F5B700; border-color: #F5B700; color: #0B1B3F; }
+    .card { position: absolute; width: 850px; height: 205px; background: #FFFDF5; color: #111; border-radius: 18px; padding: 12px 26px; border-left: 16px solid #6A0DAD; font-family: "EB Garamond", serif; box-shadow: 0 14px 34px rgba(0,0,0,0.3); }
+    .lbl { font-size: 40px; font-weight: 700; color: #6A0DAD; line-height: 1.1; }
+    .lbl .sm { font-size: 32px; font-style: italic; color: #C2185B; font-weight: 400; }
+    .row { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; }
+    .fx { font-size: 54px; line-height: 1.1; white-space: nowrap; }
+    .res { width: 200px; flex: none; text-align: center; background: #6A0DAD; color: #fff; border-radius: 14px; padding: 10px 8px; font-family: "Archivo Black", sans-serif; font-size: 64px; line-height: 1.05; }
+    .fr { display: inline-flex; flex-direction: column; align-items: center; vertical-align: middle; font-size: 0.82em; line-height: 1.12; margin: 0 0.15em; }
+    .fr > span:last-child { border-top: 3px solid currentColor; padding: 0 0.15em; }
+    #s2-c1 { left: 100px; top: 145px; } #s2-c2 { left: 970px; top: 145px; }
+    #s2-c3 { left: 100px; top: 370px; } #s2-c4 { left: 970px; top: 370px; }
+    #s2-chip { position: absolute; left: 970px; top: 588px; width: 850px; height: 90px; white-space: nowrap; background: #F5B700; color: #0B1B3F; border-radius: 35px; display: flex; align-items: center; justify-content: center; font-size: 34px; font-weight: 800; }
+    #s2-c5 { position: absolute; left: 100px; top: 690px; width: 1720px; height: 320px; background: #FFFDF5; color: #111; border-radius: 18px; padding: 16px 30px; border-left: 16px solid #CC0000; font-family: "EB Garamond", serif; display: flex; align-items: center; gap: 30px; box-shadow: 0 14px 34px rgba(0,0,0,0.3); }
+    #s2-c5 .lbl { width: 330px; flex: none; }
+    #s2-c5 .mid { flex: 1; }
+    #s2-c5 .ln { display: block; font-size: 48px; line-height: 1.25; white-space: nowrap; margin: 6px 0; }
+    #s2-c5 .ln b { color: #0057B8; }
+    #s2-c5 .res { width: 270px; background: #CC0000; font-size: 72px; }
+    #s2-c5 .res .sm { display: block; font-family: "Inter", sans-serif; font-size: 30px; font-weight: 700; }
+  </style>
+  <div id="root" data-composition-id="step2a" data-width="1920" data-height="1080">
+    <div class="hdr clip" id="s2-hdr" data-start="0" data-duration="55.8" data-track-index="0">Step 2A · Rates for 2025</div>
+    <div class="steps clip" id="s2-steps" data-start="0" data-duration="55.8" data-track-index="1"><span>1</span><span class="on">2A</span><span>2B</span><span>3</span></div>
+    <div class="card clip" id="s2-c1" data-start="3.8" data-duration="52.0" data-track-index="2">
+      <div class="lbl">1. Factory Overhead <span class="sm">(on Direct Wages)</span></div>
+      <div class="row"><div class="fx" id="s2-c1n">= <span class="fr"><span>3,00,000 × 100</span><span>5,00,000</span></span></div><div class="res" id="s2-c1r">60%</div></div>
+    </div>
+    <div class="clip" id="s2-chip" data-start="10.6" data-duration="45.2" data-track-index="3">Other 3 overheads → on Works Cost ₹ 14,00,000</div>
+    <div class="card clip" id="s2-c2" data-start="14.8" data-duration="41.0" data-track-index="4">
+      <div class="lbl">2. Administration <span class="sm">(on Works Cost)</span></div>
+      <div class="row"><div class="fx" id="s2-c2n">= <span class="fr"><span>3,36,000 × 100</span><span>14,00,000</span></span></div><div class="res" id="s2-c2r">24%</div></div>
+    </div>
+    <div class="card clip" id="s2-c3" data-start="22.0" data-duration="33.8" data-track-index="5">
+      <div class="lbl">3. Selling <span class="sm">(on Works Cost)</span></div>
+      <div class="row"><div class="fx" id="s2-c3n">= <span class="fr"><span>2,24,000 × 100</span><span>14,00,000</span></span></div><div class="res" id="s2-c3r">16%</div></div>
+    </div>
+    <div class="card clip" id="s2-c4" data-start="28.1" data-duration="27.7" data-track-index="6">
+      <div class="lbl">4. Distribution <span class="sm">(on Works Cost)</span></div>
+      <div class="row"><div class="fx" id="s2-c4n">= <span class="fr"><span>1,40,000 × 100</span><span>14,00,000</span></span></div><div class="res" id="s2-c4r">10%</div></div>
+    </div>
+    <div class="clip" id="s2-c5" data-start="34.4" data-duration="21.4" data-track-index="7">
+      <div class="lbl">5. Rate of Profit<br><span class="sm">(Sales to Cost)</span></div>
+      <div class="mid">
+        <span class="ln" id="s2-c5a"><b>On Sales</b> = <span class="fr"><span>4,20,000 × 100</span><span>25,20,000</span></span><span id="s2-c5s"> = 16.6667%</span></span>
+        <span class="ln" id="s2-c5b"><b>On Cost</b> = <span class="fr"><span>16.6667</span><span>100 – 16.6667</span></span> × 100</span>
+      </div>
+      <div class="res" id="s2-c5r">20%<span class="sm">(on Cost)</span></div>
+    </div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    const card = (s, t) => tl.fromTo(s, { opacity: 0, x: -50 }, { opacity: 1, x: 0, duration: 0.45, ease: "power3.out" }, t);
+    const fade = (s, t) => tl.fromTo(s, { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.4 }, t);
+    const pop = (s, t) => tl.fromTo(s, { opacity: 0, scale: 0.5 }, { opacity: 1, scale: 1, duration: 0.45, ease: "back.out(2.2)" }, t);
+    tl.fromTo("#s2-hdr", { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 0.4 }, 0);
+    tl.fromTo("#s2-steps span", { opacity: 0, scale: 0.5 }, { opacity: 1, scale: 1, duration: 0.3, stagger: 0.1 }, 0.2);
+    card("#s2-c1", 3.8); fade("#s2-c1n", 6.0); pop("#s2-c1r", 8.9);
+    tl.fromTo("#s2-chip", { opacity: 0, scale: 0.7 }, { opacity: 1, scale: 1, duration: 0.4, ease: "back.out(2)" }, 10.7);
+    card("#s2-c2", 14.8); fade("#s2-c2n", 17.0); pop("#s2-c2r", 20.4);
+    card("#s2-c3", 22.0); fade("#s2-c3n", 23.6); pop("#s2-c3r", 26.4);
+    card("#s2-c4", 28.1); fade("#s2-c4n", 29.9); pop("#s2-c4r", 32.6);
+    card("#s2-c5", 34.45); fade("#s2-c5a", 37.0); fade("#s2-c5s", 41.5); fade("#s2-c5b", 45.2); pop("#s2-c5r", 52.4);
+    window.__timelines["step2a"] = tl;
+  </script>
+</template>

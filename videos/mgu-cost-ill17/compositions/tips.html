@@ -1,0 +1,45 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; font-family: "Inter", sans-serif; color: #fff; }
+    .hdr { position: absolute; left: 100px; top: 50px; font-family: "Archivo Black", sans-serif; font-size: 62px; color: #F5B700; }
+    .box { position: absolute; left: 100px; width: 1720px; background: #FFFDF5; color: #111; border-radius: 18px; padding: 16px 36px; border-left: 16px solid #6A0DAD; font-family: "EB Garamond", serif; box-shadow: 0 14px 34px rgba(0,0,0,0.3); }
+    .k { font-family: "Archivo Black", sans-serif; font-size: 40px; color: #6A0DAD; margin-bottom: 4px; }
+    .ln { display: block; font-size: 48px; line-height: 1.3; }
+    .ln b { color: #0057B8; }
+    .pk { color: #C2185B; font-style: italic; }
+    .ok { color: #1E8E3E; font-weight: 700; }
+    .no { color: #CC0000; font-weight: 700; }
+    #t-1 { top: 160px; } #t-2 { top: 450px; } #t-3 { top: 665px; }
+    .fr { display: inline-flex; flex-direction: column; align-items: center; vertical-align: middle; font-size: 0.82em; line-height: 1.1; margin: 0 0.15em; }
+    .fr > span:last-child { border-top: 2px solid currentColor; padding: 0 0.15em; }
+    #t-a3 { display: inline-block; border-radius: 8px; padding: 0 6px; }
+  </style>
+  <div id="root" data-composition-id="tips" data-width="1920" data-height="1080">
+    <div class="hdr clip" id="t-hdr" data-start="0" data-duration="45.8" data-track-index="0">3 Exam Tips</div>
+    <div class="box clip" id="t-1" data-start="3.3" data-duration="42.5" data-track-index="1">
+      <div class="k">Tip 1 · Check the base</div>
+      <span class="ln" id="t-1a">Factory OH → % of <b>Direct Wages</b></span>
+      <span class="ln" id="t-1b">Administration, Selling, Distribution OH → % of <b>Factory Cost</b> <span class="pk">(not Cost of Production)</span></span>
+    </div>
+    <div class="box clip" id="t-2" data-start="14.6" data-duration="31.2" data-track-index="2">
+      <div class="k">Tip 2 · “Increased by 20%” ≠ add 20</div>
+      <span class="ln" id="t-2a">60% × <span class="fr"><span>120</span><span>100</span></span> = 72% <span class="ok">✓</span> &nbsp; <span class="no">not 80% ✗</span></span>
+    </div>
+    <div class="box clip" id="t-3" data-start="26.2" data-duration="19.6" data-track-index="3">
+      <div class="k">Tip 3 · Profit on Sales → Profit on Cost</div>
+      <span class="ln" id="t-3a">16.6667% on Sales = <span class="fr"><span>16.6667</span><span>100 – 16.6667</span></span> × 100 = <b>20% on Cost</b></span>
+      <span class="ln" id="t-3b">Profit = ₹ 25,564 × <span class="fr"><span>20</span><span>100</span></span> = ₹ 5,112.80 → <span id="t-a3">₹ 5,113</span></span>
+    </div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    const card = (s, t) => tl.fromTo(s, { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, t);
+    const line = (s, t) => tl.fromTo(s, { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.4 }, t);
+    tl.fromTo("#t-hdr", { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 0.4 }, 0);
+    card("#t-1", 3.35); line("#t-1a", 6.6); line("#t-1b", 9.0);
+    card("#t-2", 14.65); line("#t-2a", 20.5);
+    card("#t-3", 26.25); line("#t-3a", 27.5); line("#t-3b", 32.75);
+    tl.fromTo("#t-a3", { backgroundColor: "rgba(245,183,0,0)" }, { backgroundColor: "rgba(245,183,0,0.6)", duration: 0.3 }, 40.5);
+    window.__timelines["tips"] = tl;
+  </script>
+</template>

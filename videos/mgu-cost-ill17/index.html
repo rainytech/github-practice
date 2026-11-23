@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en" data-composition-variables='[{"id":"price","type":"string","label":"Selling price","default":"30,677"}]'>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body {
+        width: 1920px; height: 1080px; overflow: hidden;
+        background-color: #0B1B3F;
+        background-image: repeating-linear-gradient(0deg, rgba(255,255,255,0.045) 0 2px, transparent 2px 72px);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="413.1" data-width="1920" data-height="1080">
+      <div id="hook" data-composition-id="hook" data-composition-src="compositions/hook.html" data-start="0.0" data-duration="22.3" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
+      <div id="question" data-composition-id="question" data-composition-src="compositions/question.html" data-start="22.3" data-duration="76.4" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
+      <div id="step1" data-composition-id="step1" data-composition-src="compositions/step1.html" data-start="98.7" data-duration="44.7" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
+      <div id="step2a" data-composition-id="step2a" data-composition-src="compositions/step2a.html" data-start="143.4" data-duration="55.8" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
+      <div id="step2b" data-composition-id="step2b" data-composition-src="compositions/step2b.html" data-start="199.2" data-duration="41.4" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
+      <div id="step3" data-composition-id="step3" data-composition-src="compositions/step3.html" data-start="240.6" data-duration="83.2" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
+      <div id="tips" data-composition-id="tips" data-composition-src="compositions/tips.html" data-start="323.8" data-duration="45.8" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
+      <div id="recap" data-composition-id="recap" data-composition-src="compositions/recap.html" data-start="369.6" data-duration="43.5" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
+      <audio id="vo-hook" class="clip" src="assets/voice/hook.wav" data-start="0.3" data-duration="20.98" data-track-index="5" data-volume="0.85"></audio>
+      <audio id="vo-question" class="clip" src="assets/voice/question.wav" data-start="22.6" data-duration="75.1" data-track-index="5" data-volume="0.85"></audio>
+      <audio id="vo-step1" class="clip" src="assets/voice/step1.wav" data-start="99.0" data-duration="43.4" data-track-index="5" data-volume="0.85"></audio>
+      <audio id="vo-step2a" class="clip" src="assets/voice/step2a.wav" data-start="143.7" data-duration="54.55" data-track-index="5" data-volume="0.85"></audio>
+      <audio id="vo-step2b" class="clip" src="assets/voice/step2b.wav" data-start="199.5" data-duration="40.15" data-track-index="5" data-volume="0.85"></audio>
+      <audio id="vo-step3" class="clip" src="assets/voice/step3.wav" data-start="240.9" data-duration="81.92" data-track-index="5" data-volume="0.85"></audio>
+      <audio id="vo-tips" class="clip" src="assets/voice/tips.wav" data-start="324.1" data-duration="44.54" data-track-index="5" data-volume="0.85"></audio>
+      <audio id="vo-recap" class="clip" src="assets/voice/recap.wav" data-start="369.9" data-duration="40.66" data-track-index="5" data-volume="0.85"></audio>
+    </div>
+    <script>
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = gsap.timeline({ paused: true });
+    </script>
+  </body>
+</html>

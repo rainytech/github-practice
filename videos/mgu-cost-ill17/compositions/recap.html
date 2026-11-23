@@ -1,0 +1,74 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; font-family: "Inter", sans-serif; color: #fff; }
+    .hdr { position: absolute; left: 100px; top: 50px; font-family: "Archivo Black", sans-serif; font-size: 62px; color: #F5B700; }
+    .st { position: absolute; left: 100px; width: 900px; display: flex; gap: 24px; align-items: flex-start; }
+    .st .n { flex: none; width: 96px; height: 80px; border-radius: 40px; background: #F5B700; color: #0B1B3F; display: flex; align-items: center; justify-content: center; font-family: "Archivo Black", sans-serif; font-size: 38px; }
+    .st .t { font-family: "Archivo Black", sans-serif; font-size: 46px; line-height: 1.1; }
+    .st .d { display: block; font-family: "Inter", sans-serif; font-size: 36px; font-weight: 700; color: rgba(255,255,255,0.9); margin-top: 8px; }
+    .pill { display: inline-block; background: #6A0DAD; color: #fff; border-radius: 30px; padding: 2px 20px; margin: 0 8px 8px 0; font-weight: 800; }
+    .pill.red { background: #CC0000; }
+    #r-1 { top: 165px; } #r-2 { top: 330px; } #r-3 { top: 580px; } #r-4 { top: 760px; }
+    #r-price { display: inline-block; color: #0B1B3F; background: #F5B700; border-radius: 12px; padding: 4px 20px; font-family: "Archivo Black", sans-serif; font-size: 62px; }
+    .cta { position: absolute; left: 1060px; width: 760px; background: #FFFDF5; color: #0B1B3F; border-radius: 18px; padding: 22px 30px; box-shadow: 0 14px 34px rgba(0,0,0,0.3); }
+    .cta .h { font-family: "Archivo Black", sans-serif; font-size: 42px; line-height: 1.2; }
+    .cta .p { display: block; font-size: 34px; font-weight: 700; margin-top: 8px; line-height: 1.25; }
+    .cta .wa { display: block; font-size: 42px; font-weight: 900; color: #128C3E; margin-top: 8px; }
+    #r-prev { top: 170px; border-left: 14px solid #CC0000; }
+    #r-pdf { top: 430px; border-left: 14px solid #25D366; }
+    #r-logo { position: absolute; left: 1060px; top: 760px; width: 140px; height: 140px; }
+    #r-sub { position: absolute; left: 1230px; top: 775px; width: 560px; height: 115px; }
+    .sub-btn { position: absolute; inset: 0; border-radius: 58px; display: flex; align-items: center; justify-content: center; gap: 18px; font-size: 50px; font-weight: 900; letter-spacing: 2px; }
+    #r-sub-on { background: #FF0000; color: #fff; }
+    #r-sub-done { background: #3A3A3A; color: #DDD; opacity: 0; }
+    #r-bell { display: inline-block; }
+    #r-tap { position: absolute; left: 1600px; top: 795px; width: 84px; height: 84px; border-radius: 50%; border: 8px solid #fff; opacity: 0; }
+  </style>
+  <div id="root" data-composition-id="recap" data-width="1920" data-height="1080">
+    <div class="hdr clip" id="r-hdr" data-start="0" data-duration="43.5" data-track-index="0">Recap · Illustration 17</div>
+    <div class="st clip" id="r-1" data-start="1.9" data-duration="41.6" data-track-index="1"><div class="n">1</div><div class="t">Cost Sheet 2025<span class="d">Factory Cost 14,00,000 · Sales 25,20,000</span></div></div>
+    <div class="st clip" id="r-2" data-start="8.9" data-duration="34.6" data-track-index="2"><div class="n">2A</div><div class="t">Old Rates<span class="d"><span class="pill">60%</span><span class="pill">24%</span><span class="pill">16%</span><span class="pill">10%</span><span class="pill red" id="r-pp">Profit 20% on cost</span></span></div></div>
+    <div class="st clip" id="r-3" data-start="15.6" data-duration="27.9" data-track-index="3"><div class="n">2B</div><div class="t">New Rates<span class="d"><span class="pill">72%</span><span class="pill">27%</span><span class="pill">18%</span><span class="pill">9%</span></span></div></div>
+    <div class="st clip" id="r-4" data-start="20.5" data-duration="23.0" data-track-index="4"><div class="n">3</div><div class="t">Selling Price<span class="d"><span id="r-price">₹ 30,677</span></span></div></div>
+    <div class="cta clip" id="r-prev" data-start="26.4" data-duration="17.1" data-track-index="5">
+      <div class="h">▶ Missed Q 13 &amp; Q 14?</div>
+      <span class="p">Alpha Mfg ₹ 5,742 · National Ltd ₹ 2,754 — links in the description</span>
+    </div>
+    <div class="cta clip" id="r-pdf" data-start="31.4" data-duration="12.1" data-track-index="6">
+      <div class="h">📄 Solved notes as a PDF</div>
+      <span class="wa">WhatsApp +91 95679 02805</span>
+      <span class="p">Book a paid demo class</span>
+    </div>
+    <img id="r-logo" class="clip" src="assets/img/logo.png" alt="Goodwill Tuition logo" data-start="38.0" data-duration="5.5" data-track-index="7">
+    <div id="r-sub" class="clip" data-layout-allow-overlap data-start="38.1" data-duration="5.4" data-track-index="8">
+      <div id="r-sub-on" class="sub-btn"><span>▶</span>SUBSCRIBE</div>
+      <div id="r-sub-done" class="sub-btn"><span id="r-bell">🔔</span>SUBSCRIBED</div>
+    </div>
+    <div id="r-tap" class="clip" data-layout-allow-overlap data-start="39.7" data-duration="3.8" data-track-index="9"></div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    const slide = (s, t) => tl.fromTo(s, { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 0.45, ease: "power3.out" }, t);
+    const pops = (s, t) => tl.fromTo(s, { opacity: 0, scale: 0.5 }, { opacity: 1, scale: 1, duration: 0.35, ease: "back.out(2.2)", stagger: 0.55 }, t);
+    tl.fromTo("#r-hdr", { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 0.4 }, 0);
+    slide("#r-1", 1.95);
+    slide("#r-2", 8.95); pops("#r-2 .pill:not(.red)", 9.8); tl.fromTo("#r-pp", { opacity: 0, scale: 0.5 }, { opacity: 1, scale: 1, duration: 0.4, ease: "back.out(2.2)" }, 13.0);
+    slide("#r-3", 15.65); pops("#r-3 .pill", 16.6);
+    slide("#r-4", 20.55); tl.fromTo("#r-price", { opacity: 0, scale: 0.5 }, { opacity: 1, scale: 1, duration: 0.4, ease: "back.out(2.2)" }, 22.5);
+    tl.fromTo("#r-prev", { opacity: 0, x: 50 }, { opacity: 1, x: 0, duration: 0.45, ease: "power3.out" }, 26.45);
+    tl.fromTo("#r-pdf", { opacity: 0, x: 50 }, { opacity: 1, x: 0, duration: 0.45, ease: "power3.out" }, 31.45);
+    tl.to("#r-pdf .wa", { scale: 1.08, duration: 0.3, yoyo: true, repeat: 1, transformOrigin: "left center" }, 34.0);
+    tl.fromTo("#r-logo", { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 0.45, ease: "back.out(2)" }, 38.0);
+    gsap.set("#r-sub-on", { opacity: 0, scale: 0.4 });
+    gsap.set("#r-tap", { opacity: 0, scale: 1.6 });
+    tl.to("#r-sub-on", { opacity: 1, scale: 1, duration: 0.5, ease: "back.out(2.2)" }, 38.2);
+    tl.to("#r-sub-on", { scale: 1.08, duration: 0.3, yoyo: true, repeat: 1, ease: "power2.inOut" }, 38.8);
+    tl.to("#r-tap", { opacity: 1, scale: 0.8, duration: 0.3, ease: "power2.in" }, 39.8);
+    tl.to("#r-sub-on", { scale: 0.92, duration: 0.12, yoyo: true, repeat: 1 }, 40.1);
+    tl.to("#r-tap", { opacity: 0, duration: 0.3 }, 40.25);
+    tl.set("#r-sub-on", { opacity: 0 }, 40.2);
+    tl.fromTo("#r-sub-done", { opacity: 0 }, { opacity: 1, duration: 0.01 }, 40.2);
+    tl.fromTo("#r-bell", { rotation: 0 }, { rotation: 18, duration: 0.12, yoyo: true, repeat: 5, ease: "sine.inOut" }, 40.4);
+    window.__timelines["recap"] = tl;
+  </script>
+</template>

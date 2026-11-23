@@ -1,0 +1,69 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; font-family: "Inter", sans-serif; color: #fff; }
+    .hdr { position: absolute; left: 100px; top: 36px; font-family: "Archivo Black", sans-serif; font-size: 52px; color: #F5B700; }
+    .steps { position: absolute; right: 100px; top: 32px; display: flex; gap: 14px; }
+    .steps span { width: 72px; height: 64px; border-radius: 32px; border: 4px solid rgba(255,255,255,0.5); display: flex; align-items: center; justify-content: center; font-family: "Archivo Black", sans-serif; font-size: 28px; color: rgba(255,255,255,0.6); }
+    .steps span.on { background: #F5B700; border-color: #F5B700; color: #0B1B3F; }
+    #s3-card { position: absolute; left: 140px; top: 115px; width: 1640px; background: #FFFDF5; color: #111; border-radius: 18px; padding: 10px 34px 16px; border-left: 16px solid #6A0DAD; font-family: "EB Garamond", serif; box-shadow: 0 14px 34px rgba(0,0,0,0.3); }
+    .tt { text-align: center; font-weight: 700; font-size: 34px; color: #6A0DAD; text-decoration: underline; margin-bottom: 4px; }
+    .tt i { font-weight: 400; text-decoration: none; display: inline-block; }
+    table { width: 100%; border-collapse: collapse; font-size: 38px; table-layout: fixed; }
+    th { background: #BDBDBD; font-style: italic; padding: 0 14px; border: 2px solid #000; }
+    td { padding: 0 14px; border: 2px solid #000; vertical-align: middle; line-height: 1.2; }
+    td.r { text-align: right; }
+    tr.tot td { font-weight: 700; border-top: 4px solid #000; }
+    .wk { color: #C2185B; font-style: italic; }
+    .wk2 { display: block; color: #C2185B; font-style: italic; padding-left: 40px; }
+    .fr { display: inline-flex; flex-direction: column; align-items: center; vertical-align: middle; font-size: 0.8em; line-height: 1.02; margin: 0 0.15em; }
+    .fr > span:last-child { border-top: 2px solid currentColor; padding: 0 0.15em; }
+    #s3-r12 td { font-size: 42px; color: #CC0000; }
+    .a { display: inline-block; }
+  </style>
+  <div id="root" data-composition-id="step3" data-width="1920" data-height="1080">
+    <div class="hdr clip" id="s3-hdr" data-start="0" data-duration="83.2" data-track-index="0">Step 3 · Price of the New Model</div>
+    <div class="steps clip" id="s3-steps" data-start="0" data-duration="83.2" data-track-index="1"><span>1</span><span>2A</span><span>2B</span><span class="on">3</span></div>
+    <div class="clip" id="s3-card" data-start="0.3" data-duration="82.9" data-track-index="2">
+      <div class="tt">STATEMENT SHOWING THE ESTIMATED PRICE OF THE NEW MODEL <i>for 2026 (Samsung India Ltd.)</i></div>
+      <table>
+        <colgroup><col style="width:80%"><col style="width:20%"></colgroup>
+        <tr><th>Elements of Cost</th><th>Amount (₹)</th></tr>
+        <tr id="s3-r1"><td>Direct Material</td><td class="r"><span class="a">8,000</span></td></tr>
+        <tr id="s3-r2"><td>Add: Direct Wages</td><td class="r"><span class="a">5,000</span></td></tr>
+        <tr id="s3-r3" class="tot"><td>1. Prime Cost</td><td class="r"><span class="a">13,000</span></td></tr>
+        <tr id="s3-r4"><td>Add: Factory Overhead <span class="wk" id="s3-w4">(₹ 5,000 × <span class="fr"><span>72</span><span>100</span></span>)</span></td><td class="r"><span class="a" id="s3-a4">3,600</span></td></tr>
+        <tr id="s3-r5" class="tot"><td>2. Works Cost (Factory Cost)</td><td class="r"><span class="a">16,600</span></td></tr>
+        <tr id="s3-r6"><td>Add: Administration Overhead <span class="wk" id="s3-w6">(₹ 16,600 × <span class="fr"><span>27</span><span>100</span></span>)</span></td><td class="r"><span class="a" id="s3-a6">4,482</span></td></tr>
+        <tr id="s3-r7" class="tot"><td>3. Cost of Production</td><td class="r"><span class="a">21,082</span></td></tr>
+        <tr id="s3-r8"><td>Add: Selling Overhead <span class="wk" id="s3-w8">(₹ 16,600 × <span class="fr"><span>18</span><span>100</span></span>)</span></td><td class="r"><span class="a" id="s3-a8">2,988</span></td></tr>
+        <tr id="s3-r9"><td>Add: Distribution Overhead <span class="wk" id="s3-w9">(₹ 16,600 × <span class="fr"><span>9</span><span>100</span></span>)</span></td><td class="r"><span class="a" id="s3-a9">1,494</span></td></tr>
+        <tr id="s3-r10" class="tot"><td>4. Cost of Sales (Total Cost)</td><td class="r"><span class="a">25,564</span></td></tr>
+        <tr id="s3-r11"><td>Add: Profit (16.6667% on Sales = 20% on Cost)<span class="wk2" id="s3-w11">= ₹ 25,564 × <span class="fr"><span>20</span><span>100</span></span> = ₹ 5,112.80 <span id="s3-rd">(rounded off)</span></span></td><td class="r"><span class="a" id="s3-a11">5,113</span></td></tr>
+        <tr id="s3-r12" class="tot"><td>Estimated Selling Price</td><td class="r"><span class="a" data-var-text="price">30,677</span></td></tr>
+      </table>
+    </div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    const row = (s, t) => tl.fromTo(s, { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.35 }, t);
+    const show = (s, t) => tl.fromTo(s, { opacity: 0 }, { opacity: 1, duration: 0.35 }, t);
+    tl.fromTo("#s3-hdr", { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 0.4 }, 0);
+    tl.fromTo("#s3-steps span", { opacity: 0, scale: 0.5 }, { opacity: 1, scale: 1, duration: 0.3, stagger: 0.1 }, 0.2);
+    tl.fromTo("#s3-card", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 0.4);
+    row("#s3-r1", 5.4); row("#s3-r2", 7.6); row("#s3-r3", 10.5);
+    row("#s3-r4", 13.45); show("#s3-w4", 16.5); show("#s3-a4", 20.2);
+    row("#s3-r5", 22.55);
+    row("#s3-r6", 27.5); show("#s3-w6", 31.5); show("#s3-a6", 35.8);
+    row("#s3-r7", 39.25);
+    row("#s3-r8", 43.6); show("#s3-w8", 45.8); show("#s3-a8", 46.8);
+    row("#s3-r9", 50.25); show("#s3-w9", 52.4); show("#s3-a9", 53.4);
+    row("#s3-r10", 57.0);
+    row("#s3-r11", 62.1); show("#s3-w11", 64.5); show("#s3-a11", 73.6);
+    row("#s3-r12", 77.1);
+    [["#s3-r3", 10.5], ["#s3-r5", 22.55], ["#s3-r7", 39.25], ["#s3-r10", 57.0]].forEach(([s, t]) =>
+      tl.fromTo(s, { backgroundColor: "rgba(106,13,173,0.25)" }, { backgroundColor: "rgba(106,13,173,0)", duration: 1.6 }, t + 0.4));
+    tl.fromTo("#s3-r12", { backgroundColor: "rgba(245,183,0,0)" }, { backgroundColor: "rgba(245,183,0,0.6)", duration: 0.4 }, 77.5);
+    tl.fromTo("#s3-r12 .a", { scale: 1 }, { scale: 1.15, duration: 0.3, yoyo: true, repeat: 3, ease: "sine.inOut", transformOrigin: "right center" }, 79.0);
+    window.__timelines["step3"] = tl;
+  </script>
+</template>

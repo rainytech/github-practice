@@ -1,0 +1,87 @@
+{
+"hook": [
+"M G U, B Com Honours, Semester Six. Cost Accounting.",
+"Tender or Quotations. Illustration seventeen, from Doctor Jayan's Cost Accounting Methods, page two seventy-six.",
+"This time there is a twist. The overhead rates change next year.",
+"Can you find the selling price before I do? Let's go."
+],
+"question": [
+"Here is the question. The following figures have been obtained from the books of Samsung India Limited, for the year twenty twenty-five.",
+"Direct material, six lakh rupees.",
+"Direct wages, five lakh.",
+"Factory overheads, three lakh.",
+"Administration overheads, three lakh thirty-six thousand.",
+"Selling overheads, two lakh twenty-four thousand.",
+"Distribution overheads, one lakh forty thousand.",
+"Profit, four lakh twenty thousand.",
+"A new model has been introduced in twenty twenty-six. Material, eight thousand rupees. Wages, five thousand rupees.",
+"In twenty twenty-six, the rate of factory overhead has increased by twenty percent,",
+"the rate of distribution overhead has gone down by ten percent,",
+"and selling and administration overhead rates have each gone up by twelve and a half percent.",
+"At what price should the product be sold, so as to earn the same rate of profit on the selling price as in twenty twenty-five?",
+"Factory overhead is based on direct wages, while all other overheads are based on factory cost.",
+"Pause the video now, and try it yourself. Then check your answer with me."
+],
+"step1": [
+"Step one. The cost sheet for the year twenty twenty-five.",
+"Direct material, six lakh. Add direct wages, five lakh.",
+"Prime cost, eleven lakh rupees.",
+"Add factory overheads, three lakh.",
+"Works cost, or factory cost, fourteen lakh rupees.",
+"Add administration overheads, three lakh thirty-six thousand.",
+"Cost of production, seventeen lakh thirty-six thousand.",
+"Add selling overheads, two lakh twenty-four thousand, and distribution overheads, one lakh forty thousand.",
+"Cost of sales, twenty-one lakh rupees.",
+"Add profit, four lakh twenty thousand.",
+"Sales, twenty-five lakh twenty thousand rupees."
+],
+"step2a": [
+"Step two A. The rates for twenty twenty-five.",
+"Factory overhead, on direct wages. Three lakh into hundred, over five lakh. Sixty percent.",
+"The other three overheads are on works cost, fourteen lakh.",
+"Administration. Three lakh thirty-six thousand into hundred, over fourteen lakh. Twenty-four percent.",
+"Selling. Two lakh twenty-four thousand into hundred, over fourteen lakh. Sixteen percent.",
+"Distribution. One lakh forty thousand into hundred, over fourteen lakh. Ten percent.",
+"Now the rate of profit. Four lakh twenty thousand into hundred, over twenty-five lakh twenty thousand, is sixteen point six six six seven percent on sales.",
+"On cost: sixteen point six six six seven, over hundred minus sixteen point six six six seven, into hundred. That is twenty percent on cost."
+],
+"step2b": [
+"Step two B. The revised rates for twenty twenty-six.",
+"Factory overhead, increased by twenty percent. Sixty, into hundred and twenty over hundred. Seventy-two percent.",
+"Careful! Not sixty plus twenty. The rate goes up by twenty percent of itself.",
+"Administration, up twelve and a half percent. Twenty-four, into hundred and twelve point five over hundred. Twenty-seven percent.",
+"Selling, also up twelve and a half percent. Sixteen, into hundred and twelve point five over hundred. Eighteen percent.",
+"Distribution, down ten percent. Ten, into ninety over hundred. Nine percent."
+],
+"step3": [
+"Step three. The estimated price of the new model, for twenty twenty-six.",
+"Direct material, eight thousand. Add direct wages, five thousand.",
+"Prime cost, thirteen thousand rupees.",
+"Add factory overhead, seventy-two percent of wages. Five thousand into seventy-two, over hundred, is three thousand six hundred.",
+"Works cost, or factory cost, sixteen thousand six hundred rupees.",
+"Add administration overhead, twenty-seven percent of factory cost. Sixteen thousand six hundred into twenty-seven, over hundred, is four thousand four hundred and eighty-two.",
+"Cost of production, twenty-one thousand and eighty-two rupees.",
+"Add selling overhead, eighteen percent of factory cost. Two thousand nine hundred and eighty-eight.",
+"Add distribution overhead, nine percent of factory cost. One thousand four hundred and ninety-four.",
+"Cost of sales, twenty-five thousand five hundred and sixty-four rupees.",
+"Add profit, twenty percent on cost. Twenty-five thousand five hundred and sixty-four into twenty, over hundred, is five thousand one hundred and twelve rupees, eighty paise. Rounded off, five thousand one hundred and thirteen.",
+"Estimated selling price: thirty thousand six hundred and seventy-seven rupees."
+],
+"tips": [
+"Three exam tips from this illustration.",
+"Tip one. Check the base. Factory overhead goes on direct wages. Administration, selling and distribution all go on factory cost, not on cost of production.",
+"Tip two. Increased by twenty percent does not mean add twenty. Multiply the old rate by hundred and twenty over hundred. So sixty becomes seventy-two, not eighty.",
+"Tip three. Sixteen point six six six seven percent on sales is twenty percent on cost.",
+"So profit is twenty percent of twenty-five thousand five hundred and sixty-four: five thousand one hundred and twelve rupees, eighty paise. Rounded off, five thousand one hundred and thirteen."
+],
+"recap": [
+"Let's recap.",
+"Cost sheet for twenty twenty-five: factory cost fourteen lakh, sales twenty-five lakh twenty thousand.",
+"Old rates: sixty, twenty-four, sixteen and ten percent. Profit, twenty percent on cost.",
+"New rates: seventy-two, twenty-seven, eighteen and nine percent.",
+"Selling price of the new model: thirty thousand six hundred and seventy-seven rupees.",
+"Missed Questions thirteen and fourteen? The links are in the description.",
+"Want these solved notes as a P D F? Message us on WhatsApp, and book a paid demo class.",
+"Subscribe for more Cost Accounting videos!"
+]
+}

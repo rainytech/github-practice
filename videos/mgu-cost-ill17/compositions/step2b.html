@@ -1,0 +1,62 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; font-family: "Inter", sans-serif; color: #fff; }
+    .hdr { position: absolute; left: 100px; top: 44px; font-family: "Archivo Black", sans-serif; font-size: 58px; color: #F5B700; }
+    .steps { position: absolute; right: 100px; top: 44px; display: flex; gap: 14px; }
+    .steps span { width: 76px; height: 70px; border-radius: 35px; border: 4px solid rgba(255,255,255,0.5); display: flex; align-items: center; justify-content: center; font-family: "Archivo Black", sans-serif; font-size: 30px; color: rgba(255,255,255,0.6); }
+    .steps span.on { background: #F5B700; border-color: #F5B700; color: #0B1B3F; }
+    .card { position: absolute; left: 100px; width: 1720px; height: 165px; background: #FFFDF5; color: #111; border-radius: 18px; padding: 12px 30px; border-left: 16px solid #6A0DAD; font-family: "EB Garamond", serif; display: flex; align-items: center; gap: 26px; box-shadow: 0 14px 34px rgba(0,0,0,0.3); }
+    .lbl { width: 520px; flex: none; font-size: 44px; font-weight: 700; color: #6A0DAD; line-height: 1.12; }
+    .lbl .sm { display: block; font-size: 34px; font-style: italic; color: #C2185B; font-weight: 400; }
+    .fx { flex: 1; font-size: 54px; line-height: 1.1; white-space: nowrap; }
+    .res { width: 380px; flex: none; white-space: nowrap; text-align: center; background: #6A0DAD; color: #fff; border-radius: 14px; padding: 12px 8px; font-family: "Archivo Black", sans-serif; font-size: 60px; line-height: 1.05; }
+    .res s { color: rgba(255,255,255,0.6); font-size: 40px; }
+    .fr { display: inline-flex; flex-direction: column; align-items: center; vertical-align: middle; font-size: 0.82em; line-height: 1.12; margin: 0 0.15em; }
+    .fr > span:last-child { border-top: 3px solid currentColor; padding: 0 0.15em; }
+    #s2b-c1 { top: 140px; } #s2b-c2 { top: 325px; } #s2b-c3 { top: 510px; } #s2b-c4 { top: 695px; }
+    #s2b-warn { position: absolute; left: 100px; top: 885px; width: 1720px; height: 130px; background: #B0B0B0; color: #111; border: 4px solid #CC0000; border-radius: 18px; display: flex; align-items: center; justify-content: center; gap: 50px; font-family: "Archivo Black", sans-serif; font-size: 46px; }
+    #s2b-warn .x { color: #CC0000; }
+    #s2b-warn .ok { color: #0B5D1E; }
+  </style>
+  <div id="root" data-composition-id="step2b" data-width="1920" data-height="1080">
+    <div class="hdr clip" id="s2b-hdr" data-start="0" data-duration="41.4" data-track-index="0">Step 2B · Revised Rates 2026</div>
+    <div class="steps clip" id="s2b-steps" data-start="0" data-duration="41.4" data-track-index="1"><span>1</span><span>2A</span><span class="on">2B</span><span>3</span></div>
+    <div class="card clip" id="s2b-c1" data-start="4.3" data-duration="37.1" data-track-index="2">
+      <div class="lbl">1. Factory Overhead<span class="sm">60% · increased by 20%</span></div>
+      <div class="fx" id="s2b-c1n">= 60 × <span class="fr"><span>100 + 20</span><span>100</span></span> = 60 × <span class="fr"><span>120</span><span>100</span></span></div>
+      <div class="res" id="s2b-c1r"><s>60%</s> → 72%</div>
+    </div>
+    <div class="card clip" id="s2b-c2" data-start="17.8" data-duration="23.6" data-track-index="3">
+      <div class="lbl">2. Administration<span class="sm">24% · increased by 12<span class="fr"><span>1</span><span>2</span></span>%</span></div>
+      <div class="fx" id="s2b-c2n">= 24 × <span class="fr"><span>100 + 12.5</span><span>100</span></span> = 24 × <span class="fr"><span>112.5</span><span>100</span></span></div>
+      <div class="res" id="s2b-c2r"><s>24%</s> → 27%</div>
+    </div>
+    <div class="card clip" id="s2b-c3" data-start="26.8" data-duration="14.6" data-track-index="4">
+      <div class="lbl">3. Selling<span class="sm">16% · increased by 12<span class="fr"><span>1</span><span>2</span></span>%</span></div>
+      <div class="fx" id="s2b-c3n">= 16 × <span class="fr"><span>100 + 12.5</span><span>100</span></span> = 16 × <span class="fr"><span>112.5</span><span>100</span></span></div>
+      <div class="res" id="s2b-c3r"><s>16%</s> → 18%</div>
+    </div>
+    <div class="card clip" id="s2b-c4" data-start="35.0" data-duration="6.4" data-track-index="5">
+      <div class="lbl">4. Distribution<span class="sm">10% · decreased by 10%</span></div>
+      <div class="fx" id="s2b-c4n">= 10 × <span class="fr"><span>100 – 10</span><span>100</span></span> = 10 × <span class="fr"><span>90</span><span>100</span></span></div>
+      <div class="res" id="s2b-c4r"><s>10%</s> → 9%</div>
+    </div>
+    <div class="clip" id="s2b-warn" data-start="12.3" data-duration="29.1" data-track-index="6"><span class="x">✗ NOT 60 + 20 = 80%</span><span class="ok">✓ 20% of 60 = 12 → 72%</span></div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    const card = (s, t) => tl.fromTo(s, { opacity: 0, x: -50 }, { opacity: 1, x: 0, duration: 0.45, ease: "power3.out" }, t);
+    const fade = (s, t) => tl.fromTo(s, { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.4 }, t);
+    const pop = (s, t) => tl.fromTo(s, { opacity: 0, scale: 0.5 }, { opacity: 1, scale: 1, duration: 0.45, ease: "back.out(2.2)" }, t);
+    tl.fromTo("#s2b-hdr", { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 0.4 }, 0);
+    tl.fromTo("#s2b-steps span", { opacity: 0, scale: 0.5 }, { opacity: 1, scale: 1, duration: 0.3, stagger: 0.1 }, 0.2);
+    card("#s2b-c1", 4.35); fade("#s2b-c1n", 7.0); pop("#s2b-c1r", 10.4);
+    tl.fromTo("#s2b-warn", { opacity: 0, scale: 0.7 }, { opacity: 1, scale: 1, duration: 0.45, ease: "back.out(2)" }, 12.4);
+    tl.to("#s2b-warn .x", { scale: 1.08, duration: 0.3, yoyo: true, repeat: 1 }, 13.0);
+    tl.to("#s2b-warn .ok", { scale: 1.08, duration: 0.3, yoyo: true, repeat: 1 }, 14.8);
+    card("#s2b-c2", 17.85); fade("#s2b-c2n", 20.6); pop("#s2b-c2r", 25.0);
+    card("#s2b-c3", 26.85); fade("#s2b-c3n", 29.4); pop("#s2b-c3r", 33.2);
+    card("#s2b-c4", 35.05); fade("#s2b-c4n", 36.6); pop("#s2b-c4r", 38.9);
+    window.__timelines["step2b"] = tl;
+  </script>
+</template>
