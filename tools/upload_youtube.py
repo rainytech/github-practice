@@ -218,8 +218,6 @@ def main():
     )
     note_in_claude_md(title, url)
     print("\nStill manual in YouTube Studio: Education fields (Type, Level, Exam) and the pinned comment.")
-    if privacy == "public":
-        print("If the video shows 'locked as private', the API project still needs Google's audit (see UPLOAD_SETUP.md).")
 
 
 if __name__ == "__main__":
