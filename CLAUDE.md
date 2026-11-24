@@ -64,6 +64,9 @@ Apply these to every new YouTube video / Short without being asked.
 - Method that kept it cheap: write the voice script first as per-line clips (`voice-script/lines.json`) → TTS each line → join each scene into one wav with 0.5 s gaps and loudnorm −14 LUFS → line start times (`timing.json`) set every on-screen reveal → one scene file per step → `check` → one snapshot contact sheet → fix → render once in the background (~10 min) → commit project, then MP4.
 - Keep: no music, house colours (navy #0B1B3F, gold #F5B700, cream cards, purple #6A0DAD, red #CC0000), stacked fractions, step pills 1·2·3, summary chips, "exam traps" scene, recap + WhatsApp PDF offer + Subscribe animation.
 
+## Check before sending the user on long external tasks (lesson, 24 Nov 2026)
+- Before asking the user to do any long outside process (Google/YouTube forms, audits, account setups), check the current official docs with a web search first. Rules change after the training cutoff. On 22 Nov the user spent hours on a YouTube API audit that Google had stopped requiring on 2 Nov 2026.
+
 ## Every description must include
 ```
 🌐 www.goodwillonlinetuition.com
