@@ -43,10 +43,10 @@ Apply these to every new YouTube video / Short without being asked.
 - Order: two-sided errors first (principle, omission, commission, wrong amount), then one-sided errors with Suspense A/c, then before vs after the Trial Balance.
 - Done: Q 5 (ii) Salary paid to Ajay debited to his Personal Account ₹8,000 → Salary A/c Dr. To Ajay's A/c.
 
-## ▶ START HERE next session (left 22 Nov 2026, night)
-- Next video: MGU Cost Accounting **Illustration 17 (Samsung India Ltd)**, Dr. Jayan, Cost Accounting Methods, Pg 276–278, from `videos/mgu-cost-q14/source/notes-tender-quotations-q14-q13-ill17.html`. Answer ₹30,677 (Cost of Sales 25,564 + profit 5,113). First ask the user: show profit ₹5,112.81 (as in the notes) or ₹5,112.80 (exact; 4,20,000 ⁄ 25,20,000 = 20% on cost)?
-- Build it by copying `videos/mgu-cost-q13/` (bigger text, 16:9) with the per-line voice method; likely 7–8 min (cost sheet 2025 → old rates 60/24/16/10% and profit → revised rates 72/27/18/9% → statement for 2026 → tips → recap). Upload text with playlist settings.json; link Q13 and Q14 in the description.
-- YouTube API: Google replied 23 Nov — no audit needed, API uploads can be Public. First real script upload still to test (use it for Illustration 17).
+## ▶ START HERE next session (left 24 Nov 2026)
+- Illustration 17 (Samsung India Ltd, Pg 276–278) video MADE 24 Nov: `videos/mgu-cost-ill17/` (16:9, 6:47, 8 scenes hook → question → step1 → step2A → step2B → step3 → tips → recap). Profit shown as exact ₹5,112.80 (20% on cost), rounded ₹5,113; price ₹30,677. Upload with `tools/upload_youtube.py videos/mgu-cost-ill17` (first real script upload) and add the link under Published.
+- Voice builder for main videos: `videos/mgu-cost-ill17/voice-script/build_voice.py <project>` (kokoro-onnx in /root/video-venv, all lines in one process, ~2 min; writes assets/voice/*.wav + timing.json). Copy the project's `.gitignore` too (else render work dirs get committed).
+- YouTube API: Google replied 23 Nov — no audit needed, API uploads can be Public.
 - Still pending: 9:16 Shorts from Q14/Q13; T.S. Grewal Ch 8 PP1 Apr 16 Short; Rectification series next error.
 
 ## MGU B.Com Hons Sem 6 Cost Accounting video (main video made 22 Nov 2026)
