@@ -47,6 +47,7 @@ Apply these to every new YouTube video / Short without being asked.
 - Illustration 17 (Samsung India Ltd, Pg 276–278) video MADE 24 Nov: `videos/mgu-cost-ill17/` (16:9, 6:47, 8 scenes hook → question → step1 → step2A → step2B → step3 → tips → recap). Profit shown as exact ₹5,112.80 (20% on cost), rounded ₹5,113; price ₹30,677. Uploaded 24 Nov with `tools/upload_youtube.py` (first real script upload, Public, playlist OK): https://youtu.be/x6KsUmfpVIM. Next: Education fields + pinned comment are manual; then the pending 9:16 Shorts.
 - Voice builder for main videos: `videos/mgu-cost-ill17/voice-script/build_voice.py <project>` (kokoro-onnx in /root/video-venv, all lines in one process, ~2 min; writes assets/voice/*.wav + timing.json). Copy the project's `.gitignore` too (else render work dirs get committed).
 - YouTube API: Google replied 23 Nov — no audit needed, API uploads can be Public.
+- Thumbnails (from 24 Nov): every video gets a custom 1280×720 `upload/thumbnail.jpg` built from `upload/thumbnail.html` (Playwright screenshot). Style: 2–3 huge words (white + gold), red course tag, one tilted cream card with the key trap/number, gold answer chip, gold bottom bar with logo. Template: `videos/mgu-cost-ill17/upload/thumbnail.html`. The user sets it in Studio (API has no Education fields; thumbnail by hand too for now).
 - Still pending: 9:16 Shorts from Q14/Q13; T.S. Grewal Ch 8 PP1 Apr 16 Short; Rectification series next error.
 
 ## MGU B.Com Hons Sem 6 Cost Accounting video (main video made 22 Nov 2026)
