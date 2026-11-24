@@ -44,7 +44,7 @@ Apply these to every new YouTube video / Short without being asked.
 - Done: Q 5 (ii) Salary paid to Ajay debited to his Personal Account ₹8,000 → Salary A/c Dr. To Ajay's A/c.
 
 ## ▶ START HERE next session (left 24 Nov 2026)
-- Illustration 17 (Samsung India Ltd, Pg 276–278) video MADE 24 Nov: `videos/mgu-cost-ill17/` (16:9, 6:47, 8 scenes hook → question → step1 → step2A → step2B → step3 → tips → recap). Profit shown as exact ₹5,112.80 (20% on cost), rounded ₹5,113; price ₹30,677. Upload with `tools/upload_youtube.py videos/mgu-cost-ill17` (first real script upload) and add the link under Published.
+- Illustration 17 (Samsung India Ltd, Pg 276–278) video MADE 24 Nov: `videos/mgu-cost-ill17/` (16:9, 6:47, 8 scenes hook → question → step1 → step2A → step2B → step3 → tips → recap). Profit shown as exact ₹5,112.80 (20% on cost), rounded ₹5,113; price ₹30,677. Uploaded 24 Nov with `tools/upload_youtube.py` (first real script upload, Public, playlist OK): https://youtu.be/x6KsUmfpVIM. Next: Education fields + pinned comment are manual; then the pending 9:16 Shorts.
 - Voice builder for main videos: `videos/mgu-cost-ill17/voice-script/build_voice.py <project>` (kokoro-onnx in /root/video-venv, all lines in one process, ~2 min; writes assets/voice/*.wav + timing.json). Copy the project's `.gitignore` too (else render work dirs get committed).
 - YouTube API: Google replied 23 Nov — no audit needed, API uploads can be Public.
 - Still pending: 9:16 Shorts from Q14/Q13; T.S. Grewal Ch 8 PP1 Apr 16 Short; Rectification series next error.
@@ -104,5 +104,6 @@ Online Accountancy classes for CBSE Class 11 & 12 students in UAE, Saudi Arabia,
 - TS Grewal Ch 17 Rectification Q5 (ii): Salary debited to Ajay's A/c (first rectification Short, 4-step method) — https://youtube.com/shorts/hEt3ASDIvCA (published 21 Nov 2026)
 - MGU B.Com Hons Sem 6 Cost Accounting Q14 (National Ltd), Tender or Quotations — main 16:9 video, 5:28, first in playlist "MGU B.Com Hons Sem 6 · Cost Accounting" — https://youtu.be/sV7NjIN_g04 (published 22 Nov 2026)
 - MGU B.Com Hons Sem 6 Cost Accounting Q13 (Alpha Manufacturing), "Try it yourself" — main 16:9 video, 4:40, bigger text, same playlist — https://youtu.be/K8D6-XDE_pI (published 22 Nov 2026)
+- Tender or Quotations Illustration 17: New Model Price | MGU B.Com Hons Sem 6 Cost Accounting — https://youtu.be/x6KsUmfpVIM (published 24 Nov 2026, uploaded by script)
 - Channel views: 4,253 (10 Nov 2026) → 4,310 (11 Nov 2026). Compare again around 18 Nov.
 - Popular tab (19 Nov 2026): photo Shorts of real exam question papers lead — B.Com Corporate Accounting I paper (QP 22100578, Apr 2022) 1,020 views, others 757 / 663 / 425; MGU Income Tax promo 218; Harris "Business Entity Concept" 107 (6 days old). But those question-paper Shorts are 4 years old (≈0.2–0.7 views/day); the Harris Short got ≈18 views/day — the new animated daily Shorts are far ahead per day.
