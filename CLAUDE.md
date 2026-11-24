@@ -46,7 +46,7 @@ Apply these to every new YouTube video / Short without being asked.
 ## ▶ START HERE next session (left 22 Nov 2026, night)
 - Next video: MGU Cost Accounting **Illustration 17 (Samsung India Ltd)**, Dr. Jayan, Cost Accounting Methods, Pg 276–278, from `videos/mgu-cost-q14/source/notes-tender-quotations-q14-q13-ill17.html`. Answer ₹30,677 (Cost of Sales 25,564 + profit 5,113). First ask the user: show profit ₹5,112.81 (as in the notes) or ₹5,112.80 (exact; 4,20,000 ⁄ 25,20,000 = 20% on cost)?
 - Build it by copying `videos/mgu-cost-q13/` (bigger text, 16:9) with the per-line voice method; likely 7–8 min (cost sheet 2025 → old rates 60/24/16/10% and profit → revised rates 72/27/18/9% → statement for 2026 → tips → recap). Upload text with playlist settings.json; link Q13 and Q14 in the description.
-- Waiting on Google: YouTube API audit (submitted 22 Nov). If an email arrives, help the user reply.
+- YouTube API: Google replied 23 Nov — no audit needed, API uploads can be Public. First real script upload still to test (use it for Illustration 17).
 - Still pending: 9:16 Shorts from Q14/Q13; T.S. Grewal Ch 8 PP1 Apr 16 Short; Rectification series next error.
 
 ## MGU B.Com Hons Sem 6 Cost Accounting video (main video made 22 Nov 2026)
@@ -64,6 +64,9 @@ Apply these to every new YouTube video / Short without being asked.
 - Method that kept it cheap: write the voice script first as per-line clips (`voice-script/lines.json`) → TTS each line → join each scene into one wav with 0.5 s gaps and loudnorm −14 LUFS → line start times (`timing.json`) set every on-screen reveal → one scene file per step → `check` → one snapshot contact sheet → fix → render once in the background (~10 min) → commit project, then MP4.
 - Keep: no music, house colours (navy #0B1B3F, gold #F5B700, cream cards, purple #6A0DAD, red #CC0000), stacked fractions, step pills 1·2·3, summary chips, "exam traps" scene, recap + WhatsApp PDF offer + Subscribe animation.
 
+## Check before sending the user on long external tasks (lesson, 24 Nov 2026)
+- Before asking the user to do any long outside process (Google/YouTube forms, audits, account setups), check the current official docs with a web search first. Rules change after the training cutoff. On 22 Nov the user spent hours on a YouTube API audit that Google had stopped requiring on 2 Nov 2026.
+
 ## Every description must include
 ```
 🌐 www.goodwillonlinetuition.com
@@ -80,7 +83,7 @@ Online Accountancy classes for CBSE Class 11 & 12 students in UAE, Saudi Arabia,
 - Tags include: cbse accountancy, ncert accountancy, class 11 accountancy, class 12 accountancy, accountancy tuition uae, online accountancy tuition dubai, journal entry, golden rules of accounting, debit and credit explained.
 - Publish immediately (Visibility → Public), then the user shares the link on Facebook and WhatsApp straight away. Do not schedule.
 - Guide uploads one step at a time when asked.
-- Upload script (22 Nov 2026): `tools/upload_youtube.py videos/<project>` (setup in `tools/UPLOAD_SETUP.md`; runs on the user's PC; free API). Give every new project an `upload/settings.json` with its playlist. Public uploads need Google's API audit first; Education fields and pinned comment stay manual. Count tags the YouTube way (quotes around multi-word tags) — the script checks it. Set up on the user's PC 22 Nov 2026 (repo at C:\Users\Admin\github-practice, Google Cloud project goodwill-youtube-upload / 440497871188, OAuth app "Goodwill Video Uploader", Testing mode, test user = channel Gmail; signed in OK). API audit form submitted 22 Nov 2026 (answers in tools/audit/FORM_ANSWERS.md; privacy page https://www.goodwillonlinetuition.com/privacy-policy). Until Google approves, upload with --privacy private or by hand. In Testing mode the sign-in expires after about 7 days: run `python tools\upload_youtube.py --login` again if it fails.
+- Upload script (22 Nov 2026): `tools/upload_youtube.py videos/<project>` (setup in `tools/UPLOAD_SETUP.md`; runs on the user's PC; free API). Give every new project an `upload/settings.json` with its playlist. Public uploads work straight away (Google, 23 Nov 2026: API uploads are no longer locked as private; upload cost is now 1 unit per call, so the free quota is plenty). Education fields and pinned comment stay manual. Count tags the YouTube way (quotes around multi-word tags) — the script checks it. Set up on the user's PC 22 Nov 2026 (repo at C:\Users\Admin\github-practice, Google Cloud project goodwill-youtube-upload / 440497871188, OAuth app "Goodwill Video Uploader", Testing mode, test user = channel Gmail; signed in OK). API audit form submitted 22 Nov 2026 and closed by Google 23 Nov as not needed (answers in tools/audit/FORM_ANSWERS.md; privacy page https://www.goodwillonlinetuition.com/privacy-policy). In Testing mode the sign-in expires after about 7 days: run `python tools\upload_youtube.py --login` again if it fails.
 
 ## Channel links (YouTube Studio → Customisation → Profile)
 - Website: https://goodwillonlinetuition.com

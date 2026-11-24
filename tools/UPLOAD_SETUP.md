@@ -1,6 +1,6 @@
 # YouTube upload script: one-time setup
 
-The script is `tools/upload_youtube.py`. Run it on your own PC (Windows is fine). It is free: the YouTube Data API v3 gives 10,000 units a day and one upload uses about 1,600 units, so about 6 uploads a day.
+The script is `tools/upload_youtube.py`. Run it on your own PC (Windows is fine). It is free: the YouTube Data API v3 gives 10,000 units a day, and since November 2026 each call costs 1 unit (Google's reply of 23 Nov 2026), so the free quota is far more than enough.
 
 ## 1. Install Python and the libraries
 1. Install Python 3 from python.org (tick "Add Python to PATH").
@@ -35,8 +35,8 @@ python tools/upload_youtube.py videos/<project>
 
 The first time, the browser opens: choose the channel account and allow access. The login is then saved in `~/.goodwill_youtube_token.json`.
 
-## 5. Ask Google for the audit (needed for Public uploads)
-Until Google audits the project, videos uploaded through the API are **locked as private**. Fill in the YouTube API Services audit form (search for "YouTube API Services Audit and Quota Extension Form"), and describe it as a personal tool that uploads your own channel's videos. The audit is free and takes from a few days to a few weeks. Until then, use `--privacy private` and publish in Studio, or keep uploading by hand.
+## 5. No audit needed
+Google confirmed on 23 Nov 2026 that videos uploaded through the API are no longer locked as private, so Public uploads work straight away. (We submitted the audit form on 22 Nov; Google closed it as not needed.)
 
 ## Per-project settings (optional)
 `videos/<project>/upload/settings.json`:
