@@ -1,0 +1,63 @@
+CBSE Class 11 Accountancy · T.S. Grewal (2026–27) · Adjustments in Preparation of Financial Statements · Question 39 · Pages 19.91–19.92
+
+Final accounts of Manoj with 8 adjustments: Trading Account, Profit & Loss Account and Balance Sheet as at 31st March, 2026, solved step by step by Rainy Goodwill. Pause the video after the question and try it yourself first!
+
+✅ ANSWER
+Gross Profit ₹21,910 · Net Profit ₹1,400 · Balance Sheet total ₹1,23,850 (tallied ✓)
+
+📘 THE 8 ADJUSTMENTS — WHERE EACH ONE GOES
+(i) Closing Stock: cost ₹35,000, NRV ₹30,000 → value at ₹30,000 (lower). Trading Cr. side + Balance Sheet asset.
+(ii) New machine ₹3,000 bought on credit, not recorded → add to Machinery; Creditor for Machinery ₹3,000 (liability).
+(iii) Installation wages ₹500 → capital expenditure: deduct from Wages, add to Machinery (cost ₹18,100).
+(iv) Further bad debts ₹300, provision raised to ₹1,400 → Debtors 43,800 − 300 − 1,400 = ₹42,100; P&L charge 1,000 + 300 + 1,400 − 800 = ₹1,900.
+(v) Fire destroyed stock ₹8,000, insurance claim ₹5,000 admitted → Purchases − 8,000; Loss by fire ₹3,000 in P&L; Insurance Claim Receivable ₹5,000 (asset).
+(vi) Outstanding wages ₹700, salaries ₹500 → added to expenses; shown as liabilities.
+(vii) Prepaid insurance ₹250, advertisement ₹500 → deducted from expenses; shown as assets.
+(viii) Depreciation: Machinery 18,100 × 10% = ₹1,810; Furniture 3,400 × 15% = ₹510; total ₹2,320 to P&L.
+
+📗 TRADING ACCOUNT
+Opening Stock 40,200 · Purchases 1,32,700 − 970 − 8,000 = 1,23,730 · Wages 31,250 − 500 + 700 = 31,450 · Carriage Inwards 3,400 · Gross Profit 21,910
+Sales 1,91,940 − 1,250 = 1,90,690 · Closing Stock 30,000 · Total 2,20,690
+
+📗 PROFIT & LOSS ACCOUNT
+Salaries 6,110 · Discount Allowed 2,640 · Bank Charges 90 · Bad Debts & Provision 1,900 · Insurance 1,000 · Rent 2,450 · Advertisement 3,000 · Loss by Fire 3,000 · Depreciation 2,320 · Net Profit 1,400
+Gross Profit 21,910 + Discount Received 2,000 = 23,910
+
+📗 BALANCE SHEET (₹1,23,850)
+Liabilities: Capital 1,00,000 + 1,400 − 4,200 = 97,200 · Bank Loan 10,000 · Sundry Creditors 12,450 · Creditor for Machinery 3,000 · Outstanding Wages 700 · Outstanding Salaries 500
+Assets: Building 21,700 · Machinery 16,290 · Furniture 2,890 · Closing Stock 30,000 · Sundry Debtors 42,100 · Insurance Claim Receivable 5,000 · Prepaid Insurance 250 · Prepaid Advertisement 500 · Cash at Bank 2,470 · Cash in Hand 2,650
+
+⚠️ 4 EXAM TRAPS
+1. Closing stock at the lower of cost or NRV: ₹30,000, not ₹35,000.
+2. Installation wages go to Machinery, so depreciation is on ₹18,100.
+3. Loss by fire: deduct full ₹8,000 from purchases; only ₹3,000 is a loss; the ₹5,000 claim is an asset.
+4. Old provision ₹800 is subtracted only in the P&L charge, never from debtors.
+
+⏱️ CHAPTERS
+0:00 8 adjustments · will it tally?
+0:18 The question (Trial Balance)
+0:55 The 8 adjustments (pause & try)
+2:05 (i) Closing stock: cost or NRV
+2:34 (ii), (iii), (viii) Machinery & depreciation
+3:32 (iv) Bad debts & provision
+4:11 (v) Loss of stock by fire
+4:43 (vi), (vii) Outstanding & prepaid expenses
+5:32 Trading Account
+6:28 Profit & Loss Account
+7:17 Balance Sheet
+8:29 4 exam traps
+9:11 Recap
+
+📄 Want these solved notes as a PDF (Questions 39, 40 & 41)? Message us on WhatsApp.
+
+👨‍🏫 ABOUT US
+Rainy Goodwill · Goodwill Tuition Centre, Ernakulam, Kerala — 30 years of teaching Accountancy, since 1999.
+
+🌐 www.goodwillonlinetuition.com
+📞 WhatsApp: +91 95679 02805 → https://wa.me/919567902805
+Book a paid demo class on WhatsApp.
+Online Accountancy classes for CBSE Class 11 & 12 students in UAE, Saudi Arabia, Qatar, Kuwait, Oman & Bahrain.
+
+Disclaimer: This video is an independent explanation for students. T.S. Grewal's Double Entry Book Keeping is referred to only so students can find the question in their own textbook.
+
+#TSGrewal #CBSEClass11 #Accountancy #FinalAccounts #BalanceSheet

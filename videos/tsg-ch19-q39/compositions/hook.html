@@ -1,0 +1,60 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; font-family: "Inter", sans-serif; color: #fff; }
+    #hook-logo { position: absolute; left: 130px; top: 70px; width: 130px; height: 130px; }
+    #hook-tag { position: absolute; left: 285px; top: 115px; font-size: 36px; font-weight: 700; letter-spacing: 6px; color: #F5B700; }
+    #hook-course { position: absolute; left: 130px; top: 240px; font-size: 50px; font-weight: 700; color: #F5B700; }
+    #hook-title { position: absolute; left: 130px; top: 305px; font-family: "Archivo Black", sans-serif; font-size: 110px; line-height: 1; }
+    #hook-ref { position: absolute; left: 130px; top: 465px; width: 1140px; }
+    #hook-ref-in { background: #FFFDF5; color: #0B1B3F; border-left: 18px solid #CC0000; border-radius: 16px; padding: 22px 34px; }
+    #hook-ref-in .bk { font-family: "Archivo Black", sans-serif; font-size: 52px; line-height: 1.2; }
+    #hook-ref-in .sm { display: block; font-size: 32px; font-weight: 700; color: #555; margin-top: 6px; }
+    #hook-ref-in .q { display: block; font-size: 42px; font-weight: 800; color: #CC0000; margin-top: 8px; }
+    #hook-same { position: absolute; left: 130px; top: 800px; width: 1140px; font-family: "Archivo Black", sans-serif; font-size: 64px; line-height: 1.15; }
+    #hook-same .g { color: #F5B700; }
+    #hook-art { position: absolute; left: 1330px; top: 150px; width: 470px; height: 560px; }
+    #hook-gear { position: absolute; left: 40px; top: 20px; width: 380px; height: 380px; }
+    #hook-price { position: absolute; left: 150px; top: 330px; width: 300px; height: 180px; background: #F5B700; color: #0B1B3F; border-radius: 22px; display: flex; align-items: center; justify-content: center; font-family: "Archivo Black", sans-serif; font-size: 110px; box-shadow: 0 12px 30px rgba(0,0,0,0.35); }
+    #hook-ask { position: absolute; left: 1330px; top: 760px; width: 480px; }
+    #hook-ask .hl { display: inline-block; background: #F5B700; color: #0B1B3F; padding: 8px 22px; font-family: "Archivo Black", sans-serif; font-size: 60px; line-height: 1.1; }
+    #hook-ask .st { display: block; margin-top: 16px; font-size: 44px; font-weight: 800; }
+  </style>
+  <div id="root" data-composition-id="hook" data-width="1920" data-height="1080">
+    <img id="hook-logo" class="clip" src="assets/img/logo.png" alt="Goodwill Tuition logo" data-start="0" data-duration="18.5" data-track-index="3">
+    <div id="hook-tag" class="clip" data-start="0" data-duration="18.5" data-track-index="0">GOODWILL TUITION CENTRE</div>
+    <div id="hook-course" class="clip" data-start="0" data-duration="18.5" data-track-index="1">CBSE Class 11 · Accountancy</div>
+    <div id="hook-title" class="clip" data-start="0" data-duration="18.5" data-track-index="2">FINAL ACCOUNTS</div>
+    <div id="hook-ref" class="clip" data-start="1.4" data-duration="17.1" data-track-index="4"><div id="hook-ref-in">
+      <div class="bk">T.S. Grewal · Class 11 · 2026–27</div>
+      <span class="sm">Adjustments in Preparation of Financial Statements</span>
+      <span class="q">Question 39 · Manoj · Pg 19.91–19.92</span>
+    </div></div>
+    <div id="hook-art" class="clip" data-layout-allow-overlap data-start="0" data-duration="18.5" data-track-index="5">
+      <svg id="hook-gear" viewBox="-100 -100 200 200">
+        <g fill="#2B4C8C" stroke="#7FA6E8" stroke-width="4">
+          <path d="M-12,-92 L12,-92 L15,-70 L35,-62 L52,-76 L69,-59 L55,-42 L63,-22 L85,-19 L85,5 L63,8 L55,28 L69,45 L52,62 L35,48 L15,56 L12,78 L-12,78 L-15,56 L-35,48 L-52,62 L-69,45 L-55,28 L-63,8 L-85,5 L-85,-19 L-63,-22 L-55,-42 L-69,-59 L-52,-76 L-35,-62 L-15,-70 Z" transform="translate(0,7)"/>
+        </g>
+        <circle cx="0" cy="0" r="24" fill="#0B1B3F" stroke="#7FA6E8" stroke-width="4"/>
+      </svg>
+      <div id="hook-price">✓ ?</div>
+    </div>
+    <div id="hook-same" class="clip" data-start="6.2" data-duration="12.3" data-track-index="6"><span class="g">8 adjustments</span> · 3 statements</div>
+    <div id="hook-ask" class="clip" data-start="14.5" data-duration="4.0" data-track-index="7"><span class="hl">WILL IT TALLY?</span><span class="st">Let's solve it</span></div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    tl.to("#hook-logo", { scale: 1.1, duration: 0.3, yoyo: true, repeat: 1, ease: "power2.out" }, 0.4);
+    tl.to("#hook-title", { scale: 1.05, duration: 0.3, yoyo: true, repeat: 1, ease: "power2.out", transformOrigin: "left center" }, 2.8);
+    tl.fromTo("#hook-ref-in", { opacity: 0, x: -60 }, { opacity: 1, x: 0, duration: 0.5, ease: "power3.out" }, 1.4);
+    tl.to("#hook-ref-in .q", { scale: 1.06, duration: 0.3, yoyo: true, repeat: 1, ease: "power2.out", transformOrigin: "left center" }, 2.6);
+    tl.to("#hook-ref-in .bk", { scale: 1.04, duration: 0.3, yoyo: true, repeat: 1, ease: "power2.out", transformOrigin: "left center" }, 3.6);
+    tl.fromTo("#hook-gear", { rotation: 0 }, { rotation: 170, duration: 18.5, ease: "none" }, 0);
+    tl.fromTo("#hook-price", { opacity: 0, scale: 0.4, rotation: -12 }, { opacity: 1, scale: 1, rotation: -6, duration: 0.55, ease: "back.out(2.2)" }, 1.2);
+    tl.fromTo("#hook-same", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 6.25);
+    tl.fromTo("#hook-ask", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 14.55);
+    tl.fromTo("#hook-ask .hl", { scale: 0.6 }, { scale: 1, duration: 0.5, ease: "back.out(2.5)", transformOrigin: "left center" }, 14.6);
+    tl.fromTo("#hook-ask .st", { opacity: 0 }, { opacity: 1, duration: 0.35 }, 16.2);
+    tl.to("#hook-price", { scale: 1.12, duration: 0.3, yoyo: true, repeat: 3, ease: "sine.inOut" }, 14.9);
+    window.__timelines["hook"] = tl;
+  </script>
+</template>

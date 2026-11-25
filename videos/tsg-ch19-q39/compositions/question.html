@@ -1,0 +1,71 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; font-family: "Inter", sans-serif; color: #fff; }
+    .hdr { position: absolute; left: 100px; top: 40px; font-family: "Archivo Black", sans-serif; font-size: 58px; color: #F5B700; }
+    .ref { position: absolute; right: 100px; top: 60px; font-size: 32px; font-weight: 700; color: rgba(255,255,255,0.85); }
+    #q-lead { position: absolute; left: 100px; top: 130px; width: 1720px; font-family: "EB Garamond", serif; font-size: 40px; color: #fff; }
+    .card { position: absolute; top: 200px; background: #FFFDF5; color: #111; border-radius: 16px; padding: 12px 18px 16px; font-family: "EB Garamond", serif; box-shadow: 0 12px 30px rgba(0,0,0,0.3); }
+    .card .t { font-family: "Archivo Black", sans-serif; font-size: 32px; margin-bottom: 6px; }
+    #q-d1, #q-d2 { border-top: 10px solid #0057B8; } #q-d1 .t, #q-d2 .t { color: #0057B8; }
+    #q-c { border-top: 10px solid #CC0000; } #q-c .t { color: #CC0000; }
+    #q-d1 { left: 100px; width: 545px; } #q-d2 { left: 665px; width: 545px; } #q-c { left: 1230px; width: 590px; }
+    table { width: 100%; border-collapse: collapse; font-size: 40px; }
+    td { padding: 0 10px; border: 2px solid #000; line-height: 1.22; }
+    td.r { text-align: right; width: 150px; white-space: nowrap; }
+    .st { color: #CC0000; font-weight: 700; display: inline-block; }
+    #q-tot { position: absolute; left: 100px; top: 925px; width: 1720px; height: 100px; background: #F5B700; color: #0B1B3F; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-family: "Archivo Black", sans-serif; font-size: 46px; }
+    #q-star { position: absolute; left: 1230px; top: 790px; width: 590px; background: #CC0000; color: #fff; border-radius: 16px; padding: 16px 24px; font-size: 38px; font-weight: 800; line-height: 1.25; }
+  </style>
+  <div id="root" data-composition-id="question" data-width="1920" data-height="1080">
+    <div class="hdr clip" id="q-hdr" data-start="0" data-duration="36.5" data-track-index="0">The Question</div>
+    <div class="ref clip" id="q-ref" data-start="0" data-duration="36.5" data-track-index="1">T.S. Grewal · Q 39 · Pg 19.91</div>
+    <div class="clip" id="q-lead" data-start="0.3" data-duration="36.2" data-track-index="2">On 31st March, 2026, the following Trial Balance was prepared from the books of Manoj:</div>
+    <div class="card clip" id="q-d1" data-start="0.8" data-duration="35.7" data-track-index="3"><div class="t">Debit Balances (₹)</div><table>
+<tr><td>Opening Stock</td><td class="r">40,200</td></tr>
+<tr><td>Furniture <span class=st>★</span></td><td class="r">3,400</td></tr>
+<tr><td>Building</td><td class="r">21,700</td></tr>
+<tr><td>Drawings</td><td class="r">4,200</td></tr>
+<tr><td>Cash at Bank</td><td class="r">2,470</td></tr>
+<tr><td>Wages <span class=st>★</span></td><td class="r">31,250</td></tr>
+<tr><td>Discount Allowed</td><td class="r">2,640</td></tr>
+<tr><td>Bank Charges</td><td class="r">90</td></tr>
+<tr><td>Salaries <span class=st>★</span></td><td class="r">5,610</td></tr>
+<tr><td>Purchases <span class=st>★</span></td><td class="r">1,32,700</td></tr>
+    </table></div>
+    <div class="card clip" id="q-d2" data-start="0.8" data-duration="35.7" data-track-index="4"><div class="t">Debit Balances (₹) contd.</div><table>
+<tr><td>Cash in Hand</td><td class="r">2,650</td></tr>
+<tr><td>Sales Return</td><td class="r">1,250</td></tr>
+<tr><td>Carriage Inwards</td><td class="r">3,400</td></tr>
+<tr><td>Machinery <span class=st>★</span></td><td class="r">14,600</td></tr>
+<tr><td>Sundry Debtors <span class=st>★</span></td><td class="r">43,800</td></tr>
+<tr><td>Bad Debts <span class=st>★</span></td><td class="r">1,000</td></tr>
+<tr><td>Insurance <span class=st>★</span></td><td class="r">1,250</td></tr>
+<tr><td>Rent</td><td class="r">2,450</td></tr>
+<tr><td>Advertisement <span class=st>★</span></td><td class="r">3,500</td></tr>
+    </table></div>
+    <div class="card clip" id="q-c" data-start="0.8" data-duration="35.7" data-track-index="5"><div class="t">Credit Balances (₹)</div><table>
+<tr><td>Capital</td><td class="r">1,00,000</td></tr>
+<tr><td>Discount Received</td><td class="r">2,000</td></tr>
+<tr><td>Bank Loan</td><td class="r">10,000</td></tr>
+<tr><td>Purchases Return</td><td class="r">970</td></tr>
+<tr><td>Sales</td><td class="r">1,91,940</td></tr>
+<tr><td>Sundry Creditors</td><td class="r">12,450</td></tr>
+<tr><td>Provision for Doubtful Debts <span class=st>★</span></td><td class="r">800</td></tr>
+    </table></div>
+    <div class="clip" id="q-star" data-start="31.9" data-duration="4.6" data-track-index="6"><span class="st" style="color:#F5B700">★</span> = an adjustment is coming for this item</div>
+    <div class="clip" id="q-tot" data-start="26.1" data-duration="10.4" data-track-index="7">Total Debit ₹ 3,18,160 &nbsp;=&nbsp; Total Credit ₹ 3,18,160 ✓</div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    tl.fromTo("#q-hdr", { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 0.4 }, 0);
+    tl.fromTo("#q-ref", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 0.2);
+    tl.fromTo("#q-lead", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 0.3);
+    tl.fromTo(["#q-d1", "#q-d2", "#q-c"], { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.5, stagger: 0.2, ease: "power3.out" }, 0.8);
+    tl.fromTo(["#q-d1", "#q-d2"], { boxShadow: "0 0 0 0 rgba(245,183,0,0)" }, { boxShadow: "0 0 0 10px rgba(245,183,0,0.9)", duration: 0.4, yoyo: true, repeat: 1, repeatDelay: 6 }, 9.1);
+    tl.fromTo("#q-c", { boxShadow: "0 0 0 0 rgba(245,183,0,0)" }, { boxShadow: "0 0 0 10px rgba(245,183,0,0.9)", duration: 0.4, yoyo: true, repeat: 1, repeatDelay: 6 }, 17.45);
+    tl.fromTo("#q-tot", { opacity: 0, scale: 0.8 }, { opacity: 1, scale: 1, duration: 0.45, ease: "back.out(2)" }, 26.2);
+    tl.fromTo("#q-star", { opacity: 0, x: 40 }, { opacity: 1, x: 0, duration: 0.4 }, 31.95);
+    tl.to(".st", { scale: 1.6, duration: 0.3, yoyo: true, repeat: 5, ease: "sine.inOut" }, 32.4);
+    window.__timelines["question"] = tl;
+  </script>
+</template>

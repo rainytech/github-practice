@@ -21,7 +21,7 @@ Apply these to every new YouTube video / Short without being asked.
 - Use the textbook's exact names, amounts and dates. The answer must match the book; if it doesn't, stop and tell the user.
 - Hook shows a reference card ("T.S. Grewal · Class 11 · Ch 8 / Practical Problem 1 · Pg 8.57 · 2025–26"); title starts "TS Grewal Class 11 Ch N …".
 - Quote only the transaction being solved; never copy whole pages. Description ends with a one-line note that T.S. Grewal is referred to only so students can find the question.
-- Voice says "T. S. Grayvaal" (spelled that way for TTS) so it sounds like "Grewal".
+- Voice says plain "T. S. Grewal" (user, 25 Nov 2026: "Grewal is perfect"; earlier Shorts spelled it "Grayvaal").
 - Write title, description and tags to `videos/<project>/upload/` and check lengths (title ≤100, description ≤5,000, tags ≤500).
 - Always paste the full description in the chat reply too, ready to copy — never just point to the file.
 - Template for T.S. Grewal Shorts: copy `videos/tsg-ch8-pp1-apr9/` (reference card hook, recall chip in the concept scene, dated entry box, "Remember"/"Coming next" box).
@@ -48,7 +48,9 @@ Apply these to every new YouTube video / Short without being asked.
 - Voice builder for main videos: `videos/mgu-cost-ill17/voice-script/build_voice.py <project>` (kokoro-onnx in /root/video-venv, all lines in one process, ~2 min; writes assets/voice/*.wav + timing.json). Copy the project's `.gitignore` too (else render work dirs get committed).
 - YouTube API: Google replied 23 Nov — no audit needed, API uploads can be Public.
 - Thumbnails (from 24 Nov): every video gets a custom 1280×720 `upload/thumbnail.jpg` built from `upload/thumbnail.html` (Playwright screenshot). Style: 2–3 huge words (white + gold), red course tag, one tilted cream card with the key trap/number, gold answer chip, gold bottom bar with logo. Template: `videos/mgu-cost-ill17/upload/thumbnail.html`. The user sets it in Studio (API has no Education fields; thumbnail by hand too for now).
-- Still pending: 9:16 Shorts from Q14/Q13; T.S. Grewal Ch 8 PP1 Apr 16 Short; Rectification series next error.
+- T.S. Grewal Class 11 (2026–27) Q39 Final Accounts (Manoj, 8 adjustments, Pg 19.91–19.92) main 16:9 video made 25 Nov: `videos/tsg-ch19-q39/` (9:45, 13 scenes; GP 21,910 · NP 1,400 · BS 1,23,850, confirmed by the user). Source notes also have Q40 (Bharat, Pg 19.92) and Q41 (Pg 19.93) — likely next. Scene generators: `voice-script/gen_adj.py` (adjustment → Trading / P&L / Balance Sheet effect boxes) and `gen_acc.py` (T-format accounts). Playlist "TS Grewal Class 11 · Final Accounts". GCC exam prep: the user wants full videos for big questions.
+- Thumbnails must not copy the real T.S. Grewal cover (trade dress); use our own design with "T.S. Grewal Q39" as text.
+- Still pending: 9:16 Shorts from Q14/Q13/Ill 17; T.S. Grewal Ch 8 PP1 Apr 16 Short; Rectification series next error.
 
 ## MGU B.Com Hons Sem 6 Cost Accounting video (main video made 22 Nov 2026)
 - Source: `videos/mgu-cost-q14/source/notes-tender-quotations-q14-q13-ill17.html` (the user's solved notes). Make **Question 14 (National Ltd), Tender or Quotations, Dr. Jayan Pg 292–293** first.
