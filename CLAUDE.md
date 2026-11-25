@@ -21,7 +21,7 @@ Apply these to every new YouTube video / Short without being asked.
 - Use the textbook's exact names, amounts and dates. The answer must match the book; if it doesn't, stop and tell the user.
 - Hook shows a reference card ("T.S. Grewal · Class 11 · Ch 8 / Practical Problem 1 · Pg 8.57 · 2025–26"); title starts "TS Grewal Class 11 Ch N …".
 - Quote only the transaction being solved; never copy whole pages. Description ends with a one-line note that T.S. Grewal is referred to only so students can find the question.
-- Voice says plain "T. S. Grewal" (user, 25 Nov 2026: "Grewal is perfect"; earlier Shorts spelled it "Grayvaal").
+- CRITICAL: the voice must say "Tee-Ess Gray-waal". Write it "T. S. Graywaal" in voice scripts (Kokoro phonemes ɡɹˈeɪwɑːl). Plain "Grewal" comes out "Groo-ul" — wrong (Q39 had to be re-rendered and re-uploaded, 25 Nov 2026). On screen and in text always spell it "Grewal".
 - Write title, description and tags to `videos/<project>/upload/` and check lengths (title ≤100, description ≤5,000, tags ≤500).
 - Always paste the full description in the chat reply too, ready to copy — never just point to the file.
 - Template for T.S. Grewal Shorts: copy `videos/tsg-ch8-pp1-apr9/` (reference card hook, recall chip in the concept scene, dated entry box, "Remember"/"Coming next" box).
