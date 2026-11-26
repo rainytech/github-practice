@@ -4,25 +4,24 @@
     .hdr { position: absolute; left: 100px; top: 40px; font-family: "Archivo Black", sans-serif; font-size: 58px; color: #F5B700; }
     .box { position: absolute; left: 100px; width: 1720px; background: #FFFDF5; color: #111; border-radius: 16px; padding: 12px 30px; border-left: 16px solid #CC0000; font-family: "EB Garamond", serif; box-shadow: 0 12px 30px rgba(0,0,0,0.3); }
     .k { font-family: "Archivo Black", sans-serif; font-size: 36px; color: #CC0000; }
-    .ln { display: block; font-size: 46px; line-height: 1.25; }
+    .ln { display: block; font-size: 42px; line-height: 1.25; }
     .ln b { color: #0057B8; }
     .x { color: #CC0000; text-decoration: line-through; }
     #tp-1 { top: 140px; } #tp-2 { top: 370px; } #tp-3 { top: 600px; } #tp-4 { top: 830px; }
   </style>
   <div id="root" data-composition-id="traps" data-width="1920" data-height="1080">
-    <div class="hdr clip" id="tp-hdr" data-start="0" data-duration="42.9" data-track-index="0">4 Exam Traps</div>
-    <div class="box clip" id="tp-1" data-start="3.1" data-duration="39.8" data-track-index="1"><div class="k">Trap 1 · Closing Stock</div><span class="ln">Cost or NRV, whichever is lower → <b>₹ 30,000</b> &nbsp;<span class="x">₹ 35,000</span></span></div>
-    <div class="box clip" id="tp-2" data-start="11.7" data-duration="31.2" data-track-index="2"><div class="k">Trap 2 · Installation Wages</div><span class="ln">Add ₹ 500 to Machinery, not Wages → depreciate <b>₹ 18,100</b> &nbsp;<span class="x">₹ 14,600</span></span></div>
-    <div class="box clip" id="tp-3" data-start="20.9" data-duration="22.0" data-track-index="3"><div class="k">Trap 3 · Loss by Fire</div><span class="ln">Purchases − <b>₹ 8,000</b> · P&amp;L loss only <b>₹ 3,000</b> · Claim <b>₹ 5,000</b> = Asset</span></div>
-    <div class="box clip" id="tp-4" data-start="33.0" data-duration="9.9" data-track-index="4"><div class="k">Trap 4 · Bad Debts &amp; Provision</div><span class="ln">Debtors − 300 − 1,400 = <b>₹ 42,100</b> · Old provision ₹ 800 only in P&amp;L</span></div>
+    <div class="hdr clip" id="tp-hdr" data-start="0" data-duration="37.3" data-track-index="0">4 Exam Traps</div>
+    <div class="box clip" id="tp-1" data-start="3.65" data-duration="33.6" data-track-index="1"><div class="k">Trap 1 · Purchases (Adjusted)</div><span class="ln">No Opening / Closing Stock in Trading · Closing Stock <b>₹ 40,000</b> → Balance Sheet only</span></div>
+    <div class="box clip" id="tp-2" data-start="11.78" data-duration="25.5" data-track-index="2"><div class="k">Trap 2 · Already in the Trial Balance</div><span class="ln">Wages O/s <b>₹ 8,000</b> → Liabilities · Prepaid Rent <b>₹ 3,000</b> → Assets · <span class="x">twice</span></span></div>
+    <div class="box clip" id="tp-3" data-start="22.2" data-duration="15.1" data-track-index="3"><div class="k">Trap 3 · Provision for Depreciation</div><span class="ln">Furniture ₹ 60,000 − total provision ₹ 18,000 = <b>₹ 42,000</b></span></div>
+    <div class="box clip" id="tp-4" data-start="29.88" data-duration="7.4" data-track-index="4"><div class="k">Trap 4 · Goods for Personal Use</div><span class="ln">Purchases − <b>₹ 1,500</b> · Drawings + <b>₹ 1,500</b></span></div>
   </div>
   <script>
     const tl = gsap.timeline({ paused: true });
     const card = (s, t) => tl.fromTo(s, { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 0.45, ease: "power3.out" }, t);
     tl.fromTo("#tp-hdr", { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 0.4 }, 0);
-    card("#tp-1", 3.1); card("#tp-2", 11.7); card("#tp-3", 20.9); card("#tp-4", 33.0);
-    tl.to("#tp-1 .x", { scale: 1.15, duration: 0.3, yoyo: true, repeat: 3 }, 8.0);
-    tl.to("#tp-2 .x", { scale: 1.15, duration: 0.3, yoyo: true, repeat: 3 }, 17.0);
+    card("#tp-1", 3.65); card("#tp-2", 11.78); card("#tp-3", 22.2); card("#tp-4", 29.88);
+    tl.to("#tp-2 .x", { scale: 1.15, duration: 0.3, yoyo: true, repeat: 3 }, 16.78);
     window.__timelines["traps"] = tl;
   </script>
 </template>

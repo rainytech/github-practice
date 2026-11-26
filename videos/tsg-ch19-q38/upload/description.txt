@@ -28,7 +28,20 @@ Liabilities: Capital 30,000 + 2,00,300 − 6,500 = 2,23,800 · Sundry Creditors 
 Assets: Building 1,42,500 · Furniture 42,000 · Closing Stock 40,000 · Sundry Debtors 22,500 · Prepaid Rent 3,000 · Prepaid Salaries 800 · Prepaid Insurance 2,000
 
 ⏱️ CHAPTERS
-@CHAPTERS@
+0:00 Q39 quiz answer · Purchases Adjusted?
+0:24 The question (Trial Balance)
+1:01 The 5 adjustments (pause & try)
+1:46 The big trap: items already adjusted
+2:25 (i) Salaries outstanding & in advance
+2:52 (ii) Prepaid insurance
+3:08 (iii) Depreciation & provision on furniture
+3:52 (iv) Goods taken for personal use
+4:11 (v) Provision for doubtful debts
+4:39 Trading Account
+5:10 Profit & Loss Account
+5:46 Balance Sheet
+6:39 4 exam traps
+7:16 Recap
 
 ▶ Previous: Q39 Final Accounts with 8 Adjustments — https://youtu.be/xARyjWijgpQ
 

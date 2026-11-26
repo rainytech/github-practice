@@ -24,47 +24,47 @@
     #r-tap { position: absolute; left: 1600px; top: 795px; width: 84px; height: 84px; border-radius: 50%; border: 8px solid #fff; opacity: 0; }
   </style>
   <div id="root" data-composition-id="recap" data-width="1920" data-height="1080">
-    <div class="hdr clip" id="r-hdr" data-start="0" data-duration="33.0" data-track-index="0">Recap · T.S. Grewal Q 39</div>
-    <div class="st clip" id="r-1" data-start="1.9" data-duration="31.1" data-track-index="1"><div class="n">GP</div><div class="t">Gross Profit<span class="d">₹ 21,910</span></div></div>
-    <div class="st clip" id="r-2" data-start="5.7" data-duration="27.3" data-track-index="2"><div class="n">NP</div><div class="t">Net Profit<span class="d">₹ 1,400</span></div></div>
-    <div class="st clip" id="r-3" data-start="8.7" data-duration="24.3" data-track-index="3"><div class="n">BS</div><div class="t">Balance Sheet<span class="d"><span id="r-price">₹ 1,23,850 ✓</span></span></div></div>
-    <div class="st clip" id="r-4" data-start="14.9" data-duration="18.1" data-track-index="9"><div class="n">★</div><div class="t">Every adjustment has <span style="color:#F5B700">two effects</span></div></div>
-    <div class="cta clip" id="r-q14" data-start="20.3" data-duration="12.7" data-track-index="4">
+    <div class="hdr clip" id="r-hdr" data-start="0.0" data-duration="31.6" data-track-index="0">Recap · T.S. Grewal Q 38</div>
+    <div class="st clip" id="r-1" data-start="1.9" data-duration="29.7" data-track-index="1"><div class="n">GP</div><div class="t">Gross Profit<span class="d">₹ 2,31,000</span></div></div>
+    <div class="st clip" id="r-2" data-start="6.15" data-duration="25.5" data-track-index="2"><div class="n">NP</div><div class="t">Net Profit<span class="d">₹ 2,00,300</span></div></div>
+    <div class="st clip" id="r-3" data-start="8.43" data-duration="23.2" data-track-index="3"><div class="n">BS</div><div class="t">Balance Sheet<span class="d"><span id="r-price">₹ 2,52,800 ✓</span></span></div></div>
+    <div class="st clip" id="r-4" data-start="14.76" data-duration="16.8" data-track-index="9"><div class="n">★</div><div class="t">In the Trial Balance? <span style="color:#F5B700">Show it once</span></div></div>
+    <div class="cta clip" id="r-q14" data-start="19.41" data-duration="12.2" data-track-index="4">
       <div class="h">❚❚ Paused and tried it?</div>
-      <span class="p">Check your answer: GP 21,910 · NP 1,400</span>
+      <span class="p">Check: GP 2,31,000 · NP 2,00,300</span>
     </div>
-    <div class="cta clip" id="r-pdf" data-start="20.4" data-duration="12.6" data-track-index="5">
+    <div class="cta clip" id="r-pdf" data-start="18.81" data-duration="12.8" data-track-index="5">
       <div class="h">📄 Solved notes as a PDF</div>
       <span class="wa">WhatsApp +91 95679 02805</span>
       <span class="p">Book a paid demo class</span>
     </div>
-    <img id="r-logo" class="clip" src="assets/img/logo.png" alt="Goodwill Tuition logo" data-start="27.0" data-duration="6.0" data-track-index="6">
-    <div id="r-sub" class="clip" data-layout-allow-overlap data-start="27.1" data-duration="5.9" data-track-index="7">
+    <img id="r-logo" class="clip" src="assets/img/logo.png" alt="Goodwill Tuition logo" data-start="25.41" data-duration="6.2" data-track-index="6">
+    <div id="r-sub" class="clip" data-layout-allow-overlap data-start="25.51" data-duration="6.1" data-track-index="7">
       <div id="r-sub-on" class="sub-btn"><span>▶</span>SUBSCRIBE</div>
       <div id="r-sub-done" class="sub-btn"><span id="r-bell">🔔</span>SUBSCRIBED</div>
     </div>
-    <div id="r-tap" class="clip" data-layout-allow-overlap data-start="28.7" data-duration="4.3" data-track-index="8"></div>
+    <div id="r-tap" class="clip" data-layout-allow-overlap data-start="26.13" data-duration="5.5" data-track-index="8"></div>
   </div>
   <script>
     const tl = gsap.timeline({ paused: true });
     const slide = (s, t) => tl.fromTo(s, { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 0.45, ease: "power3.out" }, t);
     const pop = (s, t) => tl.fromTo(s, { opacity: 0, scale: 0.5 }, { opacity: 1, scale: 1, duration: 0.4, ease: "back.out(2.2)" }, t);
-    tl.fromTo("#r-hdr", { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 0.4 }, 0);
-    slide("#r-1", 1.95); slide("#r-2", 5.8); slide("#r-3", 8.8); pop("#r-price", 10.5); slide("#r-4", 14.95);
-    tl.fromTo("#r-q14", { opacity: 0, x: 50 }, { opacity: 1, x: 0, duration: 0.45, ease: "power3.out" }, 20.35);
-    tl.fromTo("#r-pdf", { opacity: 0, x: 50 }, { opacity: 1, x: 0, duration: 0.45, ease: "power3.out" }, 20.45);
-    tl.to("#r-pdf .wa", { scale: 1.08, duration: 0.3, yoyo: true, repeat: 1, transformOrigin: "left center" }, 23.0);
-    tl.fromTo("#r-logo", { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 0.45, ease: "back.out(2)" }, 27.0);
+    tl.fromTo("#r-hdr", { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 0.4 }, 0.0);
+    slide("#r-1", 2.4); slide("#r-2", 5.53); slide("#r-3", 8.66); pop("#r-price", 10.36); slide("#r-4", 14.06);
+    tl.fromTo("#r-q14", { opacity: 0, x: 50 }, { opacity: 1, x: 0, duration: 0.45, ease: "power3.out" }, 19.46);
+    tl.fromTo("#r-pdf", { opacity: 0, x: 50 }, { opacity: 1, x: 0, duration: 0.45, ease: "power3.out" }, 18.86);
+    tl.to("#r-pdf .wa", { scale: 1.08, duration: 0.3, yoyo: true, repeat: 1, transformOrigin: "left center" }, 21.41);
+    tl.fromTo("#r-logo", { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 0.45, ease: "back.out(2)" }, 25.41);
     gsap.set("#r-sub-on", { opacity: 0, scale: 0.4 });
     gsap.set("#r-tap", { opacity: 0, scale: 1.6 });
-    tl.to("#r-sub-on", { opacity: 1, scale: 1, duration: 0.5, ease: "back.out(2.2)" }, 27.2);
-    tl.to("#r-sub-on", { scale: 1.08, duration: 0.3, yoyo: true, repeat: 1, ease: "power2.inOut" }, 27.8);
-    tl.to("#r-tap", { opacity: 1, scale: 0.8, duration: 0.3, ease: "power2.in" }, 28.8);
-    tl.to("#r-sub-on", { scale: 0.92, duration: 0.12, yoyo: true, repeat: 1 }, 29.1);
-    tl.to("#r-tap", { opacity: 0, duration: 0.3 }, 29.25);
-    tl.set("#r-sub-on", { opacity: 0 }, 29.2);
-    tl.fromTo("#r-sub-done", { opacity: 0 }, { opacity: 1, duration: 0.01 }, 29.2);
-    tl.fromTo("#r-bell", { rotation: 0 }, { rotation: 18, duration: 0.12, yoyo: true, repeat: 5, ease: "sine.inOut" }, 29.4);
+    tl.to("#r-sub-on", { opacity: 1, scale: 1, duration: 0.5, ease: "back.out(2.2)" }, 24.63);
+    tl.to("#r-sub-on", { scale: 1.08, duration: 0.3, yoyo: true, repeat: 1, ease: "power2.inOut" }, 25.23);
+    tl.to("#r-tap", { opacity: 1, scale: 0.8, duration: 0.3, ease: "power2.in" }, 26.23);
+    tl.to("#r-sub-on", { scale: 0.92, duration: 0.12, yoyo: true, repeat: 1 }, 26.53);
+    tl.to("#r-tap", { opacity: 0, duration: 0.3 }, 26.68);
+    tl.set("#r-sub-on", { opacity: 0 }, 26.63);
+    tl.fromTo("#r-sub-done", { opacity: 0 }, { opacity: 1, duration: 0.01 }, 26.63);
+    tl.fromTo("#r-bell", { rotation: 0 }, { rotation: 18, duration: 0.12, yoyo: true, repeat: 5, ease: "sine.inOut" }, 26.83);
     window.__timelines["recap"] = tl;
   </script>
 </template>

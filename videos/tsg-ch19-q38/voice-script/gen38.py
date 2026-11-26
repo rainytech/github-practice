@@ -19,7 +19,8 @@ def E(scene, i, back=0.6):
 EXTRA = {"adjust": 4.0, "recap": 3.0, "question": 0.5}
 DUR = {k: round(v["dur"] + 1.3 + EXTRA.get(k, 0), 1) for k, v in T.items()}
 
-def rd(name): return open(os.path.join(COMP, name)).read()
+TPL = os.path.join(PROJ, "..", "tsg-ch19-q39", "compositions")
+def rd(name): return open(os.path.join(TPL, name)).read()  # always start from the Q39 templates
 def wr(name, s): open(os.path.join(COMP, name), "w").write(s)
 
 # ---------- question ----------
@@ -32,7 +33,8 @@ def rows(lst):
     out = []
     for n, a, k in lst:
         mark = ' <span class="st">★</span>' if k == "st" else (' <span class="okm">✔ adjusted</span>' if k == "ok" else "")
-        out.append(f'<tr class="{k}"><td>{n}{mark}</td><td class="r">{a}</td></tr>')
+        cls = "ok" if k == "ok" else ""
+        out.append(f'<tr class="{cls}"><td>{n}{mark}</td><td class="r">{a}</td></tr>')
     return "\n".join(out)
 d = DUR["question"]
 wr("question.html", f'''<template>
@@ -52,7 +54,7 @@ wr("question.html", f'''<template>
     .okm {{ color: #1E8E3E; font-weight: 700; font-size: 0.7em; font-family: "Inter", sans-serif; display: inline-block; }}
     tr.ok td {{ background: rgba(30,142,62,0.0); }}
     #q-tot {{ position: absolute; left: 100px; top: 925px; width: 1720px; height: 100px; background: #F5B700; color: #0B1B3F; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-family: "Archivo Black", sans-serif; font-size: 46px; }}
-    #q-note {{ position: absolute; left: 1000px; top: 640px; width: 820px; background: #1E8E3E; color: #fff; border-radius: 16px; padding: 16px 24px; font-size: 36px; font-weight: 800; line-height: 1.25; }}
+    #q-note {{ position: absolute; left: 1000px; top: 790px; width: 820px; background: #1E8E3E; color: #fff; border-radius: 16px; padding: 16px 24px; font-size: 36px; font-weight: 800; line-height: 1.25; }}
   </style>
   <div id="root" data-composition-id="question" data-width="1920" data-height="1080">
     <div class="hdr clip" id="q-hdr" data-start="0" data-duration="{d}" data-track-index="0">The Question</div>
@@ -264,12 +266,9 @@ def remap(s, old_starts, new_starts, dur_old, dur_new):
     s = s.replace(f"duration: {dur_old}, ease", f"duration: {dur_new}, ease")
     return s
 q39T = json.load(open(os.path.join(PROJ, "..", "tsg-ch19-q39", "voice-script", "timing.json")))
-# hook: old lines 0..3 map to new lines 1..3 (new line 0 = quiz answer)
-old = [0.0] + [0.3 + x[0] for x in q39T["hook"]["lines"]]
-new = [0.0, L("hook", 1, 0) - 0.0, L("hook", 1, 0), L("hook", 2, 0), L("hook", 3, 0)]
-old = [0.0, 0.3 + q39T["hook"]["lines"][0][0] + 0.001] + [0.3 + x[0] for x in q39T["hook"]["lines"][1:]]
-new = [0.0, L("hook", 1)] + [L("hook", i) for i in (2, 3)]
-old = old[:len(new)]
+# hook: Q39 events -> new lines. Q39 ref card (line 0) -> new line 1; "8 adjustments" (6.2) -> new line 2; "Will it tally?" (14.5) -> new line 3
+old = [0.0, 0.301, 6.2, 14.0]
+new = [0.0, L("hook", 1), L("hook", 2), L("hook", 3)]
 s = rd("hook.html")
 s = remap(s, old, new, 18.5, DUR["hook"])
 s = s.replace("Question 39 · Manoj · Pg 19.91–19.92", "Question 38 · Ashok · Pg 19.90–19.91")
