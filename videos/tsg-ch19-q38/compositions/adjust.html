@@ -1,0 +1,47 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; font-family: "Inter", sans-serif; color: #fff; }
+    .hdr { position: absolute; left: 100px; top: 40px; font-family: "Archivo Black", sans-serif; font-size: 58px; color: #F5B700; }
+    .ref { position: absolute; right: 100px; top: 60px; font-size: 32px; font-weight: 700; color: rgba(255,255,255,0.85); }
+    #ad-card { position: absolute; left: 100px; top: 135px; width: 1720px; background: #FFFDF5; color: #111; border-radius: 16px; padding: 14px 30px; border-left: 16px solid #CC0000; font-family: "EB Garamond", serif; box-shadow: 0 12px 30px rgba(0,0,0,0.3); }
+    .it { display: flex; gap: 14px; font-size: 40px; line-height: 1.24; padding: 3px 8px; border-radius: 8px; }
+    .it .n { flex: none; width: 82px; font-weight: 700; color: #6A0DAD; }
+    .it b { color: #CC0000; }
+    #ad-pause { position: absolute; left: 560px; top: 905px; width: 800px; height: 130px; background: #F5B700; color: #0B1B3F; border-radius: 20px; display: flex; align-items: center; justify-content: center; gap: 30px; font-family: "Archivo Black", sans-serif; font-size: 60px; }
+    #ad-pause .ic { width: 90px; height: 90px; border-radius: 50%; background: #0B1B3F; color: #F5B700; display: flex; align-items: center; justify-content: center; font-size: 46px; }
+  </style>
+  <div id="root" data-composition-id="adjust" data-width="1920" data-height="1080">
+    <div class="hdr clip" id="ad-hdr" data-start="0" data-duration="70.4" data-track-index="0">The 8 Adjustments</div>
+    <div class="ref clip" id="ad-ref" data-start="0" data-duration="70.4" data-track-index="1">T.S. Grewal · Q 39</div>
+    <div class="clip" id="ad-card" data-start="0.3" data-duration="70.1" data-track-index="2">
+      <div class="it" id="ad-0"><span class="n">(i)</span><span class="tx">Closing Stock at cost was <b>₹ 35,000</b> whereas its net realisable value (market value) was <b>₹ 30,000</b>.</span></div>
+      <div class="it" id="ad-1"><span class="n">(ii)</span><span class="tx">A new machine was purchased for <b>₹ 3,000</b> on 1st April, 2025 but it was not paid for and entry was not recorded in the books.</span></div>
+      <div class="it" id="ad-2"><span class="n">(iii)</span><span class="tx">Wages include <b>₹ 500</b> paid for the installation of machinery.</span></div>
+      <div class="it" id="ad-3"><span class="n">(iv)</span><span class="tx">Provision for Doubtful Debts was raised to <b>₹ 1,400</b> and further bad debts of <b>₹ 300</b> were written off.</span></div>
+      <div class="it" id="ad-4"><span class="n">(v)</span><span class="tx">Fire broke out on 20th March, 2026 and destroyed stock to the value of <b>₹ 8,000</b>. The insurance company admitted claim for loss of stock of <b>₹ 5,000</b> and the amount was paid on 15th April, 2026.</span></div>
+      <div class="it" id="ad-5"><span class="n">(vi)</span><span class="tx">Outstanding wages were <b>₹ 700</b> while outstanding salaries were <b>₹ 500</b>.</span></div>
+      <div class="it" id="ad-6"><span class="n">(vii)</span><span class="tx">Prepaid insurance was <b>₹ 250</b> and prepaid advertisement <b>₹ 500</b>.</span></div>
+      <div class="it" id="ad-7"><span class="n">(viii)</span><span class="tx">Machinery was depreciated by <b>10%</b> and furniture by <b>15%</b>.</span></div>
+    </div>
+    <div class="clip" id="ad-pause" data-start="62.8" data-duration="7.6" data-track-index="3"><span class="ic">❚❚</span>PAUSE &amp; TRY</div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    const show = (s, t) => { tl.fromTo(s, { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.4 }, t);
+      tl.fromTo(s, { backgroundColor: "rgba(245,183,0,0.45)" }, { backgroundColor: "rgba(245,183,0,0)", duration: 2.5 }, t + 0.4); };
+    tl.fromTo("#ad-hdr", { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 0.4 }, 0);
+    tl.fromTo("#ad-ref", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 0.2);
+    tl.fromTo("#ad-card", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 0.3);
+    show("#ad-0", 2.6);
+    show("#ad-1", 10.25);
+    show("#ad-2", 20.35);
+    show("#ad-3", 26.25);
+    show("#ad-4", 34.2);
+    show("#ad-5", 44.9);
+    show("#ad-6", 50.7);
+    show("#ad-7", 56.85);
+    tl.fromTo("#ad-pause", { opacity: 0, scale: 0.7 }, { opacity: 1, scale: 1, duration: 0.45, ease: "back.out(2)" }, 62.9);
+    tl.to("#ad-pause .ic", { scale: 1.15, duration: 0.5, yoyo: true, repeat: 11, ease: "sine.inOut" }, 63.5);
+    window.__timelines["adjust"] = tl;
+  </script>
+</template>

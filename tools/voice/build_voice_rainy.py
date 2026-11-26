@@ -1,6 +1,6 @@
 """Build a video's voice-over in Rainy Goodwill's cloned voice (Chatterbox, MIT licence).
 
-Usage:  /root/clone-venv/bin/python tools/voice/build_voice_rainy.py videos/<project> [scene ...]
+Usage:  HF_HUB_OFFLINE=1 /root/clone-venv/bin/python tools/voice/build_voice_rainy.py videos/<project> [scene ...]
 Reads   <project>/voice-script/lines.json  ({"scene": ["line", ...], ...})
 Writes  <project>/assets/voice/<scene>.wav (0.5 s gaps, loudnorm -14 LUFS, 48 kHz)
         <project>/voice-script/timing.json ({"scene": {"dur": s, "lines": [[start, dur], ...]}})
@@ -11,6 +11,7 @@ phone recording (Recording_1.m4a, 2:26) when a fresh container lacks it:
 Setup in a fresh container (~3 min):
     python3.11 -m venv /root/clone-venv && /root/clone-venv/bin/pip install chatterbox-tts
 Speed on CPU: about 5 s of work per 1 s of speech; run it in the background.
+HF_HUB_OFFLINE=1 after the first download: online the model load can hang on the HF Hub check.
 """
 import json, os, subprocess, sys, tempfile
 import torch, torchaudio as ta
