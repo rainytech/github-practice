@@ -83,7 +83,7 @@ Online Accountancy classes for CBSE Class 11 & 12 students in UAE, Saudi Arabia,
 - Paid demo class only — never write "free class", "free trial" or "free demo".
 
 ## Upload settings to give the user
-- Category: Education · Type: Problem walkthrough · Class 11/12 · Exam: CBSE Class 11/12, NCERT (Kerala DHSE as extra).
+- Category: Education · Type: Problem walkthrough · Level: Class 11/12 · Exam: YouTube offers only "CBSE Class 12" — set it for Class 12 videos, leave it BLANK for Class 11 (checked 26 Nov 2026).
 - Title: 100 characters at most (YouTube limit) — count it before giving it, `#shorts` included.
 - Audience: No, it's not made for kids.
 - Tags include: cbse accountancy, ncert accountancy, class 11 accountancy, class 12 accountancy, accountancy tuition uae, online accountancy tuition dubai, journal entry, golden rules of accounting, debit and credit explained.
@@ -113,6 +113,6 @@ Online Accountancy classes for CBSE Class 11 & 12 students in UAE, Saudi Arabia,
 - MGU B.Com Hons Sem 6 Cost Accounting Q13 (Alpha Manufacturing), "Try it yourself" — main 16:9 video, 4:40, bigger text, same playlist — https://youtu.be/K8D6-XDE_pI (published 22 Nov 2026)
 - Tender or Quotations Illustration 17: New Model Price | MGU B.Com Hons Sem 6 Cost Accounting — https://youtu.be/x6KsUmfpVIM (published 24 Nov 2026, uploaded by script)
 - TS Grewal Class 11 Q39 Final Accounts with 8 Adjustments | Trading, P&L, Balance Sheet 2026-27 — https://youtu.be/xARyjWijgpQ (published 25 Nov 2026, re-uploaded with "Gray-waal" pronunciation; the first upload qp3WQsu1z-o said "Groo-ul" and was deleted; thumbnail, Education fields and pinned quiz (fire claim ₹2,000 → loss ₹6,000) done; playlist "TS Grewal Class 11 · Final Accounts")
-- TS Grewal Class 11 Q38 Final Accounts | Purchases Adjusted, 5 Adjustments | Balance Sheet 2026-27 — https://youtu.be/4Scn74ivA3I (published 26 Nov 2026, uploaded by script; FIRST video in Rainy's own cloned voice; 3D "Goodwill Solved Notes" book thumbnail; playlist "TS Grewal Class 11 · Final Accounts")
+- TS Grewal Class 11 Q38 Final Accounts | Purchases Adjusted, 5 Adjustments | Balance Sheet 2026-27 — https://youtu.be/4Scn74ivA3I (published 26 Nov 2026, uploaded by script; FIRST video in Rainy's own cloned voice; thumbnail + Education done; pinned quiz: goods taken ₹2,500 → purchases ₹2,87,500; 3D "Goodwill Solved Notes" book thumbnail; playlist "TS Grewal Class 11 · Final Accounts")
 - Channel views: 4,253 (10 Nov 2026) → 4,310 (11 Nov 2026). Compare again around 18 Nov.
 - Popular tab (19 Nov 2026): photo Shorts of real exam question papers lead — B.Com Corporate Accounting I paper (QP 22100578, Apr 2022) 1,020 views, others 757 / 663 / 425; MGU Income Tax promo 218; Harris "Business Entity Concept" 107 (6 days old). But those question-paper Shorts are 4 years old (≈0.2–0.7 views/day); the Harris Short got ≈18 views/day — the new animated daily Shorts are far ahead per day.
