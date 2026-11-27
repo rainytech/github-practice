@@ -1,0 +1,59 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; font-family: "Inter", sans-serif; color: #111; }
+    .hdr { position: absolute; left: 100px; top: 36px; font-family: "Archivo Black", sans-serif; font-size: 50px; color: #00008B; }
+    .adj { position: absolute; left: 100px; top: 120px; width: 1720px; background: #B8B8B8; color: #111; border-radius: 14px; padding: 10px 26px; border-left: 16px solid #CC0000; font-family: "EB Garamond", serif; font-size: 36px; line-height: 1.22; }
+    .adj b { color: #A80000; }
+    .wk { position: absolute; left: 100px; top: 0; width: 1720px; display: flex; gap: 24px; }
+    .tb { flex: 1; background: #B8B8B8; color: #111; border-radius: 14px; padding: 10px 22px 14px; border-left: 16px solid #6A0DAD; font-family: "EB Garamond", serif; }
+    .tb .t { font-family: "Archivo Black", sans-serif; font-size: 28px; color: #6A0DAD; margin-bottom: 4px; }
+    table { width: 100%; border-collapse: collapse; font-size: 36px; }
+    td { padding: 0 12px; border: 2px solid #000; line-height: 1.24; }
+    td.r { text-align: right; width: 190px; white-space: nowrap; }
+    tr.tot td { font-weight: 700; border-top: 4px solid #000; }
+    tr.note td { border: none; font-style: italic; color: #6A0DAD; font-size: 32px; padding-top: 6px; }
+    .fr { display: inline-flex; flex-direction: column; align-items: center; vertical-align: middle; font-size: 0.8em; line-height: 1.02; margin: 0 0.1em; }
+    .fr > span:last-child { border-top: 2px solid currentColor; padding: 0 0.1em; }
+    .effs { position: absolute; left: 100px; width: 1720px; top: 0; display: flex; gap: 22px; }
+    .ef { flex: 1; border-radius: 14px; padding: 12px 18px; min-height: 250px; background: rgba(0,0,0,0.06); border: 3px solid #808080; }
+    .ef .h { font-family: "Archivo Black", sans-serif; font-size: 34px; margin-bottom: 8px; }
+    .ef .ln { display: flex; justify-content: space-between; gap: 12px; background: #A9A9A9; color: #111; border-radius: 8px; padding: 4px 12px; margin-bottom: 8px; font-size: 32px; font-weight: 700; line-height: 1.2; }
+    .ef .ln .a { white-space: nowrap; color: #A80000; }
+    .ef .none { font-size: 30px; color: rgba(0,0,0,0.45); font-weight: 700; }
+    #a5-EF-tr .h { color: #004A9E; } #a5-EF-pl .h { color: #6A0DAD; } #a5-EF-bs .h { color: #1E6B34; }
+
+    #a5-wk { top: 207px; } #a5-effs { top: 601px; }
+  </style>
+  <div id="root" data-composition-id="a5" data-width="1920" data-height="1080">
+    <div class="hdr clip" id="a5-hdr" data-start="0" data-duration="36.7" data-track-index="0">Adjustment (vi) · Depreciation</div>
+    <div class="adj clip" id="a5-adj" data-start="0.3" data-duration="36.4" data-track-index="1">(vi) Depreciate Building by <b>2.5% p.a.</b> and Machinery and Furniture at <b>10% p.a.</b></div>
+    <div class="wk clip" id="a5-wk" data-start="0.3" data-duration="36.4" data-track-index="2"><div class="tb"><table><tr class="" id="a5-t0r0"><td>Building: 3,00,000 × <span class=fr><span>2.5</span><span>100</span></span></td><td class="r"><span id="a5-t0r0a">7,500</span></td></tr><tr class="" id="a5-t0r1"><td>Machinery (old): 5,00,000 × <span class=fr><span>10</span><span>100</span></span></td><td class="r"><span id="a5-t0r1a">50,000</span></td></tr><tr class="" id="a5-t0r2"><td>Machinery (new): 50,000 × <span class=fr><span>10</span><span>100</span></span> × <span class=fr><span>6</span><span>12</span></span></td><td class="r"><span id="a5-t0r2a">2,500</span></td></tr><tr class="" id="a5-t0r3"><td>Furniture: 40,000 × <span class=fr><span>10</span><span>100</span></span></td><td class="r"><span id="a5-t0r3a">4,000</span></td></tr><tr class="tot" id="a5-t0r4"><td>Total Depreciation</td><td class="r"><span id="a5-t0r4a">64,000</span></td></tr></table></div></div>
+    <div class="effs clip" id="a5-effs" data-start="30.3" data-duration="6.4" data-track-index="3"><div class="ef" id="a5-EF-tr"><div class="h">Trading A/c</div><div class="none">— no effect</div></div><div class="ef" id="a5-EF-pl"><div class="h">Profit &amp; Loss A/c</div><div class="ln" id="a5-pl0"><span>Depreciation</span><span class="a">64,000</span></div></div><div class="ef" id="a5-EF-bs"><div class="h">Balance Sheet</div><div class="ln" id="a5-bs0"><span>Building 3,00,000 − 7,500</span><span class="a">2,92,500</span></div><div class="ln" id="a5-bs1"><span>Machinery 5,50,000 − 52,500</span><span class="a">4,97,500</span></div><div class="ln" id="a5-bs2"><span>Furniture 40,000 − 4,000</span><span class="a">36,000</span></div></div></div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    const row = (s, t) => tl.fromTo(s, { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.35 }, t);
+    const pop = (s, t) => tl.fromTo(s, { opacity: 0, scale: 0.5 }, { opacity: 1, scale: 1, duration: 0.4, ease: "back.out(2)" }, t);
+    const flash = (s, t) => tl.fromTo(s, { backgroundColor: "rgba(106,13,173,0.3)" }, { backgroundColor: "rgba(106,13,173,0)", duration: 1.6 }, t + 0.35);
+    const eff = (s, box, t) => { tl.fromTo(s, { opacity: 0, y: 20, scale: 0.9 }, { opacity: 1, y: 0, scale: 1, duration: 0.4, ease: "back.out(2)" }, t);
+      tl.fromTo(box, { borderColor: "rgba(245,183,0,1)" }, { borderColor: "#808080", duration: 2.0 }, t); };
+    tl.fromTo("#a5-hdr", { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 0.4 }, 0);
+    tl.fromTo("#a5-adj", { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 0.45 }, 0.3);
+    tl.fromTo("#a5-effs", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 30.3);
+    row("#a5-t0r0", 3.44);
+    pop("#a5-t0r0a", 9.27);
+    row("#a5-t0r1", 10.36);
+    pop("#a5-t0r1a", 15.54);
+    row("#a5-t0r2", 16.64);
+    pop("#a5-t0r2a", 26.13);
+    row("#a5-t0r3", 27.23);
+    pop("#a5-t0r3a", 30.01);
+    row("#a5-t0r4", 30.81);
+    flash("#a5-t0r4", 30.81);
+    eff("#a5-pl0", "#a5-EF-pl", 31.81);
+    eff("#a5-bs0", "#a5-EF-bs", 32.31);
+    eff("#a5-bs1", "#a5-EF-bs", 33.01);
+    eff("#a5-bs2", "#a5-EF-bs", 33.71);
+    window.__timelines["a5"] = tl;
+  </script>
+</template>

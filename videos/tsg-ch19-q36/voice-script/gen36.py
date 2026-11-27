@@ -38,7 +38,7 @@ def rows(lst):
         out.append(f'<tr class="{"hid" if k == "hid" else ""}"><td>{n}{mark}</td><td class="r">{a}</td></tr>')
     return "\n".join(out)
 d = DUR["question"]
-wr("question.html", f\'\'\'<template>
+wr("question.html", f'''<template>
   <style>
     #root {{ position: absolute; inset: 0; font-family: "Inter", sans-serif; color: #fff; }}
     .hdr {{ position: absolute; left: 100px; top: 40px; font-family: "Archivo Black", sans-serif; font-size: 58px; color: #F5B700; }}
@@ -88,7 +88,7 @@ wr("question.html", f\'\'\'<template>
     window.__timelines["question"] = tl;
   </script>
 </template>
-\'\'\')
+''')
 
 # ---------- adjust (list of 5 + pause) ----------
 items = [("(i)", "Closing Stock <b>₹ 2,25,000</b>."),
@@ -116,7 +116,7 @@ wr("adjust.html", s)
 # ---------- hidden adjustments ----------
 d = DUR["hidden"]
 FRh = lambda n, dd: f'<span class="fr"><span>{n}</span><span>{dd}</span></span>'
-wr("hidden.html", f\'\'\'<template>
+wr("hidden.html", f'''<template>
   <style>
     #root {{ position: absolute; inset: 0; font-family: "Inter", sans-serif; color: #fff; }}
     .hdr {{ position: absolute; left: 100px; top: 40px; font-family: "Archivo Black", sans-serif; font-size: 56px; color: #F5B700; }}
@@ -154,7 +154,7 @@ wr("hidden.html", f\'\'\'<template>
     window.__timelines["hidden"] = tl;
   </script>
 </template>
-\'\'\')
+''')
 
 # ---------- adjustment scenes ----------
 FR = lambda n, dd: f"<span class=fr><span>{n}</span><span>{dd}</span></span>"
@@ -352,8 +352,12 @@ def grey(txt):
     txt = txt.replace("#hook-title { position: absolute;", "#hook-title { color: #00008B; position: absolute;")
     txt = txt.replace(".ef .ln { display: flex; justify-content: space-between; gap: 12px; background: #B8B8B8;", ".ef .ln { display: flex; justify-content: space-between; gap: 12px; background: #A9A9A9;")
     txt = txt.replace("background-color: #0B1B3F;", "background-color: #C8C8C8;")
+    txt = re.sub(r"(?<![-\w])color:\s*#CC0000", "color: #A80000", txt)
+    txt = re.sub(r"(?<![-\w])color:\s*#C2185B", "color: #8E0E42", txt)
+    txt = re.sub(r"(?<![-\w])color:\s*#1E8E3E", "color: #146C2E", txt)
+    txt = re.sub(r"(?<![-\w])color:\s*#0057B8", "color: #004A9E", txt)
     return txt
 for fn in os.listdir(COMP):
-    fp = os.path.join(COMP, fn); open(fp, "w").write(grey(open(fp).read()))
-ip = os.path.join(PROJ, "index.html"); open(ip, "w").write(grey(open(ip).read()))
+    fp = os.path.join(COMP, fn); txt = grey(open(fp).read()); open(fp, "w").write(txt)
+ip = os.path.join(PROJ, "index.html"); txt = grey(open(ip).read()); open(ip, "w").write(txt)
 print("total", round(t0, 1)); print("\n".join(chapters))

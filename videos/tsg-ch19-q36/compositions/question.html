@@ -1,0 +1,71 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; font-family: "Inter", sans-serif; color: #111; }
+    .hdr { position: absolute; left: 100px; top: 40px; font-family: "Archivo Black", sans-serif; font-size: 58px; color: #00008B; }
+    .ref { position: absolute; right: 100px; top: 60px; font-size: 32px; font-weight: 700; color: rgba(0,0,0,0.85); }
+    #q-lead { position: absolute; left: 100px; top: 128px; width: 1720px; font-family: "EB Garamond", serif; font-size: 38px; }
+    .card { position: absolute; top: 190px; background: #B8B8B8; color: #111; border-radius: 16px; padding: 10px 16px 14px; font-family: "EB Garamond", serif; box-shadow: 0 12px 30px rgba(0,0,0,0.3); }
+    .card .t { font-family: "Archivo Black", sans-serif; font-size: 28px; margin-bottom: 4px; }
+    #q-d1, #q-d2 { border-top: 10px solid #0057B8; } #q-d1 .t, #q-d2 .t { color: #004A9E; }
+    #q-c { border-top: 10px solid #CC0000; } #q-c .t { color: #A80000; }
+    #q-d1 { left: 100px; width: 560px; } #q-d2 { left: 680px; width: 560px; } #q-c { left: 1260px; width: 560px; }
+    table { width: 100%; border-collapse: collapse; font-size: 33px; }
+    td { padding: 0 8px; border: 2px solid #000; line-height: 1.18; }
+    td.r { text-align: right; width: 150px; white-space: nowrap; }
+    .st { color: #A80000; font-weight: 700; display: inline-block; }
+    .hidm { color: #A80000; font-weight: 800; font-size: 0.68em; font-family: "Inter", sans-serif; display: inline-block; }
+    #q-tot { position: absolute; left: 100px; top: 935px; width: 1720px; height: 96px; background: #F5B700; color: #0B1B3F; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-family: "Archivo Black", sans-serif; font-size: 44px; }
+    #q-note { position: absolute; left: 1260px; top: 620px; width: 560px; background: #CC0000; color: #fff; border-radius: 16px; padding: 14px 22px; font-size: 34px; font-weight: 800; line-height: 1.25; }
+  </style>
+  <div id="root" data-composition-id="question" data-width="1920" data-height="1080">
+    <div class="hdr clip" id="q-hdr" data-start="0" data-duration="42.8" data-track-index="0">The Question</div>
+    <div class="ref clip" id="q-ref" data-start="0" data-duration="42.8" data-track-index="1">T.S. Grewal · Q 36 · Pg 19.89</div>
+    <div class="clip" id="q-lead" data-start="0.3" data-duration="42.5" data-track-index="2">Following is the Trial Balance of Karman on 31st March, 2026:</div>
+    <div class="card clip" id="q-d1" data-start="0.8" data-duration="42.0" data-track-index="3"><div class="t">Debit (₹)</div><table>
+<tr class=""><td>Drawings</td><td class="r">60,000</td></tr>
+<tr class=""><td>Opening Stock</td><td class="r">75,000</td></tr>
+<tr class=""><td>Purchases <span class="st">★</span></td><td class="r">15,95,000</td></tr>
+<tr class=""><td>Freight on Purchases <span class="st">★</span></td><td class="r">25,000</td></tr>
+<tr class="hid"><td>Wages (11 months up to February, 2026) <span class="hidm">🔍 hidden</span></td><td class="r">66,000</td></tr>
+<tr class=""><td>Salaries</td><td class="r">1,40,000</td></tr>
+<tr class=""><td>Postages and Courier</td><td class="r">12,000</td></tr>
+<tr class=""><td>Printing and Stationery</td><td class="r">18,000</td></tr>
+<tr class=""><td>Miscellaneous Expenses</td><td class="r">30,000</td></tr>
+    </table></div>
+    <div class="card clip" id="q-d2" data-start="0.8" data-duration="42.0" data-track-index="4"><div class="t">Debit (₹) contd.</div><table>
+<tr class=""><td>Investments <span class="st">★</span></td><td class="r">1,00,000</td></tr>
+<tr class=""><td>Sundry Debtors <span class="st">★</span></td><td class="r">2,50,000</td></tr>
+<tr class=""><td>Bad Debts <span class="st">★</span></td><td class="r">15,000</td></tr>
+<tr class=""><td>Building <span class="st">★</span></td><td class="r">3,00,000</td></tr>
+<tr class=""><td>Machinery <span class="st">★</span></td><td class="r">5,00,000</td></tr>
+<tr class=""><td>Furniture <span class="st">★</span></td><td class="r">40,000</td></tr>
+<tr class=""><td>Commission on Sales <span class="st">★</span></td><td class="r">45,000</td></tr>
+<tr class="hid"><td>Insurance (up to 31st July, 2026) <span class="hidm">🔍 hidden</span></td><td class="r">24,000</td></tr>
+<tr class=""><td>Bank Balance</td><td class="r">1,50,000</td></tr>
+    </table></div>
+    <div class="card clip" id="q-c" data-start="0.8" data-duration="42.0" data-track-index="5"><div class="t">Credit (₹)</div><table>
+<tr class=""><td>Capital</td><td class="r">8,00,000</td></tr>
+<tr class=""><td>Sales <span class="st">★</span></td><td class="r">23,10,000</td></tr>
+<tr class=""><td>Sundry Creditors</td><td class="r">3,00,000</td></tr>
+<tr class=""><td>Discount Received</td><td class="r">15,000</td></tr>
+<tr class=""><td>Provision for Doubtful Debts <span class="st">★</span></td><td class="r">8,000</td></tr>
+<tr class=""><td>Interest on Investments</td><td class="r">12,000</td></tr>
+    </table></div>
+    <div class="clip" id="q-note" data-start="32.2" data-duration="10.6" data-track-index="6">🔍 Read the headings: 2 hidden adjustments!</div>
+    <div class="clip" id="q-tot" data-start="27.2" data-duration="15.6" data-track-index="7">Total Debit ₹ 34,45,000 &nbsp;=&nbsp; Total Credit ₹ 34,45,000 ✓</div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    tl.fromTo("#q-hdr", { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 0.4 }, 0);
+    tl.fromTo("#q-ref", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 0.2);
+    tl.fromTo("#q-lead", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 0.3);
+    tl.fromTo(["#q-d1", "#q-d2", "#q-c"], { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.5, stagger: 0.2, ease: "power3.out" }, 0.8);
+    tl.fromTo(["#q-d1", "#q-d2"], { boxShadow: "0 0 0 0 rgba(0,0,139,0)" }, { boxShadow: "0 0 0 8px rgba(0,0,139,0.8)", duration: 0.4, yoyo: true, repeat: 1, repeatDelay: 8 }, 7.02);
+    tl.fromTo("#q-c", { boxShadow: "0 0 0 0 rgba(0,0,139,0)" }, { boxShadow: "0 0 0 8px rgba(0,0,139,0.8)", duration: 0.4, yoyo: true, repeat: 1, repeatDelay: 5 }, 18.48);
+    tl.fromTo("#q-tot", { opacity: 0, scale: 0.8 }, { opacity: 1, scale: 1, duration: 0.45, ease: "back.out(2)" }, 27.2);
+    tl.fromTo("#q-note", { opacity: 0, x: 40 }, { opacity: 1, x: 0, duration: 0.4 }, 32.2);
+    tl.to("tr.hid td", { backgroundColor: "rgba(204,0,0,0.25)", duration: 0.4 }, 33.7);
+    tl.to(".hidm", { scale: 1.3, duration: 0.3, yoyo: true, repeat: 5, ease: "sine.inOut" }, 34.2);
+    window.__timelines["question"] = tl;
+  </script>
+</template>

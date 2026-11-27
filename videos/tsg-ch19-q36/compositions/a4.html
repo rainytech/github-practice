@@ -1,0 +1,63 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; font-family: "Inter", sans-serif; color: #111; }
+    .hdr { position: absolute; left: 100px; top: 36px; font-family: "Archivo Black", sans-serif; font-size: 50px; color: #00008B; }
+    .adj { position: absolute; left: 100px; top: 120px; width: 1720px; background: #B8B8B8; color: #111; border-radius: 14px; padding: 10px 26px; border-left: 16px solid #CC0000; font-family: "EB Garamond", serif; font-size: 36px; line-height: 1.22; }
+    .adj b { color: #A80000; }
+    .wk { position: absolute; left: 100px; top: 0; width: 1720px; display: flex; gap: 24px; }
+    .tb { flex: 1; background: #B8B8B8; color: #111; border-radius: 14px; padding: 10px 22px 14px; border-left: 16px solid #6A0DAD; font-family: "EB Garamond", serif; }
+    .tb .t { font-family: "Archivo Black", sans-serif; font-size: 28px; color: #6A0DAD; margin-bottom: 4px; }
+    table { width: 100%; border-collapse: collapse; font-size: 36px; }
+    td { padding: 0 12px; border: 2px solid #000; line-height: 1.24; }
+    td.r { text-align: right; width: 190px; white-space: nowrap; }
+    tr.tot td { font-weight: 700; border-top: 4px solid #000; }
+    tr.note td { border: none; font-style: italic; color: #6A0DAD; font-size: 32px; padding-top: 6px; }
+    .fr { display: inline-flex; flex-direction: column; align-items: center; vertical-align: middle; font-size: 0.8em; line-height: 1.02; margin: 0 0.1em; }
+    .fr > span:last-child { border-top: 2px solid currentColor; padding: 0 0.1em; }
+    .effs { position: absolute; left: 100px; width: 1720px; top: 0; display: flex; gap: 22px; }
+    .ef { flex: 1; border-radius: 14px; padding: 12px 18px; min-height: 250px; background: rgba(0,0,0,0.06); border: 3px solid #808080; }
+    .ef .h { font-family: "Archivo Black", sans-serif; font-size: 34px; margin-bottom: 8px; }
+    .ef .ln { display: flex; justify-content: space-between; gap: 12px; background: #A9A9A9; color: #111; border-radius: 8px; padding: 4px 12px; margin-bottom: 8px; font-size: 32px; font-weight: 700; line-height: 1.2; }
+    .ef .ln .a { white-space: nowrap; color: #A80000; }
+    .ef .none { font-size: 30px; color: rgba(0,0,0,0.45); font-weight: 700; }
+    #a4-EF-tr .h { color: #004A9E; } #a4-EF-pl .h { color: #6A0DAD; } #a4-EF-bs .h { color: #1E6B34; }
+
+    #a4-wk { top: 252px; } #a4-effs { top: 670px; }
+  </style>
+  <div id="root" data-composition-id="a4" data-width="1920" data-height="1080">
+    <div class="hdr clip" id="a4-hdr" data-start="0" data-duration="36.8" data-track-index="0">Adjustment (v) · Bad Debts &amp; Provision</div>
+    <div class="adj clip" id="a4-adj" data-start="0.3" data-duration="36.5" data-track-index="1">(v) Write off further Bad Debts <b>₹ 10,000</b> and maintain Provision for Doubtful Debts at <b>5%</b> of Debtors.</div>
+    <div class="wk clip" id="a4-wk" data-start="0.3" data-duration="36.5" data-track-index="2"><div class="tb"><div class="t">Debtors in the Balance Sheet</div><table><tr class="" id="a4-t0r0"><td>Sundry Debtors (T.B.)</td><td class="r"><span id="a4-t0r0a">2,50,000</span></td></tr><tr class="" id="a4-t0r1"><td>Less: Further Bad Debts</td><td class="r"><span id="a4-t0r1a">10,000</span></td></tr><tr class="tot" id="a4-t0r2"><td>Good Debtors</td><td class="r"><span id="a4-t0r2a">2,40,000</span></td></tr><tr class="" id="a4-t0r3"><td>Less: New Provision <span class=fr><span>5</span><span>100</span></span></td><td class="r"><span id="a4-t0r3a">12,000</span></td></tr><tr class="tot" id="a4-t0r4"><td>Net Debtors</td><td class="r"><span id="a4-t0r4a">2,28,000</span></td></tr></table></div><div class="tb"><div class="t">Charge to P&amp;L A/c</div><table><tr class="" id="a4-t1r0"><td>Bad Debts (T.B.)</td><td class="r"><span id="a4-t1r0a">15,000</span></td></tr><tr class="" id="a4-t1r1"><td>Add: Further Bad Debts</td><td class="r"><span id="a4-t1r1a">10,000</span></td></tr><tr class="" id="a4-t1r2"><td>Add: New Provision</td><td class="r"><span id="a4-t1r2a">12,000</span></td></tr><tr class="tot" id="a4-t1r3"><td></td><td class="r"><span id="a4-t1r3a">37,000</span></td></tr><tr class="" id="a4-t1r4"><td>Less: Old Provision</td><td class="r"><span id="a4-t1r4a">8,000</span></td></tr><tr class="tot" id="a4-t1r5"><td>Charge to P&amp;L</td><td class="r"><span id="a4-t1r5a">29,000</span></td></tr></table></div></div>
+    <div class="effs clip" id="a4-effs" data-start="27.2" data-duration="9.5" data-track-index="3"><div class="ef" id="a4-EF-tr"><div class="h">Trading A/c</div><div class="none">— no effect</div></div><div class="ef" id="a4-EF-pl"><div class="h">Profit &amp; Loss A/c</div><div class="ln" id="a4-pl0"><span>Bad Debts &amp; Provision</span><span class="a">29,000</span></div></div><div class="ef" id="a4-EF-bs"><div class="h">Balance Sheet</div><div class="ln" id="a4-bs0"><span>Debtors 2,40,000 − 12,000</span><span class="a">2,28,000</span></div></div></div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    const row = (s, t) => tl.fromTo(s, { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.35 }, t);
+    const pop = (s, t) => tl.fromTo(s, { opacity: 0, scale: 0.5 }, { opacity: 1, scale: 1, duration: 0.4, ease: "back.out(2)" }, t);
+    const flash = (s, t) => tl.fromTo(s, { backgroundColor: "rgba(106,13,173,0.3)" }, { backgroundColor: "rgba(106,13,173,0)", duration: 1.6 }, t + 0.35);
+    const eff = (s, box, t) => { tl.fromTo(s, { opacity: 0, y: 20, scale: 0.9 }, { opacity: 1, y: 0, scale: 1, duration: 0.4, ease: "back.out(2)" }, t);
+      tl.fromTo(box, { borderColor: "rgba(245,183,0,1)" }, { borderColor: "#808080", duration: 2.0 }, t); };
+    tl.fromTo("#a4-hdr", { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 0.4 }, 0);
+    tl.fromTo("#a4-adj", { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 0.45 }, 0.3);
+    tl.fromTo("#a4-effs", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 27.2);
+    row("#a4-t0r0", 3.96);
+    row("#a4-t0r1", 6.96);
+    row("#a4-t0r2", 10.11);
+    flash("#a4-t0r2", 10.11);
+    row("#a4-t0r3", 11.21);
+    pop("#a4-t0r3a", 15.65);
+    row("#a4-t0r4", 32.45);
+    flash("#a4-t0r4", 32.45);
+    row("#a4-t1r0", 16.75);
+    row("#a4-t1r1", 18.75);
+    row("#a4-t1r2", 20.75);
+    row("#a4-t1r3", 22.95);
+    flash("#a4-t1r3", 22.95);
+    row("#a4-t1r4", 24.05);
+    row("#a4-t1r5", 28.35);
+    flash("#a4-t1r5", 28.35);
+    eff("#a4-pl0", "#a4-EF-pl", 28.75);
+    eff("#a4-bs0", "#a4-EF-bs", 33.45);
+    window.__timelines["a4"] = tl;
+  </script>
+</template>
