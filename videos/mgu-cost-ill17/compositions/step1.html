@@ -1,0 +1,53 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; font-family: "Inter", sans-serif; color: #fff; }
+    .hdr { position: absolute; left: 100px; top: 44px; font-family: "Archivo Black", sans-serif; font-size: 58px; color: #F5B700; }
+    .steps { position: absolute; right: 100px; top: 44px; display: flex; gap: 14px; }
+    .steps span { width: 70px; height: 70px; border-radius: 50%; border: 4px solid rgba(255,255,255,0.5); display: flex; align-items: center; justify-content: center; font-family: "Archivo Black", sans-serif; font-size: 34px; color: rgba(255,255,255,0.6); }
+    .steps span.on { background: #F5B700; border-color: #F5B700; color: #0B1B3F; }
+    #s1-card { position: absolute; left: 290px; top: 138px; width: 1340px; background: #FFFDF5; color: #111; border-radius: 18px; padding: 12px 40px 22px; border-left: 16px solid #6A0DAD; font-family: "EB Garamond", serif; box-shadow: 0 14px 34px rgba(0,0,0,0.3); }
+    .tt { text-align: center; font-weight: 700; font-size: 42px; color: #6A0DAD; text-decoration: underline; }
+    .ts { text-align: center; font-style: italic; font-size: 30px; color: #6A0DAD; margin-bottom: 8px; }
+    table { width: 100%; border-collapse: collapse; font-size: 42px; }
+    th { background: #BDBDBD; font-style: italic; padding: 0 18px; border: 2px solid #000; }
+    td { padding: 0 18px; border: 2px solid #000; line-height: 1.22; }
+    td.r { text-align: right; }
+    tr.tot td { font-weight: 700; border-top: 4px solid #000; }
+    #s1-r12 td { color: #CC0000; }
+  </style>
+  <div id="root" data-composition-id="step1" data-width="1920" data-height="1080">
+    <div class="hdr clip" id="s1-hdr" data-start="0" data-duration="45.1" data-track-index="0">Step 1 · Cost Sheet 2025</div>
+    <div class="steps clip" id="s1-steps" data-start="0" data-duration="45.1" data-track-index="1"><span class="on">1</span><span>2</span><span>3</span></div>
+    <div class="clip" id="s1-card" data-start="0.3" data-duration="44.8" data-track-index="2">
+      <div class="tt">COST SHEET</div>
+      <div class="ts">for the year 2025 (Samsung India Ltd.)</div>
+      <table>
+        <tr><th style="width:68%">Particulars</th><th>Amount (₹)</th></tr>
+        <tr id="s1-r1"><td>Direct Material</td><td class="r">6,00,000</td></tr>
+        <tr id="s1-r2"><td>Add: Direct Wages</td><td class="r">5,00,000</td></tr>
+        <tr id="s1-r3" class="tot"><td>1. Prime Cost</td><td class="r">11,00,000</td></tr>
+        <tr id="s1-r4"><td>Add: Factory Overheads</td><td class="r">3,00,000</td></tr>
+        <tr id="s1-r5" class="tot"><td>2. Works Cost (Factory Cost)</td><td class="r">14,00,000</td></tr>
+        <tr id="s1-r6"><td>Add: Administration Overheads</td><td class="r">3,36,000</td></tr>
+        <tr id="s1-r7" class="tot"><td>3. Cost of Production</td><td class="r">17,36,000</td></tr>
+        <tr id="s1-r8"><td>Add: Selling Overheads</td><td class="r">2,24,000</td></tr>
+        <tr id="s1-r9"><td>Add: Distribution Overheads</td><td class="r">1,40,000</td></tr>
+        <tr id="s1-r10" class="tot"><td>4. Cost of Sales</td><td class="r">21,00,000</td></tr>
+        <tr id="s1-r11"><td>Add: Profit</td><td class="r">4,20,000</td></tr>
+        <tr id="s1-r12" class="tot"><td>5. Sales</td><td class="r">25,20,000</td></tr>
+      </table>
+    </div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    tl.fromTo("#s1-hdr", { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 0.4 }, 0);
+    tl.fromTo("#s1-steps span", { opacity: 0, scale: 0.5 }, { opacity: 1, scale: 1, duration: 0.3, stagger: 0.1 }, 0.2);
+    tl.fromTo("#s1-card", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 0.4);
+    [["#s1-r1", 4.3], ["#s1-r2", 6.4], ["#s1-r3", 8.95], ["#s1-r4", 11.75], ["#s1-r5", 14.5], ["#s1-r6", 18.55], ["#s1-r7", 23.1], ["#s1-r8", 27.3], ["#s1-r9", 31.0], ["#s1-r10", 35.0], ["#s1-r11", 38.0], ["#s1-r12", 40.95]].forEach(([s, t]) =>
+      tl.fromTo(s, { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.35 }, t));
+    [["#s1-r3", 8.95], ["#s1-r5", 14.5], ["#s1-r7", 23.1], ["#s1-r10", 35.0]].forEach(([s, t]) =>
+      tl.fromTo(s, { backgroundColor: "rgba(106,13,173,0.25)" }, { backgroundColor: "rgba(106,13,173,0)", duration: 1.6 }, t + 0.4));
+    tl.fromTo("#s1-r12", { backgroundColor: "rgba(245,183,0,0)" }, { backgroundColor: "rgba(245,183,0,0.55)", duration: 0.4 }, 41.3);
+    window.__timelines["step1"] = tl;
+  </script>
+</template>

@@ -1,0 +1,117 @@
+{
+"hook": [
+"Last video's quiz answer: two lakh eighty-seven thousand five hundred rupees. Well done if you got it!",
+"Now, C B S E Class Eleven. T. S. Graywaal, Question thirty-six.",
+"This trial balance hides two adjustments that are not in the list.",
+"Can you spot them? Let's solve it together."
+],
+"question": [
+"Here is the question. The trial balance of Karman, on thirty-first March, twenty twenty-six.",
+"Debit side: opening stock, purchases, freight, wages, salaries and other expenses, investments, debtors, bad debts, building, machinery, furniture, commission, insurance, and bank.",
+"Credit side: capital, sales, creditors, discount received, provision for doubtful debts, and interest on investments.",
+"Both sides total thirty-four lakh forty-five thousand rupees.",
+"Now read two items carefully. Wages, for eleven months up to February. And insurance, up to thirty-first July, twenty twenty-six."
+],
+"adjust": [
+"Now the six adjustments.",
+"One. Closing stock, two lakh twenty-five thousand rupees.",
+"Two. Machinery of forty-five thousand, purchased on first October, twenty twenty-five, was shown as purchases. Freight on it, five thousand, is included in freight on purchases.",
+"Three. Commission is payable at two and a half percent on sales.",
+"Four. Investments were sold at ten percent profit, but the proceeds were credited to sales account.",
+"Five. Write off further bad debts of ten thousand, and maintain provision for doubtful debts at five percent of debtors.",
+"Six. Depreciate building by two and a half percent, and machinery and furniture at ten percent per annum.",
+"Pause the video, and try it yourself. Then check with me."
+],
+"hidden": [
+"First, the two hidden adjustments.",
+"Wages, sixty-six thousand, are for eleven months only, up to February. So March wages are still outstanding.",
+"Sixty-six thousand into one, over eleven. Six thousand rupees outstanding. Total wages, seventy-two thousand.",
+"Insurance, twenty-four thousand, is paid up to thirty-first July, twenty twenty-six. That is four months into next year.",
+"Twenty-four thousand into four, over twelve. Eight thousand rupees prepaid. Insurance expense, sixteen thousand.",
+"Outstanding wages is a liability, and prepaid insurance is an asset in the balance sheet."
+],
+"a1": [
+"Adjustment two. Machinery shown as purchases.",
+"Buying machinery is capital expenditure, not a purchase of goods.",
+"So deduct forty-five thousand from purchases. Fifteen lakh ninety-five thousand becomes fifteen lakh fifty thousand.",
+"And deduct the freight of five thousand from freight on purchases. Twenty-five thousand becomes twenty thousand.",
+"Add both to machinery. Five lakh, plus forty-five thousand, plus five thousand. Five lakh fifty thousand."
+],
+"a2": [
+"Adjustment four. Investments sold.",
+"Investments cost one lakh. Sold at ten percent profit, so the proceeds are one lakh ten thousand.",
+"These proceeds were wrongly credited to sales. Deduct them. Twenty-three lakh ten thousand becomes twenty-two lakh.",
+"Profit on sale of investments, ten thousand, is credited to profit and loss.",
+"All investments are sold, so investments are nil in the balance sheet."
+],
+"a3": [
+"Adjustment three. Commission on sales.",
+"Two and a half percent on the corrected sales of twenty-two lakh. Fifty-five thousand rupees.",
+"Already paid, forty-five thousand. So ten thousand is outstanding.",
+"Debit profit and loss with fifty-five thousand, and show outstanding commission of ten thousand as a liability."
+],
+"a4": [
+"Adjustment five. Bad debts and provision.",
+"Debtors, two lakh fifty thousand, less further bad debts of ten thousand. Two lakh forty thousand.",
+"New provision at five percent. Two lakh forty thousand into five, over hundred. Twelve thousand.",
+"Charge to profit and loss: fifteen thousand, plus ten thousand, plus twelve thousand. Thirty-seven thousand.",
+"Less the old provision of eight thousand. Twenty-nine thousand rupees.",
+"In the balance sheet, debtors two lakh forty thousand, less provision twelve thousand. Two lakh twenty-eight thousand."
+],
+"a5": [
+"Adjustment six. Depreciation.",
+"Building at two and a half percent. Three lakh into two point five, over hundred. Seven thousand five hundred.",
+"Old machinery at ten percent. Five lakh into ten, over hundred. Fifty thousand.",
+"The new machine of fifty thousand was bought on first October, so only six months. Fifty thousand into ten over hundred, into six over twelve. Two thousand five hundred.",
+"Furniture at ten percent. Four thousand.",
+"Total depreciation, sixty-four thousand rupees, goes to profit and loss."
+],
+"trading": [
+"Now the trading account of Karman, for the year ended thirty-first March, twenty twenty-six.",
+"To opening stock, seventy-five thousand.",
+"To purchases, fifteen lakh ninety-five thousand, less machinery forty-five thousand. Fifteen lakh fifty thousand.",
+"To freight on purchases, twenty-five thousand, less five thousand. Twenty thousand.",
+"To wages, sixty-six thousand, plus outstanding six thousand. Seventy-two thousand.",
+"Credit side. By sales, twenty-three lakh ten thousand, less sale of investments one lakh ten thousand. Twenty-two lakh.",
+"By closing stock, two lakh twenty-five thousand. Total, twenty-four lakh twenty-five thousand.",
+"Gross profit, seven lakh eight thousand rupees."
+],
+"pl": [
+"Next, the profit and loss account.",
+"Credit side. Gross profit, seven lakh eight thousand. Discount received, fifteen thousand.",
+"Interest on investments, twelve thousand. Profit on sale of investments, ten thousand. Total, seven lakh forty-five thousand.",
+"Debit side. Salaries, one lakh forty thousand. Postages and courier, twelve thousand.",
+"Printing and stationery, eighteen thousand. Miscellaneous expenses, thirty thousand.",
+"Bad debts and provision, twenty-nine thousand.",
+"Commission, forty-five thousand plus ten thousand. Fifty-five thousand.",
+"Insurance, twenty-four thousand less eight thousand. Sixteen thousand.",
+"Depreciation. Building seven thousand five hundred, machinery fifty-two thousand five hundred, furniture four thousand. Sixty-four thousand.",
+"Net profit, three lakh eighty-one thousand rupees."
+],
+"bs": [
+"Finally, the balance sheet of Karman, as at thirty-first March, twenty twenty-six.",
+"Capital, eight lakh. Add net profit, three lakh eighty-one thousand. Less drawings, sixty thousand. Eleven lakh twenty-one thousand.",
+"Sundry creditors, three lakh. Outstanding wages, six thousand. Outstanding commission, ten thousand.",
+"Liabilities total, fourteen lakh thirty-seven thousand.",
+"Assets. Building, two lakh ninety-two thousand five hundred. Machinery, five lakh fifty thousand, less fifty-two thousand five hundred. Four lakh ninety-seven thousand five hundred.",
+"Furniture, thirty-six thousand. Closing stock, two lakh twenty-five thousand.",
+"Sundry debtors, two lakh twenty-eight thousand. Prepaid insurance, eight thousand. Bank balance, one lakh fifty thousand.",
+"Assets total, fourteen lakh thirty-seven thousand. The balance sheet tallies!"
+],
+"traps": [
+"Four exam traps from this question.",
+"Trap one. Read the trial balance headings. Wages for eleven months, and insurance up to July, are hidden adjustments.",
+"Trap two. Machinery and its freight were wrongly in purchases. Remove both from the trading account, and add them to machinery.",
+"Trap three. Calculate commission on the corrected sales of twenty-two lakh, not twenty-three lakh ten thousand.",
+"Trap four. The new machine was bought on first October. Charge depreciation for six months only."
+],
+"recap": [
+"Let's recap.",
+"Gross profit, seven lakh eight thousand.",
+"Net profit, three lakh eighty-one thousand.",
+"Balance sheet total, fourteen lakh thirty-seven thousand, on both sides.",
+"Remember: always read the trial balance headings for hidden adjustments.",
+"Want these solved notes as a P D F? Message us on WhatsApp, and book a paid demo class.",
+"Subscribe for more T. S. Graywaal solutions!"
+]
+}

@@ -1,0 +1,118 @@
+{
+"hook": [
+"C B S E Class Eleven Accountancy. T. S. Graywaal, Question thirty-nine.",
+"Final accounts, with eight adjustments.",
+"Trading account, profit and loss account, and balance sheet. All in one question.",
+"Will the balance sheet tally? Let's solve it together."
+],
+"question": [
+"Here is the question. On thirty-first March, twenty twenty-six, the following trial balance was prepared from the books of Manoj.",
+"Debit side: opening stock, purchases, wages, salaries, machinery, furniture, building, debtors, and the expenses.",
+"Credit side: capital, sales, bank loan, creditors, discount received, purchases return, and provision for doubtful debts.",
+"Both sides total three lakh eighteen thousand, one hundred and sixty rupees.",
+"Look for the stars. Every starred item has an adjustment."
+],
+"adjust": [
+"Now the eight adjustments.",
+"One. Closing stock at cost was thirty-five thousand, whereas its net realisable value was thirty thousand.",
+"Two. A new machine was purchased for three thousand rupees on first April, twenty twenty-five, but it was not paid for, and the entry was not recorded.",
+"Three. Wages include five hundred rupees paid for the installation of machinery.",
+"Four. Provision for doubtful debts was raised to one thousand four hundred, and further bad debts of three hundred were written off.",
+"Five. Fire destroyed stock of eight thousand rupees. The insurance company admitted a claim of five thousand, paid on fifteenth April, twenty twenty-six.",
+"Six. Outstanding wages, seven hundred. Outstanding salaries, five hundred.",
+"Seven. Prepaid insurance, two hundred and fifty. Prepaid advertisement, five hundred.",
+"Eight. Machinery is depreciated by ten percent, and furniture by fifteen percent.",
+"Pause the video, and try it yourself. Then check with me."
+],
+"a1": [
+"Adjustment one. Closing stock.",
+"Cost, thirty-five thousand. Net realisable value, thirty thousand.",
+"The rule: value stock at cost or net realisable value, whichever is lower. So, thirty thousand rupees.",
+"Closing stock is not in the trial balance, so it goes to two places.",
+"The credit side of the trading account, thirty thousand.",
+"And the assets side of the balance sheet, thirty thousand."
+],
+"a2": [
+"Adjustments two, three and eight. The machinery.",
+"Machinery in the trial balance, fourteen thousand six hundred.",
+"Add the new machine, three thousand. It was bought on credit, so a creditor for machinery of three thousand goes to the liabilities side.",
+"Add installation wages, five hundred. Installation is part of the cost of the machine, so it is capital expenditure.",
+"Total cost of machinery, eighteen thousand one hundred.",
+"Depreciation at ten percent. Eighteen thousand one hundred into ten, over hundred. One thousand eight hundred and ten.",
+"Furniture. Three thousand four hundred into fifteen, over hundred. Five hundred and ten.",
+"Total depreciation, two thousand three hundred and twenty, goes to the debit of profit and loss account.",
+"In the balance sheet: machinery, sixteen thousand two hundred and ninety. Furniture, two thousand eight hundred and ninety."
+],
+"a3": [
+"Adjustment four. Bad debts and provision.",
+"Further bad debts, three hundred. Debtors become forty-three thousand eight hundred, minus three hundred. Forty-three thousand five hundred.",
+"Less the new provision, one thousand four hundred. Net debtors in the balance sheet, forty-two thousand one hundred.",
+"Now the charge to profit and loss.",
+"Old bad debts, one thousand. Add further bad debts, three hundred. Add new provision, one thousand four hundred. That is two thousand seven hundred.",
+"Less the old provision, eight hundred. Net charge, one thousand nine hundred rupees."
+],
+"a4": [
+"Adjustment five. Loss of stock by fire.",
+"Stock destroyed, eight thousand. This stock came from purchases, so deduct eight thousand from purchases in the trading account.",
+"The insurance company admitted five thousand. It was received only in April, so on thirty-first March, it is an asset: insurance claim receivable, five thousand.",
+"The balance, three thousand, is the real loss. Debit it to profit and loss account, as loss of stock by fire."
+],
+"a5": [
+"Adjustments six and seven. Outstanding and prepaid expenses.",
+"Wages. Thirty-one thousand two hundred and fifty, less installation five hundred, add outstanding seven hundred. Thirty-one thousand four hundred and fifty, to the trading account.",
+"Salaries. Five thousand six hundred and ten, add outstanding five hundred. Six thousand one hundred and ten, to profit and loss.",
+"Outstanding wages and salaries are liabilities in the balance sheet.",
+"Insurance. One thousand two hundred and fifty, less prepaid two hundred and fifty. One thousand.",
+"Advertisement. Three thousand five hundred, less prepaid five hundred. Three thousand.",
+"Prepaid insurance and prepaid advertisement are assets in the balance sheet."
+],
+"trading": [
+"Now the trading account of Manoj, for the year ended thirty-first March, twenty twenty-six.",
+"To opening stock, forty thousand two hundred.",
+"To purchases, one lakh thirty-two thousand seven hundred. Less purchases return, nine hundred and seventy. Less stock destroyed by fire, eight thousand. One lakh twenty-three thousand seven hundred and thirty.",
+"To wages, thirty-one thousand four hundred and fifty.",
+"To carriage inwards, three thousand four hundred.",
+"Credit side. By sales, one lakh ninety-one thousand nine hundred and forty. Less sales return, one thousand two hundred and fifty. One lakh ninety thousand six hundred and ninety.",
+"By closing stock, thirty thousand.",
+"Credit total, two lakh twenty thousand six hundred and ninety.",
+"So, gross profit is twenty-one thousand nine hundred and ten rupees."
+],
+"pl": [
+"Next, the profit and loss account.",
+"By gross profit, twenty-one thousand nine hundred and ten. By discount received, two thousand. Total, twenty-three thousand nine hundred and ten.",
+"Debit side. Salaries, six thousand one hundred and ten. Discount allowed, two thousand six hundred and forty. Bank charges, ninety.",
+"Bad debts and provision, one thousand nine hundred.",
+"Insurance, one thousand. Rent, two thousand four hundred and fifty. Advertisement, three thousand.",
+"Loss of stock by fire, three thousand.",
+"Depreciation. Machinery, one thousand eight hundred and ten. Furniture, five hundred and ten. Total, two thousand three hundred and twenty.",
+"Net profit, one thousand four hundred rupees."
+],
+"bs": [
+"Finally, the balance sheet of Manoj, as at thirty-first March, twenty twenty-six.",
+"Capital, one lakh. Add net profit, one thousand four hundred. Less drawings, four thousand two hundred. Ninety-seven thousand two hundred.",
+"Bank loan, ten thousand. Sundry creditors, twelve thousand four hundred and fifty.",
+"Creditor for machinery, three thousand. Outstanding wages, seven hundred. Outstanding salaries, five hundred.",
+"Liabilities total, one lakh twenty-three thousand eight hundred and fifty.",
+"Assets. Building, twenty-one thousand seven hundred. Machinery, sixteen thousand two hundred and ninety. Furniture, two thousand eight hundred and ninety.",
+"Closing stock, thirty thousand. Sundry debtors, forty-two thousand one hundred.",
+"Insurance claim receivable, five thousand. Prepaid insurance, two hundred and fifty. Prepaid advertisement, five hundred.",
+"Cash at bank, two thousand four hundred and seventy. Cash in hand, two thousand six hundred and fifty.",
+"Assets total, one lakh twenty-three thousand eight hundred and fifty. The balance sheet tallies!"
+],
+"traps": [
+"Four exam traps from this question.",
+"Trap one. Closing stock goes at thirty thousand, the lower of cost and net realisable value. Not thirty-five thousand.",
+"Trap two. Installation wages are added to machinery, not left in wages. So depreciation is on eighteen thousand one hundred.",
+"Trap three. Loss by fire. Deduct the full eight thousand from purchases. Only the uninsured three thousand is a loss in profit and loss. The claim of five thousand is an asset.",
+"Trap four. Bad debts. Deduct further bad debts and the new provision from debtors. Subtract the old provision only in profit and loss."
+],
+"recap": [
+"Let's recap.",
+"Gross profit, twenty-one thousand nine hundred and ten.",
+"Net profit, one thousand four hundred.",
+"Balance sheet total, one lakh twenty-three thousand eight hundred and fifty, on both sides.",
+"Every adjustment has two effects. Find both, and your balance sheet will tally.",
+"Want these solved notes as a P D F? Message us on WhatsApp, and book a paid demo class.",
+"Subscribe for more T. S. Graywaal solutions!"
+]
+}

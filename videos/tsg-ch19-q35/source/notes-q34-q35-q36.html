@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Practical Questions 34–36 — Adjustments in Preparation of Financial Statements</title>
+<style>
+@page { size: A4; margin: 0; }
+
+html, body {
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+body {
+  background: #C8C8C8 !important;
+  font-family: "Times New Roman", Times, serif;
+  font-size: 13pt;
+  color: #000000;
+  line-height: 1.5;
+  margin: 0;
+  padding: 0.5cm;
+  width: 210mm;
+  max-width: 210mm;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
+/* ---------- HEADER (once only) ---------- */
+.header {
+  text-align: center;
+  color: #0057B8;
+  font-weight: bold;
+  border-bottom: 3px solid #0057B8;
+  margin-bottom: 14px;
+  padding: 14px 0 10px 0;
+}
+.header .inst  { font-size: 15pt; font-weight: bold; letter-spacing: 0.5pt; }
+.header .line2 { font-size: 11.5pt; font-weight: normal; margin-top: 5px; }
+.header .line2 .ph { color: #CC0000; font-weight: bold; }
+.header .date  { font-size: 10.5pt; font-weight: normal; color: #CC0000; margin-top: 4px; }
+
+/* ---------- TOP BAR ---------- */
+.top-bar {
+  display: block;
+  border-bottom: 1px solid #000;
+  padding: 4px 0;
+  margin-bottom: 14px;
+}
+.top-bar .title {
+  display: block; text-align: center; font-weight: bold;
+  text-transform: uppercase; font-size: 14pt; color: #00008B;
+}
+.top-bar .pgref { display: block; text-align: right; color: #CC0000; font-weight: bold; white-space: nowrap; font-size: 13pt; }
+.top-bar .pgref .num { font-size: 20pt; font-weight: bold; }
+
+/* ---------- PAGE BLOCK ---------- */
+.page-block {
+  max-width: 210mm;
+  margin: 0 auto 30px auto;
+  padding: 0;
+  background: #C8C8C8 !important;
+  overflow: hidden;
+}
+table.wn tr,
+.formula-box {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+@media screen {
+  .page-block + .page-block { margin-top: 40px; border-top: 3px dashed #888; padding-top: 30px; }
+}
+@media print {
+  .page-block { max-width: 100%; }
+  .page-block + .page-block { margin-top: 0; border-top: none; padding-top: 0; }
+}
+
+/* ---------- QUESTION TEXT ---------- */
+.q     > span,
+.notes > span,
+.adj   > span,
+.wn-text > span { display: block; }
+
+.qno { font-weight: bold; }
+.qno .num { font-size: 20pt; font-weight: bold; color: #CC0000; }
+.add  { color: #CC0000; }
+.less { color: #E65100; }
+.amt  { color: #CC0000; }
+.ans  { font-style: italic; font-size: 12pt; color: #000000; }
+.hint { font-style: italic; font-size: 12pt; color: #CC0000; }
+.src  { font-style: italic; font-size: 12pt; color: #555555; }
+.small { font-size: 11pt; font-style: italic; color: #C2185B; }
+
+/* hanging indent — label in its own box, no inherited text-indent */
+.adj > span, .notes > span { padding-left: 4ch; }
+
+/* mbs — working notes */
+.page-block .wn-label { margin-top: 16px; margin-bottom: 4px; }
+.page-block .wn-sub { margin-top: 16px; margin-bottom: 4px; }
+.page-block .formula-box { padding: 14px 22px; margin: 8px 0 12px 0; }
+.page-block .formula-box .line { margin: 8px 0; line-height: 1.6; }
+
+/* account tables — equal Dr/Cr halves + mbs */
+table.wn.tacc { width: 100%; table-layout: fixed; margin: 10px 0 14px 0; }
+table.wn.tacc th, table.wn.tacc td { padding: 7px 10px; }
+
+/* mbs — question table and adjustments */
+table.wn.qt { margin: 14px 0 16px 0; }
+table.wn.qt th, table.wn.qt td { padding: 7px 14px; }
+.adj { margin: 10px 0 12px 0; }
+.adj > span { margin-bottom: 7px; line-height: 1.6; }
+.lbl { display: inline-block; width: 4ch; margin-left: -4ch; font-weight: bold; }
+.adj.wide > span { padding-left: 5ch; }
+.adj.wide .lbl { width: 5ch; margin-left: -5ch; }
+
+/* ---------- LABELS ---------- */
+.sol-label, .part-heading {
+  font-size: 13pt; font-weight: bold; color: #6A0DAD;
+  border-left: 4px solid #6A0DAD; padding-left: 8px;
+  margin-top: 12px; margin-bottom: 6px;
+}
+.wn-label { font-weight: bold; color: #0057B8; margin-top: 10px; }
+.wn-sub   { font-weight: bold; color: #6A0DAD; margin-top: 8px; }
+
+/* ---------- FORMULA BOX ---------- */
+.formula-box {
+  border: 1px solid #6A0DAD;
+  padding: 8px 14px;
+  width: auto;
+  display: inline-block;
+  font-size: 12.5pt;
+  margin: 6px 0;
+  background: #ADADAD !important;
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+.formula-box .line  { display: block; margin: 2px 0; }
+.formula-box .final { font-weight: bold; }
+
+/* ---------- FRACTIONS (print-safe) ---------- */
+.frac {
+  display: inline-block; vertical-align: middle; text-align: center;
+  text-indent: 0; white-space: nowrap;
+  margin: 0 0.15em; font-size: 0.85em; line-height: 1;
+}
+.frac span.num { display: block; text-indent: 0; padding: 0 0.1em; }
+.frac span.den { display: block; text-indent: 0; border-top: 1px solid currentColor; padding: 0 0.1em; }
+
+/* ---------- TABLE TITLES ---------- */
+.tbl-title {
+  text-align: center; font-weight: bold; font-size: 13pt;
+  color: #6A0DAD; text-decoration: underline;
+  margin: 14px 0 2px 0;
+}
+.dr-cr-row {
+  display: flex; justify-content: space-between;
+  font-size: 12pt; font-weight: bold; color: #6A0DAD; margin-bottom: 2px;
+}
+
+/* ---------- TABLES ---------- */
+table.wn {
+  width: auto;
+  table-layout: auto;
+  border-collapse: collapse;
+  font-size: 12.5pt;
+  margin: 8px 0;
+  border-left: 3px solid #0057B8;
+}
+table.wn th, table.wn td {
+  border: 1px solid #000;
+  padding: 4px 6px;
+  vertical-align: top;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+table.wn th {
+  font-style: italic; font-weight: bold; text-align: center;
+  background: #BDBDBD !important;
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+table.wn td.right  { text-align: right; }
+table.wn td.center { text-align: center; }
+table.wn tr.total td    { font-weight: bold; border-top: 2px solid #000; }
+table.wn tr.subtotal td { border-top: 1px solid #000; }
+table.wn .small { color: #C2185B; font-style: italic; font-size: 11pt; }
+table.wn .small { white-space: nowrap; }
+table.wn td.in { padding-left: 22px; }
+table.wn.auto { width: auto; table-layout: auto; }
+
+/* ---------- RULE NOTES & KEY-POINT BOX ---------- */
+.rule-note { font-style: italic; color: #6A0DAD; }
+.key-box {
+  background: #A6A6A6 !important;
+  border-left: 4px solid #00008B;
+  padding: 10px 14px;
+  margin: 12px 0;
+  font-size: 12.5pt;
+}
+.key-box .kb-title { display: block; font-weight: bold; color: #00008B; margin-bottom: 4px; }
+.key-box > span:not(.kb-title) { display: block; padding-left: 3ch; }
+.key-box .mk { display: inline-block; width: 3ch; margin-left: -3ch; }
+
+/* ---------- FINAL ANSWER ---------- */
+.final-ans {
+  font-weight: bold; font-size: 13pt; color: #CC0000;
+  margin-top: 12px; border-top: 1px solid #CC0000; padding-top: 4px;
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="inst">GOODWILL TUITION CENTRE FOR ACCOUNTANCY &amp; INCOME TAX ONLINE</div>
+  <div class="line2">Thevara, Ernakulam &nbsp;|&nbsp; Ph: <span class="ph">9567902805</span> &nbsp;|&nbsp; goodwillonlinetuition.com</div>
+  <div class="date">14 November 2026</div>
+</div>
+
+<div class="page-block">
+  <div class="top-bar">
+    <div class="title">Adjustments in Preparation of Financial Statements</div>
+    <div class="pgref">T.S. Grewal | Q. <span class="num">34</span></div>
+  </div>
+
+  <div class="q">
+    <span><span class="qno">Question <span class="num">34</span>.</span></span>
+    <span>From the following Trial Balance and other information, prepare Trading and Profit &amp; Loss Account for the year ended 31st March, 2026 and Balance Sheet as at that date:</span>
+  </div>
+
+  <table class="wn qt">
+    <tbody>
+      <tr><th>Heads of Accounts</th><th>Dr. (₹)</th><th>Cr. (₹)</th></tr>
+      <tr><td>Sundry Debtors</td><td class="right">3,20,000</td><td class="right">—</td></tr>
+      <tr><td>Stock on 1st April, 2025</td><td class="right">2,20,000</td><td class="right">—</td></tr>
+      <tr><td>Cash in Hand</td><td class="right">350</td><td class="right">—</td></tr>
+      <tr><td>Cash at Bank</td><td class="right">15,450</td><td class="right">—</td></tr>
+      <tr><td>Plant and Machinery</td><td class="right">1,75,000</td><td class="right">—</td></tr>
+      <tr><td>Sundry Creditors</td><td class="right">—</td><td class="right">1,81,500</td></tr>
+      <tr><td>General Expenses</td><td class="right">10,750</td><td class="right">—</td></tr>
+      <tr><td>Sales</td><td class="right">—</td><td class="right">13,45,000</td></tr>
+      <tr><td>Salaries</td><td class="right">22,250</td><td class="right">—</td></tr>
+      <tr><td>Carriage Outwards</td><td class="right">4,000</td><td class="right">—</td></tr>
+      <tr><td>Rent</td><td class="right">9,000</td><td class="right">—</td></tr>
+      <tr><td>Purchases</td><td class="right">11,88,700</td><td class="right">—</td></tr>
+      <tr><td>Discount</td><td class="right">11,000</td><td class="right">—</td></tr>
+      <tr><td>Premises</td><td class="right">3,45,000</td><td class="right">—</td></tr>
+      <tr><td>Capital on 1st April, 2025</td><td class="right">—</td><td class="right">7,95,000</td></tr>
+      <tr class="total"><td>Total</td><td class="right">23,21,500</td><td class="right">23,21,500</td></tr>
+    </tbody>
+  </table>
+
+  <div class="q">
+    <span>Additional Information:</span>
+  </div>
+  <div class="adj">
+    <span><span class="lbl">(i)</span>Closing Stock on 31st March, 2026 was <span class="amt">₹ 1,24,500</span>.</span>
+    <span><span class="lbl">(ii)</span>Rent <span class="amt">₹ 850</span> is unpaid and General Expenses <span class="amt">₹ 1,500</span> are outstanding.</span>
+    <span><span class="lbl">(iii)</span>Write off <span class="amt">₹ 4,000</span> as Bad Debts and create Provision for Doubtful Debts @ <span class="amt">5%</span> on Debtors.</span>
+    <span><span class="lbl">(iv)</span>Depreciate Plant and Machinery by <span class="amt">10%</span> and Premises by <span class="amt">2%</span>.</span>
+    <span><span class="lbl">(v)</span>Manager is entitled to a commission of <span class="amt">5%</span> on net profit after charging his commission.</span>
+    <span><span class="lbl">(vi)</span>A fire broke out on 1st April, 2026 destroying goods costing <span class="amt">₹ 20,000</span>.</span>
+  </div>
+  <div class="q">
+    <span class="ans">[Ans.: Gross Profit – ₹ 60,800; Net Loss – ₹ 42,750; Balance Sheet Total – ₹ 9,36,100.]</span>
+  </div>
+
+  <div class="sol-label">Solution:-</div>
+
+  <div class="wn-label">Working Notes:-</div>
+
+  <div class="wn-sub">WN 1 — Bad Debts and Provision for Doubtful Debts</div>
+  <table class="wn qt">
+    <tbody>
+      <tr><th>Particulars</th><th>₹</th><th>₹</th></tr>
+      <tr><td>Sundry Debtors as per Trial Balance</td><td class="right">3,20,000</td><td class="right"></td></tr>
+      <tr><td class="in"><span class="less">Less:</span> Bad Debts</td><td class="right">4,000</td><td class="right"></td></tr>
+      <tr class="subtotal"><td>Good Debtors</td><td class="right">3,16,000</td><td class="right"></td></tr>
+      <tr><td>New Provision @ 5% <span class="small">(3,16,000 × <span class="frac"><span class="num">5</span><span class="den">100</span></span>)</span></td><td class="right"></td><td class="right">15,800</td></tr>
+    </tbody>
+  </table>
+
+  <table class="wn qt">
+    <tbody>
+      <tr><th>Particulars</th><th>₹</th></tr>
+      <tr><td>Bad Debts written off</td><td class="right">4,000</td></tr>
+      <tr><td class="in"><span class="add">Add:</span> New Provision @ 5%</td><td class="right">15,800</td></tr>
+      <tr class="total"><td>Amount charged to P&amp;L A/c</td><td class="right">19,800</td></tr>
+    </tbody>
+  </table>
+
+  <div class="wn-sub">WN 2 — Manager's Commission</div>
+  <div class="formula-box">
+    <span class="line">Commission = Net Profit before commission × <span class="frac"><span class="num">5</span><span class="den">100 + 5</span></span></span>
+    <span class="line">Net Profit before commission = Gross Profit 60,800 − Expenses 1,03,550</span>
+    <span class="line">= (−) ₹ 42,750 <span class="small">(Net Loss)</span></span>
+    <span class="line final">Manager's Commission = Nil</span>
+  </div>
+
+  <div class="tbl-title">Trading Account for the year ended 31st March, 2026</div>
+  <div class="dr-cr-row"><span>Dr.</span><span>Cr.</span></div>
+  <table class="wn tacc">
+    <colgroup><col style="width:35%"><col style="width:15%"><col style="width:35%"><col style="width:15%"></colgroup>
+    <tbody>
+      <tr><th>Particulars</th><th>₹</th><th>Particulars</th><th>₹</th></tr>
+      <tr><td>To Opening Stock</td><td class="right">2,20,000</td><td>By Sales</td><td class="right">13,45,000</td></tr>
+      <tr><td>To Purchases</td><td class="right">11,88,700</td><td>By Closing Stock</td><td class="right">1,24,500</td></tr>
+      <tr><td>To Gross Profit c/d <span class="small">(transferred to P&amp;L A/c)</span></td><td class="right">60,800</td><td></td><td class="right"></td></tr>
+      <tr class="total"><td>Total</td><td class="right">14,69,500</td><td>Total</td><td class="right">14,69,500</td></tr>
+    </tbody>
+  </table>
+
+  <div class="tbl-title">Profit and Loss Account for the year ended 31st March, 2026</div>
+  <div class="dr-cr-row"><span>Dr.</span><span>Cr.</span></div>
+  <table class="wn tacc">
+    <colgroup><col style="width:26%"><col style="width:12%"><col style="width:12%"><col style="width:26%"><col style="width:12%"><col style="width:12%"></colgroup>
+    <tbody>
+      <tr><th>Particulars</th><th>₹</th><th>₹</th><th>Particulars</th><th>₹</th><th>₹</th></tr>
+      <tr><td>To General Expenses</td><td class="right">10,750</td><td class="right"></td>
+          <td>By Gross Profit b/d</td><td class="right"></td><td class="right">60,800</td></tr>
+      <tr><td class="in"><span class="add">Add:</span> Outstanding</td><td class="right">1,500</td><td class="right">12,250</td>
+          <td>By Net Loss <span class="small">(transferred to Capital A/c)</span></td><td class="right"></td><td class="right">42,750</td></tr>
+      <tr><td>To Salaries</td><td class="right"></td><td class="right">22,250</td>
+          <td></td><td class="right"></td><td class="right"></td></tr>
+      <tr><td>To Carriage Outwards</td><td class="right"></td><td class="right">4,000</td>
+          <td></td><td class="right"></td><td class="right"></td></tr>
+      <tr><td>To Rent</td><td class="right">9,000</td><td class="right"></td>
+          <td></td><td class="right"></td><td class="right"></td></tr>
+      <tr><td class="in"><span class="add">Add:</span> Outstanding</td><td class="right">850</td><td class="right">9,850</td>
+          <td></td><td class="right"></td><td class="right"></td></tr>
+      <tr><td>To Discount</td><td class="right"></td><td class="right">11,000</td>
+          <td></td><td class="right"></td><td class="right"></td></tr>
+      <tr><td>To Bad Debts</td><td class="right">4,000</td><td class="right"></td>
+          <td></td><td class="right"></td><td class="right"></td></tr>
+      <tr><td class="in"><span class="add">Add:</span> New Provision <span class="small">(WN 1)</span></td><td class="right">15,800</td><td class="right">19,800</td>
+          <td></td><td class="right"></td><td class="right"></td></tr>
+      <tr><td>To Depreciation on:</td><td class="right"></td><td class="right"></td>
+          <td></td><td class="right"></td><td class="right"></td></tr>
+      <tr><td class="in">Plant and Machinery <span class="small">(1,75,000 × <span class="frac"><span class="num">10</span><span class="den">100</span></span>)</span></td><td class="right">17,500</td><td class="right"></td>
+          <td></td><td class="right"></td><td class="right"></td></tr>
+      <tr><td class="in">Premises <span class="small">(3,45,000 × <span class="frac"><span class="num">2</span><span class="den">100</span></span>)</span></td><td class="right">6,900</td><td class="right">24,400</td>
+          <td></td><td class="right"></td><td class="right"></td></tr>
+      <tr class="total"><td>Total</td><td class="right"></td><td class="right">1,03,550</td>
+          <td>Total</td><td class="right"></td><td class="right">1,03,550</td></tr>
+    </tbody>
+  </table>
+
+  <div class="tbl-title">Balance Sheet as at 31st March, 2026</div>
+  <table class="wn tacc">
+    <colgroup><col style="width:26%"><col style="width:12%"><col style="width:12%"><col style="width:26%"><col style="width:12%"><col style="width:12%"></colgroup>
+    <tbody>
+      <tr><th>Liabilities</th><th>₹</th><th>₹</th><th>Assets</th><th>₹</th><th>₹</th></tr>
+      <tr><td>Capital</td><td class="right">7,95,000</td><td class="right"></td>
+          <td>Premises</td><td class="right">3,45,000</td><td class="right"></td></tr>
+      <tr><td class="in"><span class="less">Less:</span> Net Loss</td><td class="right">42,750</td><td class="right">7,52,250</td>
+          <td class="in"><span class="less">Less:</span> Depreciation</td><td class="right">6,900</td><td class="right">3,38,100</td></tr>
+      <tr><td>Sundry Creditors</td><td class="right"></td><td class="right">1,81,500</td>
+          <td>Plant and Machinery</td><td class="right">1,75,000</td><td class="right"></td></tr>
+      <tr><td>Outstanding Rent</td><td class="right"></td><td class="right">850</td>
+          <td class="in"><span class="less">Less:</span> Depreciation</td><td class="right">17,500</td><td class="right">1,57,500</td></tr>
+      <tr><td>Outstanding General Expenses</td><td class="right"></td><td class="right">1,500</td>
+          <td>Closing Stock</td><td class="right"></td><td class="right">1,24,500</td></tr>
+      <tr><td></td><td class="right"></td><td class="right"></td>
+          <td>Sundry Debtors</td><td class="right">3,20,000</td><td class="right"></td></tr>
+      <tr><td></td><td class="right"></td><td class="right"></td>
+          <td class="in"><span class="less">Less:</span> Bad Debts</td><td class="right">4,000</td><td class="right"></td></tr>
+      <tr><td></td><td class="right"></td><td class="right"></td>
+          <td></td><td class="right">3,16,000</td><td class="right"></td></tr>
+      <tr><td></td><td class="right"></td><td class="right"></td>
+          <td class="in"><span class="less">Less:</span> Provision for Doubtful Debts <span class="small">(WN 1)</span></td><td class="right">15,800</td><td class="right">3,00,200</td></tr>
+      <tr><td></td><td class="right"></td><td class="right"></td>
+          <td>Cash at Bank</td><td class="right"></td><td class="right">15,450</td></tr>
+      <tr><td></td><td class="right"></td><td class="right"></td>
+          <td>Cash in Hand</td><td class="right"></td><td class="right">350</td></tr>
+      <tr class="total"><td>Total</td><td class="right"></td><td class="right">9,36,100</td>
+          <td>Total</td><td class="right"></td><td class="right">9,36,100</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="page-block">
+  <div class="top-bar">
+    <div class="title">Adjustments in Preparation of Financial Statements</div>
+    <div class="pgref">T.S. Grewal | Q. <span class="num">35</span></div>
+  </div>
+
+  <div class="q">
+    <span><span class="qno">Question <span class="num">35</span>.</span></span>
+    <span>From the following Trial Balance of Shubho, prepare Trading and Profit &amp; Loss Accounts for the year ended 31st March, 2026 and Balance Sheet as at that date:</span>
+  </div>
+
+  <table class="wn qt">
+    <tbody>
+      <tr><th>Heads of Accounts</th><th>Debit Balances (₹)</th><th>Credit Balances (₹)</th></tr>
+      <tr><td>Land and Building</td><td class="right">50,000</td><td class="right"></td></tr>
+      <tr><td>Purchases (Adjusted)</td><td class="right">2,07,500</td><td class="right"></td></tr>
+      <tr><td>Stock (31st March, 2026)</td><td class="right">45,000</td><td class="right"></td></tr>
+      <tr><td>Wages</td><td class="right">45,300</td><td class="right"></td></tr>
+      <tr><td>Salaries</td><td class="right">39,000</td><td class="right"></td></tr>
+      <tr><td>Office Expenses</td><td class="right">15,400</td><td class="right"></td></tr>
+      <tr><td>Carriage Inwards</td><td class="right">1,200</td><td class="right"></td></tr>
+      <tr><td>Carriage Outwards</td><td class="right">2,000</td><td class="right"></td></tr>
+      <tr><td>Discount Allowed</td><td class="right">750</td><td class="right"></td></tr>
+      <tr><td>Discount Received</td><td class="right"></td><td class="right">1,200</td></tr>
+      <tr><td>Bad Debts</td><td class="right">1,200</td><td class="right"></td></tr>
+      <tr><td>Sales</td><td class="right"></td><td class="right">3,83,500</td></tr>
+      <tr><td>Capital Account</td><td class="right"></td><td class="right">1,15,000</td></tr>
+      <tr><td>Chatterji's Loan A/c <span class="small">(Taken on 1st Oct., 2025 @ 18% p.a.)</span></td><td class="right"></td><td class="right">25,000</td></tr>
+      <tr><td>Insurance</td><td class="right">1,500</td><td class="right"></td></tr>
+      <tr><td>Commission</td><td class="right"></td><td class="right">1,500</td></tr>
+      <tr><td>Plant and Machinery</td><td class="right">50,000</td><td class="right"></td></tr>
+      <tr><td>Furniture and Fixtures</td><td class="right">20,000</td><td class="right"></td></tr>
+      <tr><td>Drawings</td><td class="right">20,000</td><td class="right"></td></tr>
+      <tr><td>Sundry Debtors</td><td class="right">40,000</td><td class="right"></td></tr>
+      <tr><td>Sundry Creditors</td><td class="right"></td><td class="right">37,350</td></tr>
+      <tr><td>Cash at Bank</td><td class="right">16,000</td><td class="right"></td></tr>
+      <tr><td>Office Equipments</td><td class="right">12,000</td><td class="right"></td></tr>
+      <tr><td>Expenses Payable</td><td class="right"></td><td class="right">3,300</td></tr>
+      <tr class="total"><td>Total</td><td class="right">5,66,850</td><td class="right">5,66,850</td></tr>
+    </tbody>
+  </table>
+
+  <div class="q">
+    <span>The following adjustments be made:</span>
+  </div>
+  <div class="adj">
+    <span><span class="lbl">(i)</span>Depreciate Land and Building @ <span class="amt">6%</span>, Plant and Machinery @ <span class="amt">10%</span>, Office equipments @ <span class="amt">20%</span> and Furniture and Fixtures @ <span class="amt">15%</span>.</span>
+    <span><span class="lbl">(ii)</span>Create Provision for Doubtful Debts at <span class="amt">2%</span> on Sundry Debtors.</span>
+    <span><span class="lbl">(iii)</span>Insurance includes <span class="amt">₹ 250</span> Insurance Premium paid in advance.</span>
+    <span><span class="lbl">(iv)</span>Provide salary to Shubho <span class="amt">₹ 15,000 p.a.</span></span>
+    <span><span class="lbl">(v)</span>Outstanding Salaries <span class="amt">₹ 11,500</span>.</span>
+    <span><span class="lbl">(vi)</span><span class="amt">10%</span> of the net profit is to be transferred to General Reserve.</span>
+  </div>
+  <div class="q">
+    <span class="ans">[Ans.: Gross Profit – ₹ 1,29,500; Net Profit – ₹ 26,685; Balance Sheet Total – ₹ 2,19,050.]</span>
+  </div>
+
+  <div class="sol-label">Solution:-</div>
+
+  <div class="wn-label">Working Notes:-</div>
+
+  <div class="wn-sub">WN 1 — Salary to Proprietor (Shubho)</div>
+  <div class="formula-box">
+    <span class="line">Salary to Shubho ₹ 15,000 is only provided, not paid, so it is not Drawings.</span>
+    <span class="line">It is treated like Interest on Capital.</span>
+    <span class="line">It is debited to Profit and Loss Account as a charge against profit.</span>
+    <span class="line">It is credited (added) to Shubho's Capital in the Balance Sheet.</span>
+    <span class="line final">Only when Shubho actually withdraws it will it be recorded as Drawings.</span>
+  </div>
+
+  <div class="wn-sub">WN 2 — Interest on Chatterji's Loan</div>
+  <div class="formula-box">
+    <span class="line">Loan taken on 1st October, 2025 — period up to 31st March, 2026 = 6 months</span>
+    <span class="line">Interest = Loan × <span class="frac"><span class="num">Rate</span><span class="den">100</span></span> × <span class="frac"><span class="num">Period</span><span class="den">12</span></span></span>
+    <span class="line">= 25,000 × <span class="frac"><span class="num">18</span><span class="den">100</span></span> × <span class="frac"><span class="num">6</span><span class="den">12</span></span></span>
+    <span class="line final">= ₹ 2,250 <span class="small">(outstanding — not yet paid)</span></span>
+  </div>
+
+  <div class="wn-sub">WN 3 — Transfer to General Reserve</div>
+  <div class="formula-box">
+    <span class="line">Net Profit before transfer = 1,32,200 − 1,02,550 = ₹ 29,650</span>
+    <span class="line">General Reserve = 29,650 × <span class="frac"><span class="num">10</span><span class="den">100</span></span> = ₹ 2,965</span>
+    <span class="line final">Net Profit transferred to Capital = 29,650 − 2,965 = ₹ 26,685</span>
+  </div>
+
+  <div class="tbl-title">Trading Account for the year ended 31st March, 2026</div>
+  <div class="dr-cr-row"><span>Dr.</span><span>Cr.</span></div>
+  <table class="wn tacc">
+    <colgroup><col style="width:35%"><col style="width:15%"><col style="width:35%"><col style="width:15%"></colgroup>
+    <tbody>
+      <tr><th>Particulars</th><th>₹</th><th>Particulars</th><th>₹</th></tr>
+      <tr><td>To Purchases (Adjusted)</td><td class="right">2,07,500</td><td>By Sales</td><td class="right">3,83,500</td></tr>
+      <tr><td>To Wages</td><td class="right">45,300</td><td></td><td class="right"></td></tr>
+      <tr><td>To Carriage Inwards</td><td class="right">1,200</td><td></td><td class="right"></td></tr>
+      <tr><td>To Gross Profit c/d <span class="small">(transferred to P&amp;L A/c)</span></td><td class="right">1,29,500</td><td></td><td class="right"></td></tr>
+      <tr class="total"><td>Total</td><td class="right">3,83,500</td><td>Total</td><td class="right">3,83,500</td></tr>
+    </tbody>
+  </table>
+  <div class="notes">
+    <span class="rule-note">► Purchases are already adjusted for stock, so Closing Stock is not credited to the Trading Account.</span>
+    <span class="rule-note">► Closing Stock of ₹ 45,000 is shown only in the Balance Sheet.</span>
+  </div>
+
+  <div class="tbl-title">Profit and Loss Account for the year ended 31st March, 2026</div>
+  <div class="dr-cr-row"><span>Dr.</span><span>Cr.</span></div>
+  <table class="wn tacc">
+    <colgroup><col style="width:26%"><col style="width:12%"><col style="width:12%"><col style="width:26%"><col style="width:12%"><col style="width:12%"></colgroup>
+    <tbody>
+      <tr><th>Particulars</th><th>₹</th><th>₹</th><th>Particulars</th><th>₹</th><th>₹</th></tr>
+      <tr><td>To Salaries</td><td class="right">39,000</td><td class="right"></td>
+          <td>By Gross Profit b/d</td><td class="right"></td><td class="right">1,29,500</td></tr>
+      <tr><td class="in"><span class="add">Add:</span> Outstanding</td><td class="right">11,500</td><td class="right"></td>
+          <td>By Discount Received</td><td class="right"></td><td class="right">1,200</td></tr>
+      <tr><td class="in"><span class="add">Add:</span> Salary to Shubho <span class="small">(Proprietor — WN 1)</span></td><td class="right">15,000</td><td class="right">65,500</td>
+          <td>By Commission</td><td class="right"></td><td class="right">1,500</td></tr>
+      <tr><td>To Office Expenses</td><td class="right"></td><td class="right">15,400</td>
+          <td></td><td class="right"></td><td class="right"></td></tr>
+      <tr><td>To Carriage Outwards</td><td class="right"></td><td class="right">2,000</td>
+          <td></td><td class="right"></td><td class="right"></td></tr>
+      <tr><td>To Discount Allowed</td><td class="right"></td><td class="right">750</td>
+          <td></td><td class="right"></td><td class="right"></td></tr>
+      <tr><td>To Bad Debts</td><td class="right">1,200</td><td class="right"></td>
+          <td></td><td class="right"></td><td class="right"></td></tr>
+      <tr><td class="in"><span class="add">Add:</span> Provision for Doubtful Debts <span class="small">(40,000 × <span class="frac"><span class="num">2</span><span class="den">100</span></span>)</span></td><td class="right">800</td><td class="right">2,000</td>
+          <td></td><td class="right"></td><td class="right"></td></tr>
+      <tr><td>To Insurance</td><td class="right">1,500</td><td class="right"></td>
+          <td></td><td class="right"></td><td class="right"></td></tr>
+      <tr><td class="in"><span class="less">Less:</span> Prepaid</td><td class="right">250</td><td class="right">1,250</td>
+          <td></td><td class="right"></td><td class="right"></td></tr>
+      <tr><td>To Interest on Chatterji's Loan <span class="small">(WN 2)</span></td><td class="right"></td><td class="right">2,250</td>
+          <td></td><td class="right"></td><td class="right"></td></tr>
+      <tr><td>To Depreciation on:</td><td class="right"></td><td class="right"></td>
+          <td></td><td class="right"></td><td class="right"></td></tr>
+      <tr><td class="in">Land and Building <span class="small">(50,000 × <span class="frac"><span class="num">6</span><span class="den">100</span></span>)</span></td><td class="right">3,000</td><td class="right"></td>
+          <td></td><td class="right"></td><td class="right"></td></tr>
+      <tr><td class="in">Plant and Machinery <span class="small">(50,000 × <span class="frac"><span class="num">10</span><span class="den">100</span></span>)</span></td><td class="right">5,000</td><td class="right"></td>
+          <td></td><td class="right"></td><td class="right"></td></tr>
+      <tr><td class="in">Office Equipments <span class="small">(12,000 × <span class="frac"><span class="num">20</span><span class="den">100</span></span>)</span></td><td class="right">2,400</td><td class="right"></td>
+          <td></td><td class="right"></td><td class="right"></td></tr>
+      <tr><td class="in">Furniture and Fixtures <span class="small">(20,000 × <span class="frac"><span class="num">15</span><span class="den">100</span></span>)</span></td><td class="right">3,000</td><td class="right">13,400</td>
+          <td></td><td class="right"></td><td class="right"></td></tr>
+      <tr><td>To General Reserve <span class="small">(WN 3)</span></td><td class="right"></td><td class="right">2,965</td>
+          <td></td><td class="right"></td><td class="right"></td></tr>
+      <tr><td>To Net Profit <span class="small">(transferred to Capital A/c)</span></td><td class="right"></td><td class="right">26,685</td>
+          <td></td><td class="right"></td><td class="right"></td></tr>
+      <tr class="total"><td>Total</td><td class="right"></td><td class="right">1,32,200</td>
+          <td>Total</td><td class="right"></td><td class="right">1,32,200</td></tr>
+    </tbody>
+  </table>
+
+  <div class="tbl-title">Balance Sheet as at 31st March, 2026</div>
+  <table class="wn tacc">
+    <colgroup><col style="width:26%"><col style="width:12%"><col style="width:12%"><col style="width:26%"><col style="width:12%"><col style="width:12%"></colgroup>
+    <tbody>
+      <tr><th>Liabilities</th><th>₹</th><th>₹</th><th>Assets</th><th>₹</th><th>₹</th></tr>
+      <tr><td>Capital</td><td class="right">1,15,000</td><td class="right"></td>
+          <td>Land and Building</td><td class="right">50,000</td><td class="right"></td></tr>
+      <tr><td class="in"><span class="add">Add:</span> Salary to Shubho <span class="small">(WN 1)</span></td><td class="right">15,000</td><td class="right"></td>
+          <td class="in"><span class="less">Less:</span> Depreciation</td><td class="right">3,000</td><td class="right">47,000</td></tr>
+      <tr><td class="in"><span class="add">Add:</span> Net Profit</td><td class="right">26,685</td><td class="right"></td>
+          <td>Plant and Machinery</td><td class="right">50,000</td><td class="right"></td></tr>
+      <tr><td></td><td class="right">1,56,685</td><td class="right"></td>
+          <td class="in"><span class="less">Less:</span> Depreciation</td><td class="right">5,000</td><td class="right">45,000</td></tr>
+      <tr><td class="in"><span class="less">Less:</span> Drawings</td><td class="right">20,000</td><td class="right">1,36,685</td>
+          <td>Furniture and Fixtures</td><td class="right">20,000</td><td class="right"></td></tr>
+      <tr><td>General Reserve <span class="small">(WN 3)</span></td><td class="right"></td><td class="right">2,965</td>
+          <td class="in"><span class="less">Less:</span> Depreciation</td><td class="right">3,000</td><td class="right">17,000</td></tr>
+      <tr><td>Chatterji's Loan</td><td class="right">25,000</td><td class="right"></td>
+          <td>Office Equipments</td><td class="right">12,000</td><td class="right"></td></tr>
+      <tr><td class="in"><span class="add">Add:</span> Interest Outstanding <span class="small">(WN 2)</span></td><td class="right">2,250</td><td class="right">27,250</td>
+          <td class="in"><span class="less">Less:</span> Depreciation</td><td class="right">2,400</td><td class="right">9,600</td></tr>
+      <tr><td>Sundry Creditors</td><td class="right"></td><td class="right">37,350</td>
+          <td>Closing Stock</td><td class="right"></td><td class="right">45,000</td></tr>
+      <tr><td>Expenses Payable</td><td class="right"></td><td class="right">3,300</td>
+          <td>Sundry Debtors</td><td class="right">40,000</td><td class="right"></td></tr>
+      <tr><td>Outstanding Salaries</td><td class="right"></td><td class="right">11,500</td>
+          <td class="in"><span class="less">Less:</span> Provision for Doubtful Debts</td><td class="right">800</td><td class="right">39,200</td></tr>
+      <tr><td></td><td class="right"></td><td class="right"></td>
+          <td>Prepaid Insurance</td><td class="right"></td><td class="right">250</td></tr>
+      <tr><td></td><td class="right"></td><td class="right"></td>
+          <td>Cash at Bank</td><td class="right"></td><td class="right">16,000</td></tr>
+      <tr class="total"><td>Total</td><td class="right"></td><td class="right">2,19,050</td>
+          <td>Total</td><td class="right"></td><td class="right">2,19,050</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="page-block">
+  <div class="top-bar">
+    <div class="title">Adjustments in Preparation of Financial Statements</div>
+    <div class="pgref">T.S. Grewal | Q. <span class="num">36</span></div>
+  </div>
+
+  <div class="q">
+    <span><span class="qno">Question <span class="num">36</span>.</span></span>
+    <span>Prepare Trading and Profit &amp; Loss Account for the year ending on 31st March, 2026 and Balance Sheet as on that date from the following balances of Trial Balance:</span>
+  </div>
+
+  <table class="wn qt">
+    <tbody>
+      <tr><th>Particulars</th><th>₹</th><th>Particulars</th><th>₹</th></tr>
+      <tr><td><b>Debit Balances</b></td><td class="right"></td><td>Bills Receivable</td><td class="right">7,000</td></tr>
+      <tr><td>Drawings</td><td class="right">10,000</td><td>Discount</td><td class="right">1,000</td></tr>
+      <tr><td>Machinery</td><td class="right">50,000</td><td>Wages and Salaries</td><td class="right">5,000</td></tr>
+      <tr><td>Stock</td><td class="right">25,000</td><td>Cash in Hand</td><td class="right">6,000</td></tr>
+      <tr><td>Purchases</td><td class="right">90,000</td><td>Cash at Bank</td><td class="right">32,000</td></tr>
+      <tr><td>Returns Inward</td><td class="right">2,000</td><td><b>Credit Balances</b></td><td class="right"></td></tr>
+      <tr><td>Furniture</td><td class="right">10,000</td><td>Capital</td><td class="right">1,00,000</td></tr>
+      <tr><td>Carriage</td><td class="right">2,000</td><td>Returns Outward</td><td class="right">1,000</td></tr>
+      <tr><td>Rent, Rates and Taxes</td><td class="right">5,000</td><td>Provision for Doubtful Debts</td><td class="right">2,000</td></tr>
+      <tr><td>Printing and Stationery</td><td class="right">1,000</td><td>Creditors</td><td class="right">37,700</td></tr>
+      <tr><td>Office Expenses</td><td class="right">1,200</td><td>Sales</td><td class="right">1,28,000</td></tr>
+      <tr><td>Bad Debts</td><td class="right">1,500</td><td>General Reserve</td><td class="right">20,000</td></tr>
+      <tr><td>Sundry Debtors</td><td class="right">40,000</td><td></td><td class="right"></td></tr>
+    </tbody>
+  </table>
+
+  <div class="adj wide">
+    <span><span class="lbl">(i)</span>The value of stock on 31st March, 2026, <span class="amt">₹ 40,000</span>.</span>
+    <span><span class="lbl">(ii)</span>Provision for Doubtful Debts is to be maintained at <span class="amt">5%</span> on Sundry Debtors.</span>
+    <span><span class="lbl">(iii)</span>Charge depreciation on both Furniture and Machinery @ <span class="amt">10% p.a.</span></span>
+    <span><span class="lbl">(iv)</span>Machinery costing <span class="amt">₹ 20,000</span> was purchased on 1st January, 2026.</span>
+    <span><span class="lbl">(v)</span>Allow interest on capital @ <span class="amt">5% p.a.</span></span>
+    <span><span class="lbl">(vi)</span>A fire occurred on 20th March, 2026 and stock of the value of <span class="amt">₹ 7,000</span> was destroyed.</span>
+    <span>It was fully insured and the insurance company admitted the claim in full.</span>
+    <span><span class="lbl">(vii)</span><span class="amt">10%</span> of net profit to be carried to General Reserve.</span>
+  </div>
+  <div class="q">
+    <span class="hint">[Hint: Net Profit, i.e., Profit before transfer to General Reserve – ₹ 32,800.</span>
+    <span class="hint">Transfer to General Reserve – ₹ 3,280 (i.e., 10% of ₹ 32,800.)]</span>
+  </div>
+
+  <div class="sol-label">Solution:-</div>
+
+  <div class="wn-label">Working Notes:-</div>
+
+  <div class="wn-sub">WN 1 — Depreciation on Machinery</div>
+  <table class="wn qt">
+    <tbody>
+      <tr><th>Particulars</th><th>₹</th></tr>
+      <tr><td>Old Machinery <span class="small">((50,000 − 20,000) × <span class="frac"><span class="num">10</span><span class="den">100</span></span>)</span></td><td class="right">3,000</td></tr>
+      <tr><td class="in"><span class="add">Add:</span> New Machinery <span class="small">(20,000 × <span class="frac"><span class="num">10</span><span class="den">100</span></span> × <span class="frac"><span class="num">3</span><span class="den">12</span></span>)</span></td><td class="right">500</td></tr>
+      <tr class="total"><td>Total Depreciation on Machinery</td><td class="right">3,500</td></tr>
+    </tbody>
+  </table>
+  <div class="notes">
+    <span class="rule-note">► New Machinery was used only for 3 months (1st January to 31st March, 2026).</span>
+  </div>
+
+  <div class="wn-sub">WN 2 — Bad Debts and Provision for Doubtful Debts</div>
+  <table class="wn qt">
+    <tbody>
+      <tr><th>Particulars</th><th>₹</th></tr>
+      <tr><td>Bad Debts as per Trial Balance</td><td class="right">1,500</td></tr>
+      <tr><td class="in"><span class="add">Add:</span> New Provision @ 5% <span class="small">(40,000 × <span class="frac"><span class="num">5</span><span class="den">100</span></span>)</span></td><td class="right">2,000</td></tr>
+      <tr class="subtotal"><td></td><td class="right">3,500</td></tr>
+      <tr><td class="in"><span class="less">Less:</span> Old Provision</td><td class="right">2,000</td></tr>
+      <tr class="total"><td>Amount charged to P&amp;L A/c</td><td class="right">1,500</td></tr>
+    </tbody>
+  </table>
+
+  <div class="wn-sub">WN 3 — Stock Destroyed by Fire</div>
+  <div class="formula-box">
+    <span class="line">Stock destroyed by fire = ₹ 7,000.</span>
+    <span class="line">It is deducted from Purchases in the Trading Account.</span>
+    <span class="line">The claim is admitted in full, so there is no loss to charge to the Profit and Loss Account.</span>
+    <span class="line final">Insurance Company (Claim) ₹ 7,000 is shown as an asset in the Balance Sheet.</span>
+  </div>
+
+  <div class="wn-sub">WN 4 — Transfer to General Reserve</div>
+  <div class="formula-box">
+    <span class="line">Net Profit before transfer = 52,000 − 19,200 = ₹ 32,800</span>
+    <span class="line">General Reserve = 32,800 × <span class="frac"><span class="num">10</span><span class="den">100</span></span> = ₹ 3,280</span>
+    <span class="line final">Net Profit transferred to Capital = 32,800 − 3,280 = ₹ 29,520</span>
+  </div>
+
+  <div class="tbl-title">Trading Account for the year ended 31st March, 2026</div>
+  <div class="dr-cr-row"><span>Dr.</span><span>Cr.</span></div>
+  <table class="wn tacc">
+    <colgroup><col style="width:26%"><col style="width:12%"><col style="width:12%"><col style="width:26%"><col style="width:12%"><col style="width:12%"></colgroup>
+    <tbody>
+      <tr><th>Particulars</th><th>₹</th><th>₹</th><th>Particulars</th><th>₹</th><th>₹</th></tr>
+      <tr><td>To Opening Stock</td><td class="right"></td><td class="right">25,000</td>
+          <td>By Sales</td><td class="right">1,28,000</td><td class="right"></td></tr>
+      <tr><td>To Purchases</td><td class="right">90,000</td><td class="right"></td>
+          <td class="in"><span class="less">Less:</span> Returns Inward</td><td class="right">2,000</td><td class="right">1,26,000</td></tr>
+      <tr><td class="in"><span class="less">Less:</span> Returns Outward</td><td class="right">1,000</td><td class="right"></td>
+          <td>By Closing Stock</td><td class="right"></td><td class="right">40,000</td></tr>
+      <tr><td></td><td class="right">89,000</td><td class="right"></td>
+          <td></td><td class="right"></td><td class="right"></td></tr>
+      <tr><td class="in"><span class="less">Less:</span> Stock destroyed by Fire <span class="small">(WN 3)</span></td><td class="right">7,000</td><td class="right">82,000</td>
+          <td></td><td class="right"></td><td class="right"></td></tr>
+      <tr><td>To Carriage</td><td class="right"></td><td class="right">2,000</td>
+          <td></td><td class="right"></td><td class="right"></td></tr>
+      <tr><td>To Wages and Salaries</td><td class="right"></td><td class="right">5,000</td>
+          <td></td><td class="right"></td><td class="right"></td></tr>
+      <tr><td>To Gross Profit c/d <span class="small">(transferred to P&amp;L A/c)</span></td><td class="right"></td><td class="right">52,000</td>
+          <td></td><td class="right"></td><td class="right"></td></tr>
+      <tr class="total"><td>Total</td><td class="right"></td><td class="right">1,66,000</td>
+          <td>Total</td><td class="right"></td><td class="right">1,66,000</td></tr>
+    </tbody>
+  </table>
+
+  <div class="tbl-title">Profit and Loss Account for the year ended 31st March, 2026</div>
+  <div class="dr-cr-row"><span>Dr.</span><span>Cr.</span></div>
+  <table class="wn tacc">
+    <colgroup><col style="width:26%"><col style="width:12%"><col style="width:12%"><col style="width:26%"><col style="width:12%"><col style="width:12%"></colgroup>
+    <tbody>
+      <tr><th>Particulars</th><th>₹</th><th>₹</th><th>Particulars</th><th>₹</th><th>₹</th></tr>
+      <tr><td>To Rent, Rates and Taxes</td><td class="right"></td><td class="right">5,000</td>
+          <td>By Gross Profit b/d</td><td class="right"></td><td class="right">52,000</td></tr>
+      <tr><td>To Printing and Stationery</td><td class="right"></td><td class="right">1,000</td>
+          <td></td><td class="right"></td><td class="right"></td></tr>
+      <tr><td>To Office Expenses</td><td class="right"></td><td class="right">1,200</td>
+          <td></td><td class="right"></td><td class="right"></td></tr>
+      <tr><td>To Discount</td><td class="right"></td><td class="right">1,000</td>
+          <td></td><td class="right"></td><td class="right"></td></tr>
+      <tr><td>To Bad Debts</td><td class="right">1,500</td><td class="right"></td>
+          <td></td><td class="right"></td><td class="right"></td></tr>
+      <tr><td class="in"><span class="add">Add:</span> New Provision <span class="small">(WN 2)</span></td><td class="right">2,000</td><td class="right"></td>
+          <td></td><td class="right"></td><td class="right"></td></tr>
+      <tr><td></td><td class="right">3,500</td><td class="right"></td>
+          <td></td><td class="right"></td><td class="right"></td></tr>
+      <tr><td class="in"><span class="less">Less:</span> Old Provision</td><td class="right">2,000</td><td class="right">1,500</td>
+          <td></td><td class="right"></td><td class="right"></td></tr>
+      <tr><td>To Depreciation on:</td><td class="right"></td><td class="right"></td>
+          <td></td><td class="right"></td><td class="right"></td></tr>
+      <tr><td class="in">Furniture <span class="small">(10,000 × <span class="frac"><span class="num">10</span><span class="den">100</span></span>)</span></td><td class="right">1,000</td><td class="right"></td>
+          <td></td><td class="right"></td><td class="right"></td></tr>
+      <tr><td class="in">Machinery <span class="small">(WN 1)</span></td><td class="right">3,500</td><td class="right">4,500</td>
+          <td></td><td class="right"></td><td class="right"></td></tr>
+      <tr><td>To Interest on Capital <span class="small">(1,00,000 × <span class="frac"><span class="num">5</span><span class="den">100</span></span>)</span></td><td class="right"></td><td class="right">5,000</td>
+          <td></td><td class="right"></td><td class="right"></td></tr>
+      <tr><td>To General Reserve <span class="small">(WN 4)</span></td><td class="right"></td><td class="right">3,280</td>
+          <td></td><td class="right"></td><td class="right"></td></tr>
+      <tr><td>To Net Profit <span class="small">(transferred to Capital A/c)</span></td><td class="right"></td><td class="right">29,520</td>
+          <td></td><td class="right"></td><td class="right"></td></tr>
+      <tr class="total"><td>Total</td><td class="right"></td><td class="right">52,000</td>
+          <td>Total</td><td class="right"></td><td class="right">52,000</td></tr>
+    </tbody>
+  </table>
+
+  <div class="tbl-title">Balance Sheet as at 31st March, 2026</div>
+  <table class="wn tacc">
+    <colgroup><col style="width:26%"><col style="width:12%"><col style="width:12%"><col style="width:26%"><col style="width:12%"><col style="width:12%"></colgroup>
+    <tbody>
+      <tr><th>Liabilities</th><th>₹</th><th>₹</th><th>Assets</th><th>₹</th><th>₹</th></tr>
+      <tr><td>Capital</td><td class="right">1,00,000</td><td class="right"></td>
+          <td>Machinery</td><td class="right">50,000</td><td class="right"></td></tr>
+      <tr><td class="in"><span class="add">Add:</span> Interest on Capital</td><td class="right">5,000</td><td class="right"></td>
+          <td class="in"><span class="less">Less:</span> Depreciation <span class="small">(WN 1)</span></td><td class="right">3,500</td><td class="right">46,500</td></tr>
+      <tr><td class="in"><span class="add">Add:</span> Net Profit</td><td class="right">29,520</td><td class="right"></td>
+          <td>Furniture</td><td class="right">10,000</td><td class="right"></td></tr>
+      <tr><td></td><td class="right">1,34,520</td><td class="right"></td>
+          <td class="in"><span class="less">Less:</span> Depreciation</td><td class="right">1,000</td><td class="right">9,000</td></tr>
+      <tr><td class="in"><span class="less">Less:</span> Drawings</td><td class="right">10,000</td><td class="right">1,24,520</td>
+          <td>Closing Stock</td><td class="right"></td><td class="right">40,000</td></tr>
+      <tr><td>General Reserve</td><td class="right">20,000</td><td class="right"></td>
+          <td>Insurance Company <span class="small">(Claim — WN 3)</span></td><td class="right"></td><td class="right">7,000</td></tr>
+      <tr><td class="in"><span class="add">Add:</span> Transfer <span class="small">(WN 4)</span></td><td class="right">3,280</td><td class="right">23,280</td>
+          <td>Sundry Debtors</td><td class="right">40,000</td><td class="right"></td></tr>
+      <tr><td>Creditors</td><td class="right"></td><td class="right">37,700</td>
+          <td class="in"><span class="less">Less:</span> Provision for Doubtful Debts</td><td class="right">2,000</td><td class="right">38,000</td></tr>
+      <tr><td></td><td class="right"></td><td class="right"></td>
+          <td>Bills Receivable</td><td class="right"></td><td class="right">7,000</td></tr>
+      <tr><td></td><td class="right"></td><td class="right"></td>
+          <td>Cash in Hand</td><td class="right"></td><td class="right">6,000</td></tr>
+      <tr><td></td><td class="right"></td><td class="right"></td>
+          <td>Cash at Bank</td><td class="right"></td><td class="right">32,000</td></tr>
+      <tr class="total"><td>Total</td><td class="right"></td><td class="right">1,85,500</td>
+          <td>Total</td><td class="right"></td><td class="right">1,85,500</td></tr>
+    </tbody>
+  </table>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,105 @@
+{
+"hook": [
+"Last video's quiz answer: six thousand rupees. Eight thousand, minus the claim of two thousand. Well done if you got it!",
+"Now, C B S E Class Eleven. T. S. Graywaal, Question thirty-eight.",
+"This trial balance has a trap: purchases adjusted.",
+"So where does closing stock go? Let's solve it together."
+],
+"question": [
+"Here is the question. The trial balance of Ashok, as on thirty-first March, twenty twenty-six.",
+"Debit side: building, purchases adjusted, salaries, bad debts, wages, rent, prepaid rent, insurance, furniture, drawings, debtors, and closing stock.",
+"Credit side: capital, sales, wages outstanding, provision for depreciation on furniture, apprentice premium, and creditors.",
+"Both sides total six lakh rupees.",
+"Notice three items in green: purchases adjusted with closing stock, wages outstanding, and prepaid rent. Their adjustments are already done."
+],
+"adjust": [
+"Now the five adjustments.",
+"One. Salaries for March, twenty twenty-six, of one thousand rupees were unpaid. And the balance included eight hundred rupees paid in advance.",
+"Two. Insurance is prepaid to the extent of two thousand rupees.",
+"Three. Depreciate furniture by ten percent on original cost, and building by five percent.",
+"Four. Stock of one thousand five hundred rupees was taken by Ashok for his personal use.",
+"Five. Make a provision for doubtful debts equal to ten percent of sundry debtors.",
+"Pause the video, and try it yourself. Then check with me."
+],
+"already": [
+"First, the big trap. Items that are already adjusted.",
+"Purchases adjusted means opening stock, purchases return and closing stock are already adjusted in purchases.",
+"So in the trading account, we show only adjusted purchases. No opening stock, and no closing stock.",
+"Closing stock is inside the trial balance, so it goes only to the assets side of the balance sheet.",
+"Wages outstanding and prepaid rent are also inside the trial balance. Their entries are already passed.",
+"So wages outstanding goes only to liabilities, and prepaid rent only to assets. Do not adjust them again!"
+],
+"a1": [
+"Adjustment one. Salaries.",
+"Salaries in the trial balance, five thousand. Add outstanding salaries, one thousand. Six thousand.",
+"Less salaries paid in advance, eight hundred. Five thousand two hundred goes to profit and loss.",
+"In the balance sheet, outstanding salaries of one thousand is a liability, and prepaid salaries of eight hundred is an asset."
+],
+"a2": [
+"Adjustment two. Prepaid insurance.",
+"Insurance, five thousand, less prepaid two thousand. Three thousand goes to profit and loss.",
+"And prepaid insurance, two thousand, is an asset in the balance sheet."
+],
+"a3": [
+"Adjustment three. Depreciation.",
+"Building at five percent. One lakh fifty thousand into five, over hundred. Seven thousand five hundred.",
+"Furniture at ten percent on original cost. Sixty thousand into ten, over hundred. Six thousand.",
+"Total depreciation, thirteen thousand five hundred, goes to profit and loss.",
+"Furniture has a provision for depreciation account. Twelve thousand plus six thousand makes eighteen thousand.",
+"In the balance sheet, furniture is sixty thousand, less provision eighteen thousand. Forty-two thousand.",
+"And building is one lakh fifty thousand, less seven thousand five hundred. One lakh forty-two thousand five hundred."
+],
+"a4": [
+"Adjustment four. Goods taken for personal use.",
+"Ashok took stock of one thousand five hundred. Deduct it from purchases adjusted. Two lakh eighty-eight thousand five hundred.",
+"And add it to drawings. Five thousand plus one thousand five hundred. Six thousand five hundred, deducted from capital."
+],
+"a5": [
+"Adjustment five. Provision for doubtful debts.",
+"Ten percent of debtors. Twenty-five thousand into ten, over hundred. Two thousand five hundred.",
+"Debit profit and loss: bad debts two thousand, plus new provision two thousand five hundred. Four thousand five hundred.",
+"In the balance sheet, debtors twenty-five thousand, less provision two thousand five hundred. Twenty-two thousand five hundred."
+],
+"trading": [
+"Now the trading account of Ashok, for the year ended thirty-first March, twenty twenty-six.",
+"To purchases adjusted, two lakh ninety thousand. Less goods taken by Ashok, one thousand five hundred. Two lakh eighty-eight thousand five hundred.",
+"To wages, ten thousand.",
+"Credit side. By sales, five lakh twenty-nine thousand five hundred. And no closing stock here!",
+"Gross profit, two lakh thirty-one thousand rupees."
+],
+"pl": [
+"Next, the profit and loss account.",
+"By gross profit, two lakh thirty-one thousand. By apprentice premium, five hundred. Total, two lakh thirty-one thousand five hundred.",
+"Debit side. Salaries, five thousand two hundred.",
+"Bad debts and provision, four thousand five hundred.",
+"Rent, five thousand. Insurance, three thousand.",
+"Depreciation. Building, seven thousand five hundred. Furniture, six thousand. Total, thirteen thousand five hundred.",
+"Net profit, two lakh three hundred rupees."
+],
+"bs": [
+"Finally, the balance sheet of Ashok, as at thirty-first March, twenty twenty-six.",
+"Capital, thirty thousand. Add net profit, two lakh three hundred. Less drawings, six thousand five hundred. Two lakh twenty-three thousand eight hundred.",
+"Sundry creditors, twenty thousand. Wages outstanding, eight thousand. Outstanding salaries, one thousand.",
+"Liabilities total, two lakh fifty-two thousand eight hundred.",
+"Assets. Building, one lakh forty-two thousand five hundred. Furniture, forty-two thousand.",
+"Closing stock, forty thousand. Sundry debtors, twenty-two thousand five hundred.",
+"Prepaid rent, three thousand. Prepaid salaries, eight hundred. Prepaid insurance, two thousand.",
+"Assets total, two lakh fifty-two thousand eight hundred. The balance sheet tallies!"
+],
+"traps": [
+"Four exam traps from this question.",
+"Trap one. Purchases adjusted: no opening stock and no closing stock in the trading account. Closing stock goes only to the balance sheet.",
+"Trap two. Wages outstanding and prepaid rent are inside the trial balance. Show them only in the balance sheet. Never adjust them twice.",
+"Trap three. Furniture depreciation goes to the provision account. Show furniture at cost, less the total provision of eighteen thousand.",
+"Trap four. Goods taken for personal use. Deduct them from purchases, and add them to drawings."
+],
+"recap": [
+"Let's recap.",
+"Gross profit, two lakh thirty-one thousand.",
+"Net profit, two lakh three hundred.",
+"Balance sheet total, two lakh fifty-two thousand eight hundred, on both sides.",
+"Remember: if it is already in the trial balance, show it only once.",
+"Want these solved notes as a P D F? Message us on WhatsApp, and book a paid demo class.",
+"Subscribe for more T. S. Graywaal solutions!"
+]
+}

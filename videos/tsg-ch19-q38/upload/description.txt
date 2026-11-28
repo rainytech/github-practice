@@ -1,0 +1,60 @@
+CBSE Class 11 Accountancy · T.S. Grewal (2026–27) · Adjustments in Preparation of Financial Statements · Question 38 · Pages 19.90–19.91
+
+Final accounts of Ashok with "Purchases (Adjusted)" and 5 adjustments: Trading Account, Profit & Loss Account and Balance Sheet as at 31st March, 2026 — explained by Rainy Goodwill. Pause after the question and try it yourself first!
+
+✅ ANSWER (matches the textbook)
+Gross Profit ₹2,31,000 · Net Profit ₹2,00,300 · Balance Sheet total ₹2,52,800 (tallied ✓)
+
+🪤 THE BIG TRAP — ITEMS ALREADY ADJUSTED
+• Purchases (Adjusted) = Opening Stock + Purchases − Purchases Return − Closing Stock. So the Trading Account shows no Opening Stock and no Closing Stock.
+• Closing Stock ₹40,000 is inside the Trial Balance → Balance Sheet (Assets) only.
+• Wages Outstanding ₹8,000 → Liabilities only; Prepaid Rent ₹3,000 → Assets only. Never adjust them twice.
+
+📘 THE 5 ADJUSTMENTS
+(i) Salaries 5,000 + 1,000 outstanding − 800 paid in advance = ₹5,200 to P&L; Outstanding Salaries ₹1,000 (liability), Prepaid Salaries ₹800 (asset).
+(ii) Insurance 5,000 − 2,000 prepaid = ₹3,000 to P&L; Prepaid Insurance ₹2,000 (asset).
+(iii) Depreciation: Building 1,50,000 × 5% = ₹7,500; Furniture 60,000 × 10% = ₹6,000; total ₹13,500 to P&L. Provision for Depreciation on Furniture 12,000 + 6,000 = ₹18,000 → Furniture 60,000 − 18,000 = ₹42,000.
+(iv) Goods ₹1,500 taken by Ashok → Purchases (Adjusted) 2,90,000 − 1,500 = ₹2,88,500; Drawings 5,000 + 1,500 = ₹6,500.
+(v) Provision for Doubtful Debts 10% of 25,000 = ₹2,500 → P&L: Bad Debts 2,000 + 2,500 = ₹4,500; Debtors 25,000 − 2,500 = ₹22,500.
+
+📗 TRADING ACCOUNT
+Purchases (Adjusted) 2,88,500 · Wages 10,000 · Gross Profit 2,31,000 | Sales 5,29,500
+
+📗 PROFIT & LOSS ACCOUNT
+Salaries 5,200 · Bad Debts & Provision 4,500 · Rent 5,000 · Insurance 3,000 · Depreciation 13,500 · Net Profit 2,00,300 | Gross Profit 2,31,000 + Apprentice Premium 500 = 2,31,500
+
+📗 BALANCE SHEET (₹2,52,800)
+Liabilities: Capital 30,000 + 2,00,300 − 6,500 = 2,23,800 · Sundry Creditors 20,000 · Wages Outstanding 8,000 · Outstanding Salaries 1,000
+Assets: Building 1,42,500 · Furniture 42,000 · Closing Stock 40,000 · Sundry Debtors 22,500 · Prepaid Rent 3,000 · Prepaid Salaries 800 · Prepaid Insurance 2,000
+
+⏱️ CHAPTERS
+0:00 Q39 quiz answer · Purchases Adjusted?
+0:24 The question (Trial Balance)
+1:01 The 5 adjustments (pause & try)
+1:46 The big trap: items already adjusted
+2:25 (i) Salaries outstanding & in advance
+2:52 (ii) Prepaid insurance
+3:08 (iii) Depreciation & provision on furniture
+3:52 (iv) Goods taken for personal use
+4:11 (v) Provision for doubtful debts
+4:39 Trading Account
+5:10 Profit & Loss Account
+5:46 Balance Sheet
+6:39 4 exam traps
+7:16 Recap
+
+▶ Previous: Q39 Final Accounts with 8 Adjustments — https://youtu.be/xARyjWijgpQ
+
+📄 Want these solved notes as a PDF (Questions 36, 37 & 38)? Message us on WhatsApp.
+
+👨‍🏫 ABOUT US
+Rainy Goodwill · Goodwill Tuition Centre, Ernakulam, Kerala — 30 years of teaching Accountancy, since 1999.
+
+🌐 www.goodwillonlinetuition.com
+📞 WhatsApp: +91 95679 02805 → https://wa.me/919567902805
+Book a paid demo class on WhatsApp.
+Online Accountancy classes for CBSE Class 11 & 12 students in UAE, Saudi Arabia, Qatar, Kuwait, Oman & Bahrain.
+
+Disclaimer: This video is an independent explanation for students. T.S. Grewal's Double Entry Book Keeping is referred to only so students can find the question in their own textbook.
+
+#TSGrewal #CBSEClass11 #Accountancy #FinalAccounts #BalanceSheet

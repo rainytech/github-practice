@@ -1,0 +1,55 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; font-family: "Inter", sans-serif; color: #111; }
+    .card { position: absolute; left: 60px; top: 30px; width: 1800px; background: #B8B8B8; color: #111; border-radius: 16px; padding: 10px 24px 16px; border-left: 16px solid #6A0DAD; font-family: "EB Garamond", serif; box-shadow: 0 14px 34px rgba(0,0,0,0.3); }
+    .tt { text-align: center; font-weight: 700; font-size: 42px; color: #6A0DAD; text-decoration: underline; line-height: 1.1; }
+    .ts { text-align: center; font-style: italic; font-size: 30px; color: #6A0DAD; }
+    .drcr { display: flex; justify-content: space-between; font-weight: 700; font-size: 30px; color: #6A0DAD; padding: 0 6px; }
+    .two { display: flex; }
+    .two table { width: 50%; border-collapse: collapse; font-size: 36px; }
+    th { background: #A6A6A6; font-style: italic; padding: 0 10px; border: 2px solid #000; }
+    td { padding: 0 10px; border-left: 2px solid #000; border-right: 2px solid #000; line-height: 1.26; }
+    td.r { text-align: right; white-space: nowrap; width: 140px; }
+    tr.tot td { font-weight: 700; border-top: 3px solid #000; border-bottom: 5px double #000; }
+    tr.bal td { font-weight: 700; }
+    .w { color: #8E0E42; font-style: italic; font-size: 0.86em; }
+    .stamp { position: absolute; right: 120px; bottom: 40px; background: #CC0000; color: #fff; font-family: "Archivo Black", sans-serif; font-size: 52px; padding: 10px 34px; border-radius: 16px; transform: rotate(-4deg); box-shadow: 0 12px 30px rgba(0,0,0,0.45); }
+  </style>
+  <div id="root" data-composition-id="pl" data-width="1920" data-height="1080">
+    <div class="card clip" id="pl-card" data-start="0.2" data-duration="57.6" data-track-index="0">
+      <div class="tt">Profit &amp; Loss Account</div>
+      <div class="ts">of Karman for the year ended 31st March, 2026</div>
+      <div class="drcr"><span>Dr.</span><span>Cr.</span></div>
+      <div class="two">
+        <table><tr><th>Particulars</th><th>₹</th><th>₹</th></tr><tr id="pl-L0" class=""><td>To Salaries</td><td class="r"></td><td class="r">1,40,000</td></tr><tr id="pl-L1" class=""><td>To Postages and Courier</td><td class="r"></td><td class="r">12,000</td></tr><tr id="pl-L2" class=""><td>To Printing and Stationery</td><td class="r"></td><td class="r">18,000</td></tr><tr id="pl-L3" class=""><td>To Miscellaneous Expenses</td><td class="r"></td><td class="r">30,000</td></tr><tr id="pl-L4" class=""><td>To Bad Debts &amp; Provision</td><td class="r"></td><td class="r">29,000</td></tr><tr id="pl-L5" class=""><td>To Commission <span class="w">(45,000 + 10,000)</span></td><td class="r"></td><td class="r">55,000</td></tr><tr id="pl-L6" class=""><td>To Insurance <span class="w">(24,000 − 8,000)</span></td><td class="r"></td><td class="r">16,000</td></tr><tr id="pl-L7" class=""><td>To Depreciation: Building</td><td class="r">7,500</td><td class="r"></td></tr><tr id="pl-L8" class=""><td>Machinery</td><td class="r">52,500</td><td class="r"></td></tr><tr id="pl-L9" class=""><td>Furniture</td><td class="r">4,000</td><td class="r">64,000</td></tr><tr id="pl-L10" class="bal"><td>To Net Profit <span class="w">(to Capital A/c)</span></td><td class="r"></td><td class="r">3,81,000</td></tr><tr class="tot"><td></td><td></td><td class="r"><span id="pl-Ltot">7,45,000</span></td></tr></table>
+        <table><tr><th>Particulars</th><th>₹</th><th>₹</th></tr><tr id="pl-R0" class=""><td>By Gross Profit b/d</td><td class="r"></td><td class="r">7,08,000</td></tr><tr id="pl-R1" class=""><td>By Discount Received</td><td class="r"></td><td class="r">15,000</td></tr><tr id="pl-R2" class=""><td>By Interest on Investments</td><td class="r"></td><td class="r">12,000</td></tr><tr id="pl-R3" class=""><td>By Profit on Sale of Investments</td><td class="r"></td><td class="r">10,000</td></tr><tr class="pad"><td>&nbsp;</td><td></td><td></td></tr><tr class="pad"><td>&nbsp;</td><td></td><td></td></tr><tr class="pad"><td>&nbsp;</td><td></td><td></td></tr><tr class="pad"><td>&nbsp;</td><td></td><td></td></tr><tr class="pad"><td>&nbsp;</td><td></td><td></td></tr><tr class="pad"><td>&nbsp;</td><td></td><td></td></tr><tr class="pad"><td>&nbsp;</td><td></td><td></td></tr><tr class="tot"><td></td><td></td><td class="r"><span id="pl-Rtot">7,45,000</span></td></tr></table>
+      </div>
+    </div>
+    <div class="stamp clip" id="pl-stamp" data-start="53.56" data-duration="4.2" data-track-index="1">Net Profit ₹ 3,81,000</div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    const row = (s, t) => tl.fromTo(s, { opacity: 0, x: -24 }, { opacity: 1, x: 0, duration: 0.35 }, t);
+    tl.fromTo("#pl-card", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 0.2);
+    row("#pl-L0", 18.87);
+    row("#pl-L1", 21.37);
+    row("#pl-L2", 24.83);
+    row("#pl-L3", 27.33);
+    row("#pl-L4", 31.29);
+    row("#pl-L5", 34.66);
+    row("#pl-L6", 38.85);
+    row("#pl-L7", 44.77);
+    row("#pl-L8", 46.77);
+    row("#pl-L9", 48.77);
+    row("#pl-L10", 52.86);
+    tl.fromTo("#pl-L10", { backgroundColor: "rgba(245,183,0,0.7)" }, { backgroundColor: "rgba(245,183,0,0.25)", duration: 2.5 }, 53.16);
+    tl.fromTo("#pl-Ltot", { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 0.4, ease: "back.out(2)" }, 53.26);
+    row("#pl-R0", 3.15);
+    row("#pl-R1", 6.15);
+    row("#pl-R2", 9.72);
+    row("#pl-R3", 12.22);
+    tl.fromTo("#pl-Rtot", { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 0.4, ease: "back.out(2)" }, 17.77);
+    tl.fromTo("#pl-stamp", { opacity: 0, scale: 2.2 }, { opacity: 1, scale: 1, duration: 0.45, ease: "back.out(1.6)" }, 53.56);
+    window.__timelines["pl"] = tl;
+  </script>
+</template>

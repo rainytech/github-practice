@@ -1,0 +1,5 @@
+.hyperframes/
+node_modules/
+work-*/
+.*hf-transaction-*/
+assets/voice/lines/

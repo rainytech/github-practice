@@ -1,0 +1,69 @@
+MGU-UGP B.Com (Honours) Semester VI · Cost Accounting Methods (DSC A – MG 6 DSC COM 301)
+Dr. Jayan, Cost Accounting Methods · Tender or Quotations · Illustration 17 · Pages 276–278
+
+A new model, and every overhead rate has changed. Find its selling price at the same rate of profit as last year.
+▶ Question 14 (National Ltd, ₹2,754): https://youtu.be/sV7NjIN_g04
+▶ Question 13 (Alpha Manufacturing, try it yourself): https://youtu.be/K8D6-XDE_pI
+
+❓ ILLUSTRATION 17 (Samsung India Ltd, year 2025)
+Direct Material ₹6,00,000 · Direct wages ₹5,00,000 · Factory Overheads ₹3,00,000 · Administration overheads ₹3,36,000 · Selling overheads ₹2,24,000 · Distribution overheads ₹1,40,000 · Profit ₹4,20,000.
+New model in 2026: Material ₹8,000 · Wages ₹5,000.
+In 2026 the factory overhead rate has increased by 20%, the distribution overhead rate has gone down by 10%, and selling and administration overhead rates have each gone up by 12½%.
+At what price should the product be sold so as to earn the same rate of profit on the selling price as in 2025?
+Factory overhead is based on direct wages; all other overheads are based on factory cost.
+
+✅ ANSWER: Estimated Selling Price = ₹30,677
+
+📘 STEP 1 — COST SHEET 2025
+Direct Material 6,00,000 + Direct Wages 5,00,000 = Prime Cost 11,00,000
++ Factory Overheads 3,00,000 = Works Cost (Factory Cost) 14,00,000
++ Administration Overheads 3,36,000 = Cost of Production 17,36,000
++ Selling 2,24,000 + Distribution 1,40,000 = Cost of Sales 21,00,000
++ Profit 4,20,000 = Sales 25,20,000
+
+📘 STEP 2A — RATES FOR 2025
+Factory OH = 3,00,000 × 100 ⁄ 5,00,000 = 60% of direct wages
+Administration OH = 3,36,000 × 100 ⁄ 14,00,000 = 24% of works cost
+Selling OH = 2,24,000 × 100 ⁄ 14,00,000 = 16% of works cost
+Distribution OH = 1,40,000 × 100 ⁄ 14,00,000 = 10% of works cost
+Profit = 4,20,000 × 100 ⁄ 25,20,000 = 16⅔% on sales = 16⅔ ⁄ (100 – 16⅔) = 20% on cost
+
+📘 STEP 2B — REVISED RATES FOR 2026
+Factory OH 60% × 120 ⁄ 100 = 72% · Administration OH 24% × 112.5 ⁄ 100 = 27%
+Selling OH 16% × 112.5 ⁄ 100 = 18% · Distribution OH 10% × 90 ⁄ 100 = 9%
+
+📘 STEP 3 — ESTIMATED PRICE OF THE NEW MODEL
+Direct Material 8,000 + Direct Wages 5,000 = Prime Cost 13,000
++ Factory OH (5,000 × 72%) 3,600 = Works Cost 16,600
++ Administration OH (16,600 × 27%) 4,482 = Cost of Production 21,082
++ Selling OH (16,600 × 18%) 2,988 + Distribution OH (16,600 × 9%) 1,494 = Cost of Sales 25,564
++ Profit (25,564 × 20 ⁄ 100 = 5,112.80, rounded off) 5,113 = Estimated Selling Price 30,677
+
+💡 EXAM TIPS
+1. "Increased by 20%" means 20% of the old rate: 60% × 120 ⁄ 100 = 72%, not 60% + 20% = 80%.
+2. Read the basis: only factory OH is on direct wages; administration, selling and distribution OH are all on factory cost (₹16,600).
+3. 16⅔% on sales = 20% on cost. Quick check: 4,20,000 ⁄ 21,00,000 = 20%. So profit is exactly ₹5,112.80; show it rounded off as ₹5,113.
+
+⏱️ CHAPTERS
+0:00 A new model, new overhead rates
+0:22 The question (pause & try)
+1:36 Step 1 · Cost Sheet 2025
+2:21 Step 2A · Rates for 2025
+3:15 Step 2B · Revised rates for 2026
+4:01 Step 3 · Price of the new model
+5:16 3 exam tips
+6:03 Recap
+
+📄 Want these solved notes as a PDF (Questions 13, 14 and Illustration 17)? Message us on WhatsApp.
+
+👨‍🏫 ABOUT US
+Goodwill Tuition Centre, Ernakulam, Kerala — 30 years of teaching Accountancy.
+
+🌐 www.goodwillonlinetuition.com
+📞 WhatsApp: +91 95679 02805 → https://wa.me/919567902805
+Book a paid demo class on WhatsApp.
+Online Cost Accounting classes for MGU B.Com Honours students across Kerala.
+
+Disclaimer: This video is an independent explanation for students. Dr. Jayan's Cost Accounting Methods is referred to only so students can find the question in their own textbook.
+
+#CostAccounting #MGU #BComHonours #TenderAndQuotation #CostSheet
