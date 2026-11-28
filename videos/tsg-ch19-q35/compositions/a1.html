@@ -1,0 +1,51 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; font-family: "Inter", sans-serif; color: #111; }
+    .hdr { position: absolute; left: 100px; top: 36px; font-family: "Archivo Black", sans-serif; font-size: 50px; color: #00008B; }
+    .adj { position: absolute; left: 100px; top: 120px; width: 1720px; background: #B8B8B8; color: #111; border-radius: 14px; padding: 10px 26px; border-left: 16px solid #CC0000; font-family: "EB Garamond", serif; font-size: 40px; line-height: 1.22; }
+    .adj b { color: #A80000; }
+    .wk { position: absolute; left: 100px; top: 0; width: 1720px; display: flex; gap: 24px; }
+    .tb { flex: 1; background: #B8B8B8; color: #111; border-radius: 14px; padding: 10px 22px 14px; border-left: 16px solid #6A0DAD; font-family: "EB Garamond", serif; }
+    .tb .t { font-family: "Archivo Black", sans-serif; font-size: 32px; color: #6A0DAD; margin-bottom: 4px; }
+    table { width: 100%; border-collapse: collapse; font-size: 52px; }
+    td { padding: 0 12px; border: 2px solid #000; line-height: 1.24; }
+    td.r { text-align: right; width: 230px; white-space: nowrap; }
+    tr.tot td { font-weight: 700; border-top: 4px solid #000; }
+    tr.note td { border: none; font-style: italic; color: #6A0DAD; font-size: 32px; padding-top: 6px; }
+    .fr { display: inline-flex; flex-direction: column; align-items: center; vertical-align: middle; font-size: 0.8em; line-height: 1.02; margin: 0 0.1em; }
+    .fr > span:last-child { border-top: 2px solid currentColor; padding: 0 0.1em; }
+    .effs { position: absolute; left: 100px; width: 1720px; top: 0; display: flex; gap: 22px; }
+    .ef { flex: 1; border-radius: 14px; padding: 14px 20px; height: 507px; background: rgba(0,0,0,0.06); border: 3px solid #808080; }
+    .ef .h { font-family: "Archivo Black", sans-serif; font-size: 40px; margin-bottom: 12px; }
+    .ef .ln { display: flex; justify-content: space-between; gap: 12px; background: #A9A9A9; color: #111; border-radius: 8px; padding: 8px 14px; margin-bottom: 12px; font-size: 44px; font-weight: 700; line-height: 1.2; }
+    .ef .ln .a { white-space: nowrap; color: #A80000; }
+    .ef .none { font-size: 36px; color: rgba(0,0,0,0.45); font-weight: 700; }
+    #a1-EF-tr .h { color: #004A9E; } #a1-EF-pl .h { color: #6A0DAD; } #a1-EF-bs .h { color: #1E6B34; }
+
+    #a1-wk { top: 215px; } #a1-effs { top: 538px; } #a1-EF-bs { flex: 1; }
+  </style>
+  <div id="root" data-composition-id="a1" data-width="1920" data-height="1080">
+    <div class="hdr clip" id="a1-hdr" data-start="0" data-duration="27.6" data-track-index="0">Adjustment (iv) · Salary to Proprietor</div>
+    <div class="adj clip" id="a1-adj" data-start="0.3" data-duration="27.3" data-track-index="1">(iv) Provide salary to Shubho <b>₹ 15,000 p.a.</b></div>
+    <div class="wk clip" id="a1-wk" data-start="0.3" data-duration="27.3" data-track-index="2"><div class="tb"><table><tr class="" id="a1-t0r0"><td>Salary to Shubho — provided, not paid</td><td class="r"><span id="a1-t0r0a">15,000</span></td></tr><tr class="" id="a1-t0r1"><td>Debit: Profit &amp; Loss A/c (like Interest on Capital)</td><td class="r"><span id="a1-t0r1a">15,000</span></td></tr><tr class="" id="a1-t0r2"><td>Credit: Shubho's Capital A/c</td><td class="r"><span id="a1-t0r2a">15,000</span></td></tr><tr class="note" id="a1-t0r3"><td colspan="2">► It is NOT Drawings — no cash has left the business.</td></tr></table></div></div>
+    <div class="effs clip" id="a1-effs" data-start="14.0" data-duration="13.6" data-track-index="3"><div class="ef" id="a1-EF-tr"><div class="h">Trading A/c</div><div class="none">— no effect</div></div><div class="ef" id="a1-EF-pl"><div class="h">Profit &amp; Loss A/c</div><div class="ln" id="a1-pl0"><span>To Salaries: Add Salary to Shubho</span><span class="a">15,000</span></div></div><div class="ef" id="a1-EF-bs"><div class="h">Balance Sheet</div><div class="ln" id="a1-bs0"><span>Capital: Add Salary to Shubho</span><span class="a">15,000</span></div></div></div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    const row = (s, t) => tl.fromTo(s, { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.35 }, t);
+    const pop = (s, t) => tl.fromTo(s, { opacity: 0, scale: 0.5 }, { opacity: 1, scale: 1, duration: 0.4, ease: "back.out(2)" }, t);
+    const flash = (s, t) => tl.fromTo(s, { backgroundColor: "rgba(106,13,173,0.3)" }, { backgroundColor: "rgba(106,13,173,0)", duration: 1.6 }, t + 0.35);
+    const eff = (s, box, t) => { tl.fromTo(s, { opacity: 0, y: 20, scale: 0.9 }, { opacity: 1, y: 0, scale: 1, duration: 0.4, ease: "back.out(2)" }, t);
+      tl.fromTo(box, { borderColor: "rgba(245,183,0,1)" }, { borderColor: "#808080", duration: 2.0 }, t); };
+    tl.fromTo("#a1-hdr", { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 0.4 }, 0);
+    tl.fromTo("#a1-adj", { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 0.45 }, 0.3);
+    tl.fromTo("#a1-effs", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 14.0);
+    row("#a1-t0r0", 4.79);
+    row("#a1-t0r1", 12.04);
+    row("#a1-t0r2", 19.59);
+    row("#a1-t0r3", 7.79);
+    eff("#a1-pl0", "#a1-EF-pl", 15.54);
+    eff("#a1-bs0", "#a1-EF-bs", 22.09);
+    window.__timelines["a1"] = tl;
+  </script>
+</template>

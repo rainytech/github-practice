@@ -1,0 +1,56 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; font-family: "Inter", sans-serif; color: #111; }
+    .hdr { position: absolute; left: 100px; top: 36px; font-family: "Archivo Black", sans-serif; font-size: 50px; color: #00008B; }
+    .adj { position: absolute; left: 100px; top: 120px; width: 1720px; background: #B8B8B8; color: #111; border-radius: 14px; padding: 10px 26px; border-left: 16px solid #CC0000; font-family: "EB Garamond", serif; font-size: 40px; line-height: 1.22; }
+    .adj b { color: #A80000; }
+    .wk { position: absolute; left: 100px; top: 0; width: 1720px; display: flex; gap: 24px; }
+    .tb { flex: 1; background: #B8B8B8; color: #111; border-radius: 14px; padding: 10px 22px 14px; border-left: 16px solid #6A0DAD; font-family: "EB Garamond", serif; }
+    .tb .t { font-family: "Archivo Black", sans-serif; font-size: 32px; color: #6A0DAD; margin-bottom: 4px; }
+    table { width: 100%; border-collapse: collapse; font-size: 48px; }
+    td { padding: 0 12px; border: 2px solid #000; line-height: 1.24; }
+    td.r { text-align: right; width: 230px; white-space: nowrap; }
+    tr.tot td { font-weight: 700; border-top: 4px solid #000; }
+    tr.note td { border: none; font-style: italic; color: #6A0DAD; font-size: 32px; padding-top: 6px; }
+    .fr { display: inline-flex; flex-direction: column; align-items: center; vertical-align: middle; font-size: 0.8em; line-height: 1.02; margin: 0 0.1em; }
+    .fr > span:last-child { border-top: 2px solid currentColor; padding: 0 0.1em; }
+    .effs { position: absolute; left: 100px; width: 1720px; top: 0; display: flex; gap: 22px; }
+    .ef { flex: 1; border-radius: 14px; padding: 14px 20px; height: 516px; background: rgba(0,0,0,0.06); border: 3px solid #808080; }
+    .ef .h { font-family: "Archivo Black", sans-serif; font-size: 40px; margin-bottom: 12px; }
+    .ef .ln { display: flex; justify-content: space-between; gap: 12px; background: #A9A9A9; color: #111; border-radius: 8px; padding: 8px 14px; margin-bottom: 12px; font-size: 44px; font-weight: 700; line-height: 1.2; }
+    .ef .ln .a { white-space: nowrap; color: #A80000; }
+    .ef .none { font-size: 36px; color: rgba(0,0,0,0.45); font-weight: 700; }
+    #a3-EF-tr .h { color: #004A9E; } #a3-EF-pl .h { color: #6A0DAD; } #a3-EF-bs .h { color: #1E6B34; }
+
+    #a3-wk { top: 215px; } #a3-effs { top: 529px; } #a3-EF-bs { flex: 1; }
+  </style>
+  <div id="root" data-composition-id="a3" data-width="1920" data-height="1080">
+    <div class="hdr clip" id="a3-hdr" data-start="0" data-duration="27.9" data-track-index="0">Adjustment (ii) · Provision for Doubtful Debts</div>
+    <div class="adj clip" id="a3-adj" data-start="0.3" data-duration="27.6" data-track-index="1">(ii) Create Provision for Doubtful Debts at <b>2%</b> on Sundry Debtors.</div>
+    <div class="wk clip" id="a3-wk" data-start="0.3" data-duration="27.6" data-track-index="2"><div class="tb"><div class="t">Debtors in the Balance Sheet</div><table><tr class="" id="a3-t0r0"><td>Sundry Debtors (T.B.)</td><td class="r"><span id="a3-t0r0a">40,000</span></td></tr><tr class="" id="a3-t0r1"><td>Less: Provision @ <span class=fr><span>2</span><span>100</span></span></td><td class="r"><span id="a3-t0r1a">800</span></td></tr><tr class="tot" id="a3-t0r2"><td>Net Debtors</td><td class="r"><span id="a3-t0r2a">39,200</span></td></tr></table></div><div class="tb"><div class="t">Charge to P&amp;L A/c</div><table><tr class="" id="a3-t1r0"><td>Bad Debts (T.B.)</td><td class="r"><span id="a3-t1r0a">1,200</span></td></tr><tr class="" id="a3-t1r1"><td>Add: New Provision</td><td class="r"><span id="a3-t1r1a">800</span></td></tr><tr class="tot" id="a3-t1r2"><td>Charge to P&amp;L</td><td class="r"><span id="a3-t1r2a">2,000</span></td></tr></table></div></div>
+    <div class="effs clip" id="a3-effs" data-start="17.2" data-duration="10.7" data-track-index="3"><div class="ef" id="a3-EF-tr"><div class="h">Trading A/c</div><div class="none">— no effect</div></div><div class="ef" id="a3-EF-pl"><div class="h">Profit &amp; Loss A/c</div><div class="ln" id="a3-pl0"><span>Bad Debts 1,200 + Provision 800</span><span class="a">2,000</span></div></div><div class="ef" id="a3-EF-bs"><div class="h">Balance Sheet</div><div class="ln" id="a3-bs0"><span>Debtors 40,000 − 800</span><span class="a">39,200</span></div></div></div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    const row = (s, t) => tl.fromTo(s, { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.35 }, t);
+    const pop = (s, t) => tl.fromTo(s, { opacity: 0, scale: 0.5 }, { opacity: 1, scale: 1, duration: 0.4, ease: "back.out(2)" }, t);
+    const flash = (s, t) => tl.fromTo(s, { backgroundColor: "rgba(106,13,173,0.3)" }, { backgroundColor: "rgba(106,13,173,0)", duration: 1.6 }, t + 0.35);
+    const eff = (s, box, t) => { tl.fromTo(s, { opacity: 0, y: 20, scale: 0.9 }, { opacity: 1, y: 0, scale: 1, duration: 0.4, ease: "back.out(2)" }, t);
+      tl.fromTo(box, { borderColor: "rgba(245,183,0,1)" }, { borderColor: "#808080", duration: 2.0 }, t); };
+    tl.fromTo("#a3-hdr", { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 0.4 }, 0);
+    tl.fromTo("#a3-adj", { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 0.45 }, 0.3);
+    tl.fromTo("#a3-effs", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 17.2);
+    row("#a3-t0r0", 4.2);
+    row("#a3-t0r1", 6.7);
+    pop("#a3-t0r1a", 8.87);
+    row("#a3-t0r2", 22.4);
+    flash("#a3-t0r2", 22.4);
+    row("#a3-t1r0", 12.97);
+    row("#a3-t1r1", 15.97);
+    row("#a3-t1r2", 18.3);
+    flash("#a3-t1r2", 18.3);
+    eff("#a3-pl0", "#a3-EF-pl", 18.7);
+    eff("#a3-bs0", "#a3-EF-bs", 22.9);
+    window.__timelines["a3"] = tl;
+  </script>
+</template>

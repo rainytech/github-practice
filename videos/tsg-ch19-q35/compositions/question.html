@@ -1,0 +1,78 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; font-family: "Inter", sans-serif; color: #111; }
+    .hdr { position: absolute; left: 100px; top: 26px; font-family: "Archivo Black", sans-serif; font-size: 54px; color: #00008B; }
+    .ref { position: absolute; right: 100px; top: 44px; font-size: 32px; font-weight: 700; color: rgba(0,0,0,0.85); }
+    #q-lead { position: absolute; left: 100px; top: 104px; width: 1720px; font-family: "EB Garamond", serif; font-size: 33px; line-height: 1.2; }
+    .card { position: absolute; top: 196px; height: 856px; display: flex; flex-direction: column; background: #B8B8B8; color: #111; border-radius: 16px; padding: 8px 16px 12px; font-family: "EB Garamond", serif; box-shadow: 0 12px 30px rgba(0,0,0,0.3); }
+    .card .t { font-family: "Archivo Black", sans-serif; font-size: 30px; margin-bottom: 4px; }
+    #q-d { left: 100px; width: 960px; border-top: 10px solid #0057B8; } #q-d .t { color: #004A9E; }
+    #q-c { left: 1080px; width: 740px; border-top: 10px solid #CC0000; } #q-c .t { color: #A80000; }
+    #q-d table { flex: 1; height: 100%; }
+    table { width: 100%; border-collapse: collapse; font-size: 37px; }
+    td { padding: 0 10px; border: 2px solid #000; line-height: 1.06; }
+    td.r { text-align: right; width: 170px; white-space: nowrap; }
+    #q-c td { padding: 2px 10px; line-height: 1.12; }
+    tr.tot td { font-weight: 700; border-top: 4px solid #000; }
+    .sm { color: #8E0E42; font-style: italic; font-size: 0.78em; }
+    .st { color: #A80000; font-weight: 700; display: inline-block; }
+    .hidm, .okm { display: inline-block; font-weight: 800; } .okm { color: #146C2E; }
+    #q-leg { flex: 1; margin-top: 14px; border: 3px dashed #6A0DAD; border-radius: 12px; padding: 12px 18px; display: flex; flex-direction: column; justify-content: space-evenly; font-family: "Inter", sans-serif; font-size: 36px; font-weight: 700; color: #111; }
+    #q-leg .lt { font-family: "Archivo Black", sans-serif; color: #6A0DAD; font-size: 38px; }
+    #q-leg .g { display: inline-block; width: 52px; text-align: center; }
+  </style>
+  <div id="root" data-composition-id="question" data-width="1920" data-height="1080">
+    <div class="hdr clip" id="q-hdr" data-start="0" data-duration="48.5" data-track-index="0">The Question</div>
+    <div class="ref clip" id="q-ref" data-start="0" data-duration="48.5" data-track-index="1">T.S. Grewal · Q 35</div>
+    <div class="clip" id="q-lead" data-start="0.3" data-duration="48.2" data-track-index="2">From the following Trial Balance of Shubho, prepare Trading and Profit &amp; Loss Accounts for the year ended 31st March, 2026 and Balance Sheet as at that date:</div>
+    <div class="card clip" id="q-d" data-start="0.8" data-duration="47.7" data-track-index="3"><div class="t">Debit Balances (₹)</div><table>
+<tr class="rst"><td>Land and Building <span class="st">★</span></td><td class="r">50,000</td></tr>
+<tr class="rok"><td>Purchases (Adjusted) <span class="okm">✔</span></td><td class="r">2,07,500</td></tr>
+<tr class="rok"><td>Stock (31st March, 2026) <span class="okm">✔</span></td><td class="r">45,000</td></tr>
+<tr class="r"><td>Wages</td><td class="r">45,300</td></tr>
+<tr class="rst"><td>Salaries <span class="st">★</span></td><td class="r">39,000</td></tr>
+<tr class="r"><td>Office Expenses</td><td class="r">15,400</td></tr>
+<tr class="r"><td>Carriage Inwards</td><td class="r">1,200</td></tr>
+<tr class="r"><td>Carriage Outwards</td><td class="r">2,000</td></tr>
+<tr class="r"><td>Discount Allowed</td><td class="r">750</td></tr>
+<tr class="rst"><td>Bad Debts <span class="st">★</span></td><td class="r">1,200</td></tr>
+<tr class="rst"><td>Insurance <span class="st">★</span></td><td class="r">1,500</td></tr>
+<tr class="rst"><td>Plant and Machinery <span class="st">★</span></td><td class="r">50,000</td></tr>
+<tr class="rst"><td>Furniture and Fixtures <span class="st">★</span></td><td class="r">20,000</td></tr>
+<tr class="r"><td>Drawings</td><td class="r">20,000</td></tr>
+<tr class="rst"><td>Sundry Debtors <span class="st">★</span></td><td class="r">40,000</td></tr>
+<tr class="r"><td>Cash at Bank</td><td class="r">16,000</td></tr>
+<tr class="rst"><td>Office Equipments <span class="st">★</span></td><td class="r">12,000</td></tr>
+<tr class="tot"><td>Total</td><td class="r"><span class="tv">5,66,850</span></td></tr>
+    </table></div>
+    <div class="card clip" id="q-c" data-start="0.8" data-duration="47.7" data-track-index="4"><div class="t">Credit Balances (₹)</div><table>
+<tr class="r"><td>Discount Received</td><td class="r">1,200</td></tr>
+<tr class="r"><td>Sales</td><td class="r">3,83,500</td></tr>
+<tr class="rst"><td>Capital Account <span class="st">★</span></td><td class="r">1,15,000</td></tr>
+<tr class="rhid"><td>Chatterji's Loan A/c <span class=sm>(Taken on 1st Oct., 2025 @ 18% p.a.)</span> <span class="hidm">🔍</span></td><td class="r">25,000</td></tr>
+<tr class="r"><td>Commission</td><td class="r">1,500</td></tr>
+<tr class="r"><td>Sundry Creditors</td><td class="r">37,350</td></tr>
+<tr class="rok"><td>Expenses Payable <span class="okm">✔</span></td><td class="r">3,300</td></tr>
+<tr class="tot"><td>Total</td><td class="r"><span class="tv">5,66,850</span></td></tr>
+    </table>
+      <div id="q-leg"><div class="lt">Read the headings!</div><div><span class="g st">★</span> in the adjustments</div><div><span class="g">🔍</span> hidden adjustment</div><div><span class="g okm">✔</span> already adjusted</div></div>
+    </div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    tl.fromTo("#q-hdr", { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 0.4 }, 0);
+    tl.fromTo("#q-ref", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 0.2);
+    tl.fromTo("#q-lead", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 0.3);
+    tl.fromTo(["#q-d", "#q-c"], { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.5, stagger: 0.2, ease: "power3.out" }, 0.8);
+    tl.fromTo("#q-leg", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 1.4);
+    tl.fromTo("#q-d", { boxShadow: "0 0 0 0 rgba(0,0,139,0)" }, { boxShadow: "0 0 0 8px rgba(0,0,139,0.8)", duration: 0.4, yoyo: true, repeat: 1, repeatDelay: 8 }, 6.12);
+    tl.fromTo("#q-c", { boxShadow: "0 0 0 0 rgba(0,0,139,0)" }, { boxShadow: "0 0 0 8px rgba(0,0,139,0.8)", duration: 0.4, yoyo: true, repeat: 1, repeatDelay: 5 }, 22.04);
+    tl.fromTo("tr.tot td", { backgroundColor: "rgba(245,183,0,0.9)" }, { backgroundColor: "rgba(245,183,0,0.35)", duration: 2.0 }, 32.29);
+    tl.fromTo(".tv", { scale: 0.6 }, { scale: 1, duration: 0.45, ease: "back.out(2)" }, 32.29);
+    tl.to("tr.rok td", { backgroundColor: "rgba(30,142,62,0.28)", duration: 0.4 }, 39.63);
+    tl.to("tr.rhid td", { backgroundColor: "rgba(204,0,0,0.25)", duration: 0.4 }, 41.83);
+    tl.to(".hidm", { scale: 1.4, duration: 0.3, yoyo: true, repeat: 5, ease: "sine.inOut" }, 42.23);
+    tl.fromTo("#q-leg", { borderColor: "#F5B700" }, { borderColor: "#6A0DAD", duration: 2.0 }, 42.23);
+    window.__timelines["question"] = tl;
+  </script>
+</template>

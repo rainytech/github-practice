@@ -1,0 +1,104 @@
+{
+"hook": [
+"Last video's quiz answer: one thousand two hundred and fifty rupees. Well done if you got it!",
+"Now, C B S E Class Eleven. T. S. Graywaal, Question thirty-five.",
+"Purchases are already adjusted, and one adjustment is hidden in the trial balance.",
+"Can you spot it? Let's solve it together."
+],
+"question": [
+"Here is the question. The trial balance of Shubho, on thirty-first March, twenty twenty-six.",
+"Debit side: land and building, purchases adjusted, stock, wages, salaries, office expenses, carriage, discount, bad debts, insurance, plant and machinery, furniture, drawings, debtors, bank, and office equipments.",
+"Credit side: discount received, sales, capital, Chatterjee's loan, commission, creditors, and expenses payable.",
+"Both sides total five lakh sixty-six thousand eight hundred and fifty rupees.",
+"Now look carefully. Purchases are adjusted. And Chatterjee's loan was taken on first October, at eighteen percent."
+],
+"adjust": [
+"Now the six adjustments.",
+"One. Depreciate land and building at six percent, plant and machinery at ten, office equipments at twenty, and furniture and fixtures at fifteen percent.",
+"Two. Create provision for doubtful debts at two percent on sundry debtors.",
+"Three. Insurance includes two hundred and fifty rupees paid in advance.",
+"Four. Provide salary to Shubho, fifteen thousand rupees per annum.",
+"Five. Outstanding salaries, eleven thousand five hundred.",
+"Six. Ten percent of the net profit is to be transferred to general reserve.",
+"Pause the video, and try it yourself. Then check with me."
+],
+"hidden": [
+"First, read the trial balance carefully. Three items need attention.",
+"Purchases are adjusted, and stock is as on thirty-first March. So this stock is the closing stock.",
+"Closing stock is already deducted from purchases. So it does not go to the trading account. Show forty-five thousand only in the balance sheet.",
+"Expenses payable, three thousand three hundred, is already a liability in the trial balance. Just show it in the balance sheet.",
+"And the hidden one. Chatterjee's loan of twenty-five thousand was taken on first October, at eighteen percent per annum. No interest is in the trial balance.",
+"Twenty-five thousand into eighteen over hundred, into six over twelve. Two thousand two hundred and fifty rupees outstanding.",
+"Debit interest to profit and loss, and add it to the loan in the balance sheet."
+],
+"a1": [
+"Adjustment four. Salary to Shubho, the proprietor.",
+"This salary of fifteen thousand is only provided, not paid. So it is not drawings.",
+"It is treated like interest on capital. Debit profit and loss account with fifteen thousand.",
+"And credit Shubho's capital account. Add fifteen thousand to capital in the balance sheet."
+],
+"a2": [
+"Adjustments three and five. Outstanding salaries and prepaid insurance.",
+"Salaries, thirty-nine thousand, plus outstanding eleven thousand five hundred. Fifty thousand five hundred.",
+"Add salary to Shubho, fifteen thousand. Salaries in profit and loss, sixty-five thousand five hundred.",
+"Insurance, fifteen hundred, less prepaid two hundred and fifty. Twelve hundred and fifty.",
+"Outstanding salaries is a liability, and prepaid insurance is an asset."
+],
+"a3": [
+"Adjustment two. Provision for doubtful debts.",
+"Debtors, forty thousand into two over hundred. Provision, eight hundred rupees.",
+"There is no old provision. So charge to profit and loss: bad debts twelve hundred, plus provision eight hundred. Two thousand.",
+"In the balance sheet, debtors forty thousand, less eight hundred. Thirty-nine thousand two hundred."
+],
+"a4": [
+"Adjustment one. Depreciation.",
+"Land and building, fifty thousand into six over hundred. Three thousand.",
+"Plant and machinery, fifty thousand into ten over hundred. Five thousand.",
+"Office equipments, twelve thousand into twenty over hundred. Two thousand four hundred.",
+"Furniture and fixtures, twenty thousand into fifteen over hundred. Three thousand.",
+"Total depreciation, thirteen thousand four hundred rupees, goes to profit and loss."
+],
+"trading": [
+"Now the trading account of Shubho, for the year ended thirty-first March, twenty twenty-six.",
+"To purchases, adjusted, two lakh seven thousand five hundred. No opening stock, because purchases are adjusted.",
+"To wages, forty-five thousand three hundred. To carriage inwards, twelve hundred.",
+"Credit side. By sales, three lakh eighty-three thousand five hundred. No closing stock here.",
+"Total, three lakh eighty-three thousand five hundred. Gross profit, one lakh twenty-nine thousand five hundred rupees."
+],
+"pl": [
+"Next, the profit and loss account.",
+"Credit side. Gross profit, one lakh twenty-nine thousand five hundred. Discount received, twelve hundred. Commission, fifteen hundred. Total, one lakh thirty-two thousand two hundred.",
+"Debit side. Salaries, thirty-nine thousand, plus outstanding eleven thousand five hundred, plus salary to Shubho fifteen thousand. Sixty-five thousand five hundred.",
+"Office expenses, fifteen thousand four hundred. Carriage outwards, two thousand. Discount allowed, seven hundred and fifty.",
+"Bad debts and provision, two thousand. Insurance, twelve hundred and fifty. Interest on Chatterjee's loan, two thousand two hundred and fifty.",
+"Depreciation, thirteen thousand four hundred.",
+"Profit before transfer, twenty-nine thousand six hundred and fifty. Ten percent to general reserve, two thousand nine hundred and sixty-five.",
+"Net profit, twenty-six thousand six hundred and eighty-five rupees."
+],
+"bs": [
+"Finally, the balance sheet of Shubho, as at thirty-first March, twenty twenty-six.",
+"Capital, one lakh fifteen thousand. Add salary to Shubho, fifteen thousand. Add net profit, twenty-six thousand six hundred and eighty-five.",
+"Less drawings, twenty thousand. Capital, one lakh thirty-six thousand six hundred and eighty-five.",
+"General reserve, two thousand nine hundred and sixty-five. Chatterjee's loan, twenty-five thousand, plus interest outstanding, two thousand two hundred and fifty.",
+"Creditors, thirty-seven thousand three hundred and fifty. Expenses payable, three thousand three hundred. Outstanding salaries, eleven thousand five hundred. Total, two lakh nineteen thousand and fifty.",
+"Assets. Land and building, forty-seven thousand. Plant and machinery, forty-five thousand. Furniture, seventeen thousand. Office equipments, nine thousand six hundred.",
+"Closing stock, forty-five thousand. Debtors, thirty-nine thousand two hundred. Prepaid insurance, two hundred and fifty. Bank, sixteen thousand.",
+"Assets total, two lakh nineteen thousand and fifty. The balance sheet tallies!"
+],
+"traps": [
+"Four exam traps from this question.",
+"Trap one. Purchases are adjusted. So the closing stock goes only to the balance sheet, not to the trading account.",
+"Trap two. The hidden interest. Loan at eighteen percent from first October. Six months interest, two thousand two hundred and fifty.",
+"Trap three. Salary to the proprietor is not drawings. Debit profit and loss, and add it to capital.",
+"Trap four. General reserve is ten percent of the profit before transfer. Twenty-nine thousand six hundred and fifty gives two thousand nine hundred and sixty-five."
+],
+"recap": [
+"Let's recap.",
+"Gross profit, one lakh twenty-nine thousand five hundred.",
+"Net profit, twenty-six thousand six hundred and eighty-five.",
+"Balance sheet total, two lakh nineteen thousand and fifty, on both sides.",
+"Remember: when purchases are adjusted, closing stock goes only to the balance sheet.",
+"Want these solved notes as a P D F? Message us on WhatsApp, and book a paid demo class.",
+"Subscribe for more T. S. Graywaal solutions!"
+]
+}

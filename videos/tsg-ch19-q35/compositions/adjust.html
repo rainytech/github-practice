@@ -1,0 +1,43 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; font-family: "Inter", sans-serif; color: #111; }
+    .hdr { position: absolute; left: 100px; top: 40px; font-family: "Archivo Black", sans-serif; font-size: 58px; color: #00008B; }
+    .ref { position: absolute; right: 100px; top: 60px; font-size: 32px; font-weight: 700; color: rgba(0,0,0,0.85); }
+    #ad-card { position: absolute; left: 100px; top: 135px; width: 1720px; background: #B8B8B8; color: #111; border-radius: 16px; padding: 14px 30px; border-left: 16px solid #CC0000; font-family: "EB Garamond", serif; box-shadow: 0 12px 30px rgba(0,0,0,0.3); }
+    .it { display: flex; gap: 14px; font-size: 52px; line-height: 1.3; padding: 12px 8px; border-radius: 8px; }
+    .it .n { flex: none; width: 100px; font-weight: 700; color: #6A0DAD; }
+    .it b { color: #A80000; }
+    #ad-pause { position: absolute; left: 560px; top: 905px; width: 800px; height: 130px; background: #F5B700; color: #0B1B3F; border-radius: 20px; display: flex; align-items: center; justify-content: center; gap: 30px; font-family: "Archivo Black", sans-serif; font-size: 60px; }
+    #ad-pause .ic { width: 90px; height: 90px; border-radius: 50%; background: #0B1B3F; color: #00008B; display: flex; align-items: center; justify-content: center; font-size: 46px; }
+  </style>
+  <div id="root" data-composition-id="adjust" data-width="1920" data-height="1080">
+    <div class="hdr clip" id="ad-hdr" data-start="0" data-duration="49.6" data-track-index="0">The 6 Adjustments</div>
+    <div class="ref clip" id="ad-ref" data-start="0" data-duration="49.6" data-track-index="1">T.S. Grewal · Q 35</div>
+    <div class="clip" id="ad-card" data-start="0.3" data-duration="49.3" data-track-index="2">
+      <div class="it" id="ad-0"><span class="n">(i)</span><span class="tx">Depreciate Land and Building @ <b>6%</b>, Plant and Machinery @ <b>10%</b>, Office equipments @ <b>20%</b> and Furniture and Fixtures @ <b>15%</b>.</span></div>
+      <div class="it" id="ad-1"><span class="n">(ii)</span><span class="tx">Create Provision for Doubtful Debts at <b>2%</b> on Sundry Debtors.</span></div>
+      <div class="it" id="ad-2"><span class="n">(iii)</span><span class="tx">Insurance includes <b>₹ 250</b> Insurance Premium paid in advance.</span></div>
+      <div class="it" id="ad-3"><span class="n">(iv)</span><span class="tx">Provide salary to Shubho <b>₹ 15,000 p.a.</b></span></div>
+      <div class="it" id="ad-4"><span class="n">(v)</span><span class="tx">Outstanding Salaries <b>₹ 11,500</b>.</span></div>
+      <div class="it" id="ad-5"><span class="n">(vi)</span><span class="tx"><b>10%</b> of the net profit is to be transferred to General Reserve.</span></div>
+    </div>
+    <div class="clip" id="ad-pause" data-start="41.15" data-duration="8.5" data-track-index="3"><span class="ic">❚❚</span>PAUSE &amp; TRY</div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    const show = (s, t) => { tl.fromTo(s, { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.4 }, t);
+      tl.fromTo(s, { backgroundColor: "rgba(245,183,0,0.45)" }, { backgroundColor: "rgba(245,183,0,0)", duration: 2.5 }, t + 0.4); };
+    tl.fromTo("#ad-hdr", { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 0.4 }, 0);
+    tl.fromTo("#ad-ref", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 0.2);
+    tl.fromTo("#ad-card", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 0.3);
+    show("#ad-0", 3.09);
+    show("#ad-1", 13.4);
+    show("#ad-2", 18.87);
+    show("#ad-3", 25.06);
+    show("#ad-4", 30.51);
+    show("#ad-5", 35.37);
+    tl.fromTo("#ad-pause", { opacity: 0, scale: 0.7 }, { opacity: 1, scale: 1, duration: 0.45, ease: "back.out(2)" }, 41.25);
+    tl.to("#ad-pause .ic", { scale: 1.15, duration: 0.5, yoyo: true, repeat: 11, ease: "sine.inOut" }, 41.85);
+    window.__timelines["adjust"] = tl;
+  </script>
+</template>

@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en" data-composition-variables='[{"id":"price","type":"string","label":"BS total","default":"2,19,050"}]'>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body {
+        width: 1920px; height: 1080px; overflow: hidden;
+        background-color: #C8C8C8;
+        background-image: repeating-linear-gradient(0deg, rgba(0,0,0,0.045) 0 2px, transparent 2px 72px);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="569.1" data-width="1920" data-height="1080">
+      <div id="hook" data-composition-id="hook" data-composition-src="compositions/hook.html" data-start="0.0" data-duration="24.6" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
+      <div id="question" data-composition-id="question" data-composition-src="compositions/question.html" data-start="24.6" data-duration="48.5" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
+      <div id="adjust" data-composition-id="adjust" data-composition-src="compositions/adjust.html" data-start="73.1" data-duration="49.6" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
+      <div id="hidden" data-composition-id="hidden" data-composition-src="compositions/hidden.html" data-start="122.7" data-duration="58.8" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
+      <div id="a1" data-composition-id="a1" data-composition-src="compositions/a1.html" data-start="181.5" data-duration="27.6" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
+      <div id="a2" data-composition-id="a2" data-composition-src="compositions/a2.html" data-start="209.1" data-duration="35.7" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
+      <div id="a3" data-composition-id="a3" data-composition-src="compositions/a3.html" data-start="244.8" data-duration="27.9" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
+      <div id="a4" data-composition-id="a4" data-composition-src="compositions/a4.html" data-start="272.7" data-duration="36.0" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
+      <div id="trading" data-composition-id="trading" data-composition-src="compositions/trading.html" data-start="308.7" data-duration="39.2" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
+      <div id="pl" data-composition-id="pl" data-composition-src="compositions/pl.html" data-start="347.9" data-duration="66.1" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
+      <div id="bs" data-composition-id="bs" data-composition-src="compositions/bs.html" data-start="414.0" data-duration="78.2" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
+      <div id="traps" data-composition-id="traps" data-composition-src="compositions/traps.html" data-start="492.2" data-duration="38.8" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
+      <div id="recap" data-composition-id="recap" data-composition-src="compositions/recap.html" data-start="531.0" data-duration="38.1" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
+      <audio id="vo-hook" class="clip" src="assets/voice/hook.wav" data-start="0.3" data-duration="23.29" data-track-index="5" data-volume="0.85"></audio>
+      <audio id="vo-question" class="clip" src="assets/voice/question.wav" data-start="24.9" data-duration="46.74" data-track-index="5" data-volume="0.85"></audio>
+      <audio id="vo-adjust" class="clip" src="assets/voice/adjust.wav" data-start="73.4" data-duration="44.3" data-track-index="5" data-volume="0.85"></audio>
+      <audio id="vo-hidden" class="clip" src="assets/voice/hidden.wav" data-start="123.0" data-duration="57.45" data-track-index="5" data-volume="0.85"></audio>
+      <audio id="vo-a1" class="clip" src="assets/voice/a1.wav" data-start="181.8" data-duration="26.31" data-track-index="5" data-volume="0.85"></audio>
+      <audio id="vo-a2" class="clip" src="assets/voice/a2.wav" data-start="209.4" data-duration="34.42" data-track-index="5" data-volume="0.85"></audio>
+      <audio id="vo-a3" class="clip" src="assets/voice/a3.wav" data-start="245.1" data-duration="26.64" data-track-index="5" data-volume="0.85"></audio>
+      <audio id="vo-a4" class="clip" src="assets/voice/a4.wav" data-start="273.0" data-duration="34.74" data-track-index="5" data-volume="0.85"></audio>
+      <audio id="vo-trading" class="clip" src="assets/voice/trading.wav" data-start="309.0" data-duration="37.9" data-track-index="5" data-volume="0.85"></audio>
+      <audio id="vo-pl" class="clip" src="assets/voice/pl.wav" data-start="348.2" data-duration="64.82" data-track-index="5" data-volume="0.85"></audio>
+      <audio id="vo-bs" class="clip" src="assets/voice/bs.wav" data-start="414.3" data-duration="76.89" data-track-index="5" data-volume="0.85"></audio>
+      <audio id="vo-traps" class="clip" src="assets/voice/traps.wav" data-start="492.5" data-duration="37.54" data-track-index="5" data-volume="0.85"></audio>
+      <audio id="vo-recap" class="clip" src="assets/voice/recap.wav" data-start="531.3" data-duration="33.77" data-track-index="5" data-volume="0.85"></audio>
+    </div>
+    <script>
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = gsap.timeline({ paused: true });
+    </script>
+  </body>
+</html>

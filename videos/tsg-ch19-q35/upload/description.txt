@@ -1,0 +1,60 @@
+CBSE Class 11 Accountancy · T.S. Grewal (2026–27) · Adjustments in Preparation of Financial Statements · Question 35
+
+Final accounts of Shubho with 6 adjustments — Purchases are ADJUSTED, and the interest on Chatterji's loan is HIDDEN in the Trial Balance: Trading Account, Profit & Loss Account and Balance Sheet as at 31st March, 2026, explained by Rainy Goodwill. Pause after the question and try it yourself first!
+
+✅ ANSWER (matches the textbook)
+Gross Profit ₹1,29,500 · Net Profit ₹26,685 · Balance Sheet total ₹2,19,050 (tallied ✓)
+
+🔍 READ THE TRIAL BALANCE FIRST
+• Purchases (Adjusted) ₹2,07,500 + Stock (31st March, 2026) ₹45,000 → closing stock is already deducted from purchases, so no stock in the Trading Account; ₹45,000 goes only to the Balance Sheet.
+• Expenses Payable ₹3,300 → already a liability; Balance Sheet only.
+• HIDDEN: Chatterji's Loan ₹25,000 taken on 1st October, 2025 @ 18% p.a. → interest for 6 months = 25,000 × 18⁄100 × 6⁄12 = ₹2,250 outstanding (debit P&L, add to the loan).
+
+📘 THE 6 ADJUSTMENTS
+(i) Depreciation: Land & Building 6% = 3,000 · Plant & Machinery 10% = 5,000 · Office Equipments 20% = 2,400 · Furniture & Fixtures 15% = 3,000 → total ₹13,400.
+(ii) Provision for Doubtful Debts 2% of 40,000 = ₹800 → P&L charge 1,200 + 800 = ₹2,000; Debtors ₹39,200.
+(iii) Prepaid insurance ₹250 → Insurance 1,500 − 250 = ₹1,250.
+(iv) Salary to Shubho ₹15,000 → debit P&L, credit Capital (like interest on capital — NOT drawings).
+(v) Outstanding salaries ₹11,500 → Salaries 39,000 + 11,500 + 15,000 = ₹65,500.
+(vi) General Reserve 10% of profit before transfer ₹29,650 = ₹2,965.
+
+📗 TRADING ACCOUNT
+Purchases (Adjusted) 2,07,500 · Wages 45,300 · Carriage Inwards 1,200 · Gross Profit 1,29,500 | Sales 3,83,500 (Total 3,83,500)
+
+📗 PROFIT & LOSS ACCOUNT
+Salaries 65,500 · Office Expenses 15,400 · Carriage Outwards 2,000 · Discount Allowed 750 · Bad Debts & Provision 2,000 · Insurance 1,250 · Interest on Loan 2,250 · Depreciation 13,400 · General Reserve 2,965 · Net Profit 26,685 | Gross Profit 1,29,500 + Discount Received 1,200 + Commission 1,500 = 1,32,200
+
+📗 BALANCE SHEET (₹2,19,050)
+Liabilities: Capital 1,15,000 + 15,000 + 26,685 − 20,000 = 1,36,685 · General Reserve 2,965 · Chatterji's Loan 25,000 + 2,250 = 27,250 · Sundry Creditors 37,350 · Expenses Payable 3,300 · Outstanding Salaries 11,500
+Assets: Land & Building 47,000 · Plant & Machinery 45,000 · Furniture & Fixtures 17,000 · Office Equipments 9,600 · Closing Stock 45,000 · Sundry Debtors 39,200 · Prepaid Insurance 250 · Cash at Bank 16,000
+
+⏱️ CHAPTERS
+0:00 Q36 quiz answer · 1 hidden adjustment?
+0:24 The question (Trial Balance)
+1:13 The 6 adjustments (pause & try)
+2:02 Read the Trial Balance: Purchases Adjusted & hidden interest
+3:01 (iv) Salary to proprietor
+3:29 (iii) & (v) Prepaid insurance, outstanding salaries
+4:04 (ii) Provision for doubtful debts
+4:32 (i) Depreciation
+5:08 Trading Account
+5:47 Profit & Loss Account (General Reserve)
+6:54 Balance Sheet
+8:12 4 exam traps
+8:51 Recap
+
+▶ Previous: Q36 2 Hidden Adjustments — https://youtu.be/PQAtokoqZfg · Q38 Purchases Adjusted — https://youtu.be/4Scn74ivA3I · Q39 8 Adjustments — https://youtu.be/xARyjWijgpQ
+
+📄 Want these solved notes as a PDF (Questions 34, 35 & 36)? Message us on WhatsApp.
+
+👨‍🏫 ABOUT US
+Rainy Goodwill · Goodwill Tuition Centre, Ernakulam, Kerala — 30 years of teaching Accountancy, since 1999.
+
+🌐 www.goodwillonlinetuition.com
+📞 WhatsApp: +91 95679 02805 → https://wa.me/919567902805
+Book a paid demo class on WhatsApp.
+Online Accountancy classes for CBSE Class 11 & 12 students in UAE, Saudi Arabia, Qatar, Kuwait, Oman & Bahrain.
+
+Disclaimer: This video is an independent explanation for students. T.S. Grewal's Double Entry Book Keeping is referred to only so students can find the question in their own textbook.
+
+#TSGrewal #CBSEClass11 #Accountancy #FinalAccounts #BalanceSheet
